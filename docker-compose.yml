@@ -1,0 +1,19 @@
+version: '3.8'
+
+services :
+    backend :
+        image: dungcan2k5/sahafa-backend:latest # < Thay user của m vao
+        restart: always
+        ports :
+            - "3000:3000"
+        environment :
+            - DB_HOST= ...
+            - DB_USER=
+            # (Điền env của VPS vào đây)
+    frontend:
+        image: dungcan2k5/sahafa-frontend:latest # < Thay user của m vao
+        restart: always
+        ports:
+            - "80:80"
+        depends_on :
+            - backend
