@@ -16,11 +16,10 @@
               :is="item.icon" 
               class="w-full h-full" 
               :class="item.iconClass" 
-              stroke-width="1.5"
             />
           </div>
           
-          <span class="text-[13px] text-center text-gray-600 font-medium group-hover:text-fahasa-blue transition-colors leading-tight px-1 h-8 flex items-start justify-center">
+          <span class="text-[13px] text-center text-gray-600 font-medium group-hover:text-blue-600 transition-colors leading-tight px-1 h-8 flex items-start justify-center">
             {{ item.name }}
           </span>
         </div>
@@ -32,78 +31,79 @@
 
 <script setup>
 import { ref } from 'vue';
-// Import các icon từ thư viện lucide-vue-next
+
+// Import các icon từ thư viện @element-plus/icons-vue
 import { 
-  CalendarDays, 
-  Gift, 
-  TicketPercent, 
-  CheckCircle2, 
-  PenTool, 
-  Zap, 
-  Sparkles, 
-  Store, 
-  Globe2, 
-  BookOpen 
-} from 'lucide-vue-next';
+  Calendar,       // Thay cho CalendarDays
+  Present,        // Thay cho Gift
+  Ticket,         // Thay cho TicketPercent
+  CircleCheck,    // Thay cho CheckCircle2
+  EditPen,        // Thay cho PenTool
+  Lightning,      // Thay cho Zap
+  Star,           // Thay cho Sparkles
+  Shop,           // Thay cho Store
+  Compass,        // Thay cho Globe2 (Ngoại văn)
+  Notebook        // Thay cho BookOpen (Manga)
+} from '@element-plus/icons-vue';
 
 const categories = ref([
   { 
     name: '12.12', 
-    icon: CalendarDays, 
-    bgClass: 'bg-red-50 group-hover:bg-red-100', // Nền đỏ nhạt
-    iconClass: 'text-red-500' // Icon đỏ
+    icon: Calendar, 
+    bgClass: 'bg-red-50 group-hover:bg-red-100', 
+    iconClass: 'text-red-500' 
   },
   { 
     name: 'Gift Card', 
-    icon: Gift, 
+    icon: Present, 
     bgClass: 'bg-green-50 group-hover:bg-green-100',
     iconClass: 'text-green-600'
   },
   { 
     name: 'Mã Giảm Giá', 
-    icon: TicketPercent, 
+    icon: Ticket, 
     bgClass: 'bg-orange-50 group-hover:bg-orange-100',
     iconClass: 'text-orange-500'
   },
   { 
     name: 'Điểm Danh', 
-    icon: CheckCircle2, 
+    icon: CircleCheck, 
     bgClass: 'bg-blue-50 group-hover:bg-blue-100',
     iconClass: 'text-blue-500'
   },
   { 
     name: 'Deli', 
-    icon: PenTool, 
+    icon: EditPen, 
     bgClass: 'bg-purple-50 group-hover:bg-purple-100',
     iconClass: 'text-purple-500'
   },
   { 
     name: 'Flash Sale', 
-    icon: Zap, 
+    icon: Lightning, 
     bgClass: 'bg-yellow-50 group-hover:bg-yellow-100',
-    iconClass: 'text-yellow-500 fill-current' // fill-current để tô màu đặc bên trong
+    iconClass: 'text-yellow-500' 
   },
   { 
     name: 'Sản Phẩm Mới', 
-    icon: Sparkles, 
+    icon: Star, 
     bgClass: 'bg-pink-50 group-hover:bg-pink-100',
     iconClass: 'text-pink-500'
   },
   { 
     name: 'Phiên Chợ Cũ', 
-    icon: Store, 
+    icon: Shop, 
     bgClass: 'bg-teal-50 group-hover:bg-teal-100',
     iconClass: 'text-teal-600'
   },
   { 
     name: 'Ngoại Văn', 
-    icon: Globe2, 
+    icon: Compass, 
     bgClass: 'bg-indigo-50 group-hover:bg-indigo-100',
     iconClass: 'text-indigo-500'
   },
   { 
     name: 'Manga', 
-    icon: BookOpen, 
+    icon: Notebook, 
     bgClass: 'bg-rose-50 group-hover:bg-rose-100',
     iconClass: 'text-rose-500'
   },

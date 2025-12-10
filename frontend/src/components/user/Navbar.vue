@@ -66,6 +66,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useCartStore } from '@/stores/cart';
+import CategoryNav from '@/components/user/CategoryNav.vue';
 import LoginModal from '@/components/user/LoginModal.vue'; // Import Modal
 
 const cartStore = useCartStore();
