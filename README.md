@@ -56,7 +56,7 @@
 - **CORS** - Cross-origin resource sharing
 
 ### Database
-- **MySQL 8.0** / **MariaDB 10.6+**
+- **SQLite3**
 - Relational schema with proper indexing
 - Migrations managed by Sequelize
 
@@ -126,7 +126,7 @@ SahafaBookStore/
 ### Prerequisites
 - Node.js 18+
 - Docker & Docker Compose
-- MySQL 8.0+ (hoặc MariaDB)
+- SQLite
 - Git
 
 ### Local Development

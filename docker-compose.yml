@@ -1,19 +1,29 @@
 version: '3.8'
 
-services :
-    backend :
-        image: dungcan2k5/sahafa-backend:latest # < Thay user của m vao
-        restart: always
-        ports :
-            - "3000:3000"
-        environment :
-            - DB_HOST= ...
-            - DB_USER=
-            # (Điền env của VPS vào đây)
-    frontend:
-        image: dungcan2k5/sahafa-frontend:latest # < Thay user của m vao
-        restart: always
-        ports:
-            - "80:80"
-        depends_on :
-            - backend
+services:
+  backend:
+    image: dungcan2k5/sahafa-backend:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      # QUAN TRỌNG: Map thư mục chứa DB ở máy thật vào trong container
+      # ./data là thư mục trên VPS (tự tạo ra)
+      # /app/data là thư mục bên trong container (nơi code backend trỏ tới)
+      - ./data:/app/data
+    environment:
+      # Với SQLite, backend thường chỉ cần biết file nằm ở đâu
+      # Tên biến này (DATABASE_URL hay DB_PATH) phụ thuộc vào code backend của bạn viết là gì.
+      # Ví dụ phổ biến với Prisma/TypeORM/Sequelize:
+      - DATABASE_URL=file:/app/data/sahafa.sqlite
+      
+      # Các biến khác (JWT, PORT,...) nếu có
+      - PORT=3000
+
+  frontend:
+    image: dungcan2k5/sahafa-frontend:latest
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
