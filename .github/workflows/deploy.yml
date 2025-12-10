@@ -65,8 +65,8 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sahafa-frontend:latest
           
           # Chạy lại (lúc này đã có file docker-compose.yml mới copy sang)
-          docker-compose down
-          docker-compose up -d
+          docker compose down
+          docker compose up -d
           
           # Dọn rác
           docker image prune -f
