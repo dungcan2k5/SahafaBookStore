@@ -132,7 +132,8 @@ import { ref, onMounted } from 'vue';
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 // Không cần import FlashSale.vue nữa vì đã gộp
-import BookListSection from '@/components/user/BookListSection.vue'; 
+import BookListSection from '@/components/user/BookListSection.vue';
+import TrendingPage from '@/pages/user/TrendingPage.vue';
 
 // Data
 const flashSaleBooks = ref([]);
