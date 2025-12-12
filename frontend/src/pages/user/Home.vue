@@ -99,6 +99,7 @@ onMounted(() => {
       title="Xu Hướng Mua Sắm" 
       headerClass="bg-pink-100"
       :books="trendingBooks"
+      seemoreLink="/trending"
     />
 
     <BookListSection 
