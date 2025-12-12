@@ -58,7 +58,8 @@
       </div>
 
       <div class="text-center pb-4 pt-2">
-         <button @click="goToSeemore" class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</button>
+         <router-link v-if="seeMoreLink" :to="seeMoreLink" class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</router-link>
+         <button v-else class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</button>
       </div>
     </div>
   </div>
@@ -66,9 +67,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
 
 const props = defineProps({
   title: String,
@@ -77,7 +75,7 @@ const props = defineProps({
   iconBgClass: String,
   showTimer: { type: Boolean, default: false },
   showProgressBar: { type: Boolean, default: false },
-  seemoreLink: String
+  seeMoreLink: String
 });
 
 const scrollContainer = ref(null);
@@ -88,13 +86,6 @@ const scroll = (direction) => {
   }
 };
 const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v);
-
-// Hàm xử lý khi click "Xem Thêm"
-const goToSeemore = () => {
-  if (props.seemoreLink) {
-    router.push(props.seemoreLink);
-  }
-};
 
 // --- LOGIC ĐỒNG HỒ ĐẾM NGƯỢC ---
 const hours = ref('02');

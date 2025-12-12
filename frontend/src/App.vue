@@ -36,6 +36,7 @@ import HelloWorld from './components/HelloWorld.vue'
       <router-view />
     </main>
 
+
     <Footer />
   </div>
 </template>
