@@ -36,11 +36,11 @@ import HelloWorld from './components/HelloWorld.vue'
       <router-view />
     </main>
 
-    <!-- <Footer /> -->
+    <Footer />
   </div>
 </template>
 
 <script setup>
 import Navbar from '@/components/user/Navbar.vue';
-// import Footer from '@/components/user/Footer.vue';
+import Footer from '@/components/user/Footer.vue';
 </script>

@@ -30,7 +30,10 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    return { top: 0 };
+  }// Luôn cuộn về đầu trang khi chuyển route
 })
 
 export default router
