@@ -6,14 +6,14 @@
         <button 
           @click="activeTab = 'login'"
           class="w-1/2 pb-3 text-lg font-medium transition-all relative"
-          :class="activeTab === 'login' ? 'text-[#C92127] border-b-2 border-[#C92127] font-bold' : 'text-gray-500 hover:text-[#C92127]'"
+          :class="activeTab === 'login' ? 'text-[#2563EB] border-b-2 border-[#2563EB] font-bold' : 'text-gray-500 hover:text-[#2563EB]'"
         >
           Đăng nhập
         </button>
         <button 
           @click="activeTab = 'register'"
           class="w-1/2 pb-3 text-lg font-medium transition-all relative"
-          :class="activeTab === 'register' ? 'text-[#C92127] border-b-2 border-[#C92127] font-bold' : 'text-gray-500 hover:text-[#C92127]'"
+          :class="activeTab === 'register' ? 'text-[#2563EB] border-b-2 border-[#2563EB] font-bold' : 'text-gray-500 hover:text-[#2563EB]'"
         >
           Đăng ký
         </button>
@@ -43,9 +43,9 @@
           </button>
         </div>
         <div class="text-right">
-          <a @click="activeTab = 'forgot'" class="text-sm text-[#C92127] hover:underline cursor-pointer">Quên mật khẩu?</a>
+          <a @click="activeTab = 'forgot'" class="text-sm text-[#2563EB] hover:underline cursor-pointer">Quên mật khẩu?</a>
         </div>
-        <button class="bg-[#C92127] text-white font-bold py-3 rounded mt-2 hover:bg-blue-700 transition duration-300 shadow-sm">
+        <button class="bg-[#2563EB] text-white font-bold py-3 rounded mt-2 hover:bg-blue-700 transition duration-300 shadow-sm">
           Đăng nhập
         </button>
       </div>
@@ -155,7 +155,7 @@
           
           <button 
             @click="activeTab = 'login'"
-            class="bg-white text-[#C92127] border border-[#C92127] font-bold py-3 rounded hover:bg-blue-50 transition"
+            class="bg-white text-[#2563EB] border border-[#2563EB] font-bold py-3 rounded hover:bg-blue-50 transition"
           >
             Trở về
           </button>
