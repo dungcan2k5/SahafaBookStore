@@ -134,6 +134,7 @@ import GiftCardSection from '@/components/user/GiftCardSection.vue';
 // Không cần import FlashSale.vue nữa vì đã gộp
 import BookListSection from '@/components/user/BookListSection.vue';
 import TrendingPage from '@/pages/user/TrendingPage.vue';
+import { bookService } from '@/services/bookService'; 
 
 // Data
 const flashSaleBooks = ref([]);
