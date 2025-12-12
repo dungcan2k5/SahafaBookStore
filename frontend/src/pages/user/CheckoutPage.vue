@@ -257,14 +257,34 @@ const submitOrder = () => {
 <style scoped>
 /* CSS cho ô nhập liệu */
 .input-field {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm bg-white;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  font-size: 0.875rem;
+  background-color: white;
+}
+.input-field:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
 }
 /* CSS khi có lỗi (viền đỏ) */
 .input-field.error {
-  @apply border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-200;
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+.input-field.error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 1px #fca5a5;
 }
 /* CSS dòng chữ báo lỗi */
 .error-text {
-  @apply text-red-500 text-xs italic mt-1 block;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-top: 0.25rem;
+  display: block;
 }
 </style>
