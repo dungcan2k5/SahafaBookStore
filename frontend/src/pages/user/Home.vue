@@ -125,8 +125,8 @@ onMounted(() => {
     />
     <BookListSection 
       title="Gợi Ý Cho Bạn" 
-      headerClass="bg-purple-50"
-      iconBgClass="bg-purple-100 text-purple-600"
+      headerClass="bg-green-50"
+      iconBgClass="bg-green-100 text-purple-600"
       :books="suggestionsBooks"
       seeMoreLink="/suggestions"
     >
