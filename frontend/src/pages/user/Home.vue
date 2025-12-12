@@ -147,7 +147,6 @@ import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 // Không cần import FlashSale.vue nữa vì đã gộp
 import BookListSection from '@/components/user/BookListSection.vue';
-import TrendingPage from '@/pages/user/TrendingPage.vue';
 import { bookService } from '@/services/bookService'; 
 
 // Data
@@ -156,18 +155,34 @@ const trendingBooks = ref([]);
 const newBooks = ref([]);
 const skillBooks = ref([]);
 const literatureBooks = ref([]);
+const suggestionsBooks = ref([]);
 
-onMounted(async () => {
-  await new Promise(r => setTimeout(r, 500)); // Mock API
-  
-  flashSaleBooks.value = [
-     { id: 99, title: 'Harry Potter Boxset', price: 1200000, oldPrice: 2000000, discount: 40, sold: 15, image: 'https://cdn0.fahasa.com/media/catalog/product/h/a/harry-potter-full.jpg' },
-     { id: 98, title: 'Sherlock Holmes', price: 150000, oldPrice: 300000, discount: 50, sold: 45, image: 'https://cdn0.fahasa.com/media/catalog/product/s/h/sherlock-holmes.jpg' },
-  ];
+const fetchAllData = async () => {
+  try {
+    // 1. Gọi API lấy dữ liệu thật
+    const [flash, trend, news] = await Promise.all([
+      bookService.getFlashSale(),
+      bookService.getTrending(),
+      bookService.getNewArrivals()
+    ]);
 
-  trendingBooks.value = [{ id: 1, title: 'Nhà Giả Kim', price: 63000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' }, { id: 2, title: 'Cây Cam Ngọt Của Tôi', price: 86000, discount: 20, sold: 540, image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg' }];
-  newBooks.value = [{ id: 3, title: 'Muôn Kiếp Nhân Sinh', price: 180000, discount: 10, sold: 50, image: 'https://cdn0.fahasa.com/media/catalog/product/m/u/muon-kiep-nhan-sinh-2.jpg' }];
-  skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
-  literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    flashSaleBooks.value = flash;
+    trendingBooks.value = trend;
+    newBooks.value = news;
+
+    // 2. Điền dữ liệu bổ sung (cho các phần chưa có API)
+    skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
+    literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    suggestionsBooks.value = [
+      { id: 6, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', price: 95000, discount: 10, sold: 200, image: 'https://cdn0.fahasa.com/media/catalog/product/t/o/toi-thay-hoa-vang-tren-co-xanh.jpg' },
+      { id: 7, title: 'Sapiens: Lược Sử Loài Người', price: 150000, discount: 20, sold: 150, image: 'https://cdn0.fahasa.com/media/catalog/product/s/a/sapiens.jpg' }
+    ];
+    
+  } catch (error) {
+    console.error("Lỗi:", error);
+  }
+};
+  onMounted(() => {
+  fetchAllData();
 });
 </script>
