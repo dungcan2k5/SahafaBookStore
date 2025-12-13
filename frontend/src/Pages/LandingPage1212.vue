@@ -62,7 +62,10 @@ onUnmounted(() => {
     
     <header class="bg-white shadow-sm py-3 sticky top-0 z-50">
         <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
-            <h1 class="text-3xl font-black text-primary tracking-tighter">SAHAFA<span class="text-yellow-400">.COM</span></h1>
+            <router-link to="/" class="text-3xl font-black text-primary tracking-tighter cursor-pointer hover:opacity-80 transition-opacity">
+                SAHAFA<span class="text-yellow-400">.COM</span>
+            </router-link>
+            
             <div class="flex gap-4 text-sm font-medium text-gray-600">
                 <span class="hover:text-primary cursor-pointer">Thông báo</span>
                 <span class="hover:text-primary cursor-pointer">Giỏ hàng</span>
@@ -70,7 +73,6 @@ onUnmounted(() => {
             </div>
         </div>
     </header>
-
     <div class="container mx-auto px-4 py-6 max-w-7xl">
         <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-primary-dark to-primary border-4 border-white/20">
             <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent"></div>
