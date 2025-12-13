@@ -22,18 +22,38 @@
         <div>
           <h3 class="font-bold text-gray-800 uppercase mb-4 text-base">DỊCH VỤ</h3>
           <ul class="space-y-2">
-            <li><a href="#" class="hover:text-blue-600 transition">Điều khoản sử dụng</a></li>
-            <li><a href="#" class="hover:text-blue-600 transition">Chính sách bảo mật thông tin cá nhân</a></li>
-            <li><a href="#" class="hover:text-blue-600 transition">Chính sách bảo mật thanh toán</a></li>
-            <li><a href="#" class="hover:text-blue-600 transition">Giới thiệu Sahafa</a></li>
-            <li><a href="#" class="hover:text-blue-600 transition">Hệ thống nhà sách</a></li>
+            <li>
+              <router-link :to="{ name: 'policy', params: { slug: 'dieu-khoan-su-dung' }}" class="hover:text-blue-600 transition">
+                Điều khoản sử dụng
+              </router-link>
+            </li>
+            <li>
+              <router-link :to="{ name: 'policy', params: { slug: 'chinh-sach-bao-mat' }}" class="hover:text-blue-600 transition">
+                Chính sách bảo mật thông tin cá nhân
+              </router-link>
+            </li>
+            <li>
+              <router-link :to="{ name: 'policy', params: { slug: 'bao-mat-thanh-toan' }}" class="hover:text-blue-600 transition">
+                Chính sách bảo mật thanh toán
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/about" class="hover:text-blue-600 transition">
+                Giới thiệu Sahafa
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/store-system" class="hover:text-blue-600 transition">
+                Hệ thống nhà sách
+              </router-link>
+            </li>
           </ul>
         </div>
 
         <div>
           <h3 class="font-bold text-gray-800 uppercase mb-4 text-base">TÀI KHOẢN CỦA TÔI</h3>
           <ul class="space-y-2 mb-6">
-            <li><a href="#" class="hover:text-blue-600 transition">Đăng nhập / Tạo mới tài khoản</a></li>
+            <li><router-link to="/login" class="hover:text-blue-600 transition">Đăng nhập / Tạo mới tài khoản</router-link></li>
             <li><a href="#" class="hover:text-blue-600 transition">Thay đổi địa chỉ khách hàng</a></li>
             <li><a href="#" class="hover:text-blue-600 transition">Chi tiết tài khoản</a></li>
             <li><a href="#" class="hover:text-blue-600 transition">Lịch sử mua hàng</a></li>

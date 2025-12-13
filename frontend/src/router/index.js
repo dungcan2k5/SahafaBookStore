@@ -5,6 +5,7 @@ import Login from '../pages/user/Login.vue'
 import SuggestionsPage from '../pages/user/SuggestionsPage.vue'
 import CheckoutPage from '../pages/user/CheckoutPage.vue'
 import TrendingPage from '../pages/user/TrendingPage.vue'
+import Term from '../pages/user/Term.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -25,6 +26,11 @@ const routes = [
     path: '/checkout', 
     name: 'Checkout', 
     component: CheckoutPage 
+  },
+  {
+    path: '/policy/:slug',
+      name: 'policy',
+      component: Term,
   }
 ]
 
