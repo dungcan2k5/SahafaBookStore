@@ -1,5 +1,5 @@
-<script setup>
-import LandingPage1212 from './Pages/LandingPage1212.vue';
+<!-- <script setup>
+import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
@@ -18,4 +18,24 @@ body {
   padding: 0;
   background-color: #1F5EFF;
 }
-</style>
+.logo.vue:hover {
+  filter: drop-shadow(0 0 2em #42b883aa);
+}
+</style> -->
+<template>
+  <div class="flex flex-col min-h-screen bg-[#F0F0F0] font-sans text-gray-700">
+    <Navbar />
+
+    <main class="flex-1">
+      <router-view />
+    </main>
+
+
+    <Footer />
+  </div>
+</template>
+
+<script setup>
+import Navbar from '@/components/user/Navbar.vue';
+import Footer from '@/components/user/Footer.vue';
+</script>
