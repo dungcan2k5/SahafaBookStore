@@ -6,6 +6,7 @@
         <div 
           v-for="(item, index) in categories" 
           :key="index" 
+          @click="goTo(item.path)"
           class="flex flex-col items-center justify-start cursor-pointer group hover:-translate-y-1 transition-transform duration-300 gap-2"
         >
           <div 
@@ -30,6 +31,12 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+const goTo = (path) => {
+  if (path) router.push(path);
+};
 import { ref } from 'vue';
 
 // Import các icon từ thư viện @element-plus/icons-vue
@@ -51,7 +58,8 @@ const categories = ref([
     name: '12.12', 
     icon: Calendar, 
     bgClass: 'bg-red-50 group-hover:bg-red-100', 
-    iconClass: 'text-red-500' 
+    iconClass: 'text-red-500',
+    path: '/event-1212'
   },
   { 
     name: 'Gift Card', 

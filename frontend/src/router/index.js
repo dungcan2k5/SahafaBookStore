@@ -1,12 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/user/Home.vue'
+import Home from '../Pages/user/Home.vue'
 // import BookDetail from '../pages/user/BookDetail.vue'
 import Login from '../pages/user/Login.vue'
+import Event1212 from '../Pages/event/Event1212.vue' 
+import CategoryNav from '../components/user/CategoryNav.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
-  // { path: '/books/:id', name: 'BookDetail', component: BookDetail },
-  { path: '/login', name: 'Login', component: Login } // <--- Thêm dòng này
+  { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/event-1212',
+    name: 'Event1212', 
+    component: Event1212
+  }
 ]
 
 const router = createRouter({

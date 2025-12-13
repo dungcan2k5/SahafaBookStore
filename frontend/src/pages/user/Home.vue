@@ -139,7 +139,6 @@ import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-
 // Import Service API (Giữ lại cái này để lấy dữ liệu thật)
 import { bookService } from '@/services/bookService'; 
 
