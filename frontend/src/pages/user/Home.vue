@@ -1,77 +1,3 @@
-<!-- <template>
-  <div class="pb-10">
-    <div class="container mx-auto py-4 px-4">
-      <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 lg:col-span-8 bg-white rounded-lg overflow-hidden h-[320px]">
-          <img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/t/r/trang_trong_tung_hop_banh_slide_840x320.jpg" class="w-full h-full object-cover" />
-        </div>
-        <div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
-          <div class="h-[152px] rounded-lg overflow-hidden"><img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/z/a/zalo_pay_392x156.jpg" class="w-full h-full object-cover"/></div>
-          <div class="h-[152px] rounded-lg overflow-hidden"><img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/v/p/vpbank_392x156.jpg" class="w-full h-full object-cover"/></div>
-        </div>
-      </div>
-    </div>
-
-    <CategoryNav />
-    <FlashSale /> 
-    <GiftCardSection />
-    <ProductCategory />
-
-    <BookListSection 
-      v-if="trendingBooks.length"
-      title="Xu Hướng Mua Sắm" 
-      headerClass="bg-pink-100"
-      :books="trendingBooks"
-    />
-
-    <BookListSection 
-      v-if="newBooks.length"
-      title="Sách Mới Tuyển Chọn" 
-      :books="newBooks"
-    />
-
-    <BookListSection 
-      v-if="skillBooks.length"
-      title="Tâm Lý - Kỹ Năng Sống"
-      headerClass="bg-blue-50"
-      iconBgClass="bg-blue-100 text-blue-600"
-      :books="skillBooks"
-    />
-  </div>
-</template>
-
-<script setup>
-import { ref, onMounted } from 'vue';
-import CategoryNav from '@/components/user/CategoryNav.vue';
-import FlashSale from '@/components/user/FlashSale.vue';
-import GiftCardSection from '@/components/user/GiftCardSection.vue';
-import ProductCategory from '@/components/user/ProductCategory.vue';
-import BookListSection from '@/components/user/BookListSection.vue';
-
-const trendingBooks = ref([]);
-const newBooks = ref([]);
-const skillBooks = ref([]);
-
-const fetchHomeData = async () => {
-  // Giả lập dữ liệu
-  await new Promise(r => setTimeout(r, 500));
-  
-  trendingBooks.value = [
-    { id: 1, title: 'Nhà Giả Kim', price: 63000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },
-    { id: 2, title: 'Cây Cam Ngọt Của Tôi', price: 86000, discount: 20, sold: 540, image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg' }
-  ];
-  newBooks.value = [
-    { id: 3, title: 'Muôn Kiếp Nhân Sinh', price: 180000, discount: 10, sold: 50, image: 'https://cdn0.fahasa.com/media/catalog/product/m/u/muon-kiep-nhan-sinh-2.jpg' }
-  ];
-  skillBooks.value = [
-    { id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }
-  ];
-};
-
-onMounted(() => {
-  fetchHomeData();
-});
-</script> -->
 <template>
   <div class="pb-10">
     <div class="container mx-auto py-4 px-4"><div class="grid grid-cols-12 gap-4"><div class="col-span-12 lg:col-span-8 bg-white rounded-lg overflow-hidden h-[320px]"><img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/t/r/trang_trong_tung_hop_banh_slide_840x320.jpg" class="w-full h-full object-cover" /></div><div class="col-span-12 lg:col-span-4 flex flex-col gap-4"><div class="h-[152px] rounded-lg overflow-hidden"><img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/z/a/zalo_pay_392x156.jpg" class="w-full h-full object-cover"/></div><div class="h-[152px] rounded-lg overflow-hidden"><img src="https://cdn0.fahasa.com/media/magentotheme/banner/banner760/v/p/vpbank_392x156.jpg" class="w-full h-full object-cover"/></div></div></div></div>
@@ -99,6 +25,7 @@ onMounted(() => {
       title="Xu Hướng Mua Sắm" 
       headerClass="bg-pink-100"
       :books="trendingBooks"
+      seemoreLink="/trending"
     />
 
     <BookListSection 
@@ -122,6 +49,20 @@ onMounted(() => {
       iconBgClass="bg-yellow-100 text-yellow-600"
       :books="literatureBooks"
     />
+    <BookListSection 
+      title="Gợi Ý Cho Bạn" 
+      headerClass="bg-green-50"
+      iconBgClass="bg-green-100 text-purple-600"
+      :books="suggestionsBooks"
+      seeMoreLink="/suggestions"
+    >
+      <!-- Icon bóng đèn cho section gợi ý -->
+      <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      </template>
+    </BookListSection>
 
   </div>
 </template>
@@ -131,7 +72,8 @@ import { ref, onMounted } from 'vue';
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 // Không cần import FlashSale.vue nữa vì đã gộp
-import BookListSection from '@/components/user/BookListSection.vue'; 
+import BookListSection from '@/components/user/BookListSection.vue';
+import { bookService } from '@/services/bookService'; 
 
 // Data
 const flashSaleBooks = ref([]);
@@ -139,18 +81,34 @@ const trendingBooks = ref([]);
 const newBooks = ref([]);
 const skillBooks = ref([]);
 const literatureBooks = ref([]);
+const suggestionsBooks = ref([]);
 
-onMounted(async () => {
-  await new Promise(r => setTimeout(r, 500)); // Mock API
-  
-  flashSaleBooks.value = [
-     { id: 99, title: 'Harry Potter Boxset', price: 1200000, oldPrice: 2000000, discount: 40, sold: 15, image: 'https://cdn0.fahasa.com/media/catalog/product/h/a/harry-potter-full.jpg' },
-     { id: 98, title: 'Sherlock Holmes', price: 150000, oldPrice: 300000, discount: 50, sold: 45, image: 'https://cdn0.fahasa.com/media/catalog/product/s/h/sherlock-holmes.jpg' },
-  ];
+const fetchAllData = async () => {
+  try {
+    // 1. Gọi API lấy dữ liệu thật
+    const [flash, trend, news] = await Promise.all([
+      bookService.getFlashSale(),
+      bookService.getTrending(),
+      bookService.getNewArrivals()
+    ]);
 
-  trendingBooks.value = [{ id: 1, title: 'Nhà Giả Kim', price: 63000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' }, { id: 2, title: 'Cây Cam Ngọt Của Tôi', price: 86000, discount: 20, sold: 540, image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg' }];
-  newBooks.value = [{ id: 3, title: 'Muôn Kiếp Nhân Sinh', price: 180000, discount: 10, sold: 50, image: 'https://cdn0.fahasa.com/media/catalog/product/m/u/muon-kiep-nhan-sinh-2.jpg' }];
-  skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
-  literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    flashSaleBooks.value = flash;
+    trendingBooks.value = trend;
+    newBooks.value = news;
+
+    // 2. Điền dữ liệu bổ sung (cho các phần chưa có API)
+    skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
+    literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    suggestionsBooks.value = [
+      { id: 6, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', price: 95000, discount: 10, sold: 200, image: 'https://cdn0.fahasa.com/media/catalog/product/t/o/toi-thay-hoa-vang-tren-co-xanh.jpg' },
+      { id: 7, title: 'Sapiens: Lược Sử Loài Người', price: 150000, discount: 20, sold: 150, image: 'https://cdn0.fahasa.com/media/catalog/product/s/a/sapiens.jpg' }
+    ];
+    
+  } catch (error) {
+    console.error("Lỗi:", error);
+  }
+};
+  onMounted(() => {
+  fetchAllData();
 });
 </script>
