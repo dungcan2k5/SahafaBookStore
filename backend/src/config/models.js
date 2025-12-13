@@ -1,200 +1,259 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('./database'); 
 
-// ============================================================
-// 1. NHÓM TÀI KHOẢN & ĐỊA CHỈ
-// ============================================================
+function initModels(sequelize) {
+  // ==========================================================
+  // 1. DEFINITIONS (Khai báo bảng)
+  // ==========================================================
 
-// Bảng: TAI_KHOAN
-const User = sequelize.define('User', {
-    UserID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, // PK tự tăng
-    HoTen: { type: DataTypes.STRING, allowNull: false },
-    Email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    SoDienThoai: { type: DataTypes.STRING },
-    VaiTro: { type: DataTypes.STRING, defaultValue: 'User' } // Admin/User
-}, {
-    tableName: 'TAI_KHOAN', // Tên bảng trong DB
-    timestamps: false // Tạm tắt created_at nếu ERD ko có (hoặc bật lên tùy mày)
-});
+  // --- Users & Auth ---
+  const User = sequelize.define('User', {
+    user_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    full_name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING },
+    role: { type: DataTypes.STRING, defaultValue: 'customer' }, // Hoặc ENUM nếu muốn cứng
+    avatar_url: { type: DataTypes.STRING },
+  }, {
+    tableName: 'USERS',
+    paranoid: true, // Có cột deleted_at
+    createdAt: 'created_at',
+    updatedAt: false, // ERD không vẽ updated_at, nếu cần thì bật true
+    deletedAt: 'deleted_at'
+  });
 
-// Bảng: SO_DIA_CHI
-const Address = sequelize.define('Address', {
-    DiaChiID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    DiaChiCuThe: { type: DataTypes.STRING, allowNull: false },
-    // UserID sẽ được tạo tự động qua quan hệ bên dưới
-}, {
-    tableName: 'SO_DIA_CHI',
-    timestamps: false
-});
+  const Address = sequelize.define('Address', {
+    address_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    address_detail: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING },
+    is_default: { type: DataTypes.BOOLEAN, defaultValue: false },
+    recipient_name: { type: DataTypes.STRING },
+  }, { tableName: 'ADDRESSES', timestamps: false });
 
-// ============================================================
-// 2. NHÓM SẢN PHẨM & METADATA
-// ============================================================
+  // --- Books & Catalog ---
+  const Book = sequelize.define('Book', {
+    book_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    book_title: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    stock_quantity: { type: DataTypes.INTEGER, defaultValue: 0 },
+    publication_year: { type: DataTypes.INTEGER },
+    description: { type: DataTypes.TEXT },
+    book_slug: { type: DataTypes.STRING, unique: true },
+    total_sold: { type: DataTypes.INTEGER, defaultValue: 0 },
+    average_rating: { type: DataTypes.FLOAT, defaultValue: 0 },
+    isbn: { type: DataTypes.STRING },
+  }, {
+    tableName: 'BOOKS',
+    paranoid: true,
+    createdAt: false,
+    updatedAt: false,
+    deletedAt: 'deleted_at'
+  });
 
-// Bảng: TAC_GIA
-const Author = sequelize.define('Author', {
-    TacGiaID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    TenTacGia: { type: DataTypes.STRING, allowNull: false }
-}, {
-    tableName: 'TAC_GIA',
-    timestamps: false
-});
+  const BookImage = sequelize.define('BookImage', {
+    book_image_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    book_image_url: { type: DataTypes.STRING, allowNull: false },
+  }, { tableName: 'BOOK_IMAGES', timestamps: false });
 
-// Bảng: THE_LOAI
-const Category = sequelize.define('Category', {
-    TheLoaiID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    TenTheLoai: { type: DataTypes.STRING, allowNull: false }
-}, {
-    tableName: 'THE_LOAI',
-    timestamps: false
-});
+  const Author = sequelize.define('Author', {
+    author_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    author_name: { type: DataTypes.STRING, allowNull: false },
+    author_bio: { type: DataTypes.TEXT },
+    author_slug: { type: DataTypes.STRING, unique: true },
+  }, { tableName: 'AUTHORS', timestamps: false });
 
-// Bảng: NHA_XUAT_BAN
-const Publisher = sequelize.define('Publisher', {
-    NhaXBID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    TenNXB: { type: DataTypes.STRING, allowNull: false }
-}, {
-    tableName: 'NHA_XUAT_BAN',
-    timestamps: false
-});
+  const Genre = sequelize.define('Genre', {
+    genre_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    genre_name: { type: DataTypes.STRING, allowNull: false },
+    genre_slug: { type: DataTypes.STRING, unique: true },
+  }, { tableName: 'GENRES', timestamps: false });
 
-// Bảng: SACH
-const Book = sequelize.define('Book', {
-    SachID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    TenSach: { type: DataTypes.STRING, allowNull: false },
-    GiaBan: { type: DataTypes.INTEGER, allowNull: false },
-    SoLuongTon: { type: DataTypes.INTEGER, defaultValue: 0 },
-    NamXuatBan: { type: DataTypes.INTEGER }
-    // TacGiaID, TheLoaiID, NhaXBID sẽ tự mapping qua quan hệ
-}, {
-    tableName: 'SACH',
-    timestamps: false
-});
+  const Publisher = sequelize.define('Publisher', {
+    publisher_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    publisher_name: { type: DataTypes.STRING, allowNull: false },
+    publisher_slug: { type: DataTypes.STRING, unique: true },
+  }, { tableName: 'PUBLISHERS', timestamps: false });
 
-// Bảng: HINH_ANH_SACH
-const BookImage = sequelize.define('BookImage', {
-    HinhAnhID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    UrlHinhAnh: { type: DataTypes.STRING, allowNull: false }
-}, {
-    tableName: 'HINH_ANH_SACH',
-    timestamps: false
-});
+  const Category = sequelize.define('Category', {
+    category_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    category_name: { type: DataTypes.STRING, allowNull: false },
+    category_slug: { type: DataTypes.STRING, unique: true },
+  }, { tableName: 'CATEGORIES', timestamps: false });
 
-// ============================================================
-// 3. NHÓM ĐƠN HÀNG & KHUYẾN MÃI
-// ============================================================
+  // --- Posts ---
+  const Post = sequelize.define('Post', {
+    post_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    title: { type: DataTypes.STRING, allowNull: false },
+    post_slug: { type: DataTypes.STRING, unique: true },
+    thumbnail_url: { type: DataTypes.STRING },
+    content: { type: DataTypes.TEXT },
+    status: { type: DataTypes.STRING, defaultValue: 'draft' }, // draft, published
+  }, { tableName: 'POSTS', timestamps: false });
 
-// Bảng: MA_GIAM_GIA
-const Discount = sequelize.define('Discount', {
-    GiamID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    Code: { type: DataTypes.STRING, allowNull: false, unique: true },
-    PhanTramGiam: { type: DataTypes.INTEGER, allowNull: false },
-    SoLuongConLai: { type: DataTypes.INTEGER, defaultValue: 0 },
-    NgayBatDau: { type: DataTypes.DATE },
-    NgayKetThuc: { type: DataTypes.DATE }
-}, {
-    tableName: 'MA_GIAM_GIA',
-    timestamps: false
-});
+  // --- Sales & Orders ---
+  const Cart = sequelize.define('Cart', {
+    cart_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  }, { tableName: 'CARTS', timestamps: false });
 
-// Bảng: DON_HANG
-const Order = sequelize.define('Order', {
-    DonID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    NgayDat: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    TongTien: { type: DataTypes.INTEGER, defaultValue: 0 },
-    TrangThaiDon: { type: DataTypes.STRING, defaultValue: 'Pending' },
-    DiaChiGiaoHang: { type: DataTypes.STRING, allowNull: false } // Snapshot địa chỉ text
-}, {
-    tableName: 'DON_HANG',
-    timestamps: false
-});
+  const CartItem = sequelize.define('CartItem', {
+    cart_item_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, defaultValue: 1 },
+  }, { tableName: 'CART_ITEMS', timestamps: false });
 
-// Bảng: CHI_TIET_DON_HANG
-const OrderDetail = sequelize.define('OrderDetail', {
-    ChiTietID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    SoLuongMua: { type: DataTypes.INTEGER, allowNull: false },
-    GiaTaiThoiDiemMua: { type: DataTypes.INTEGER, allowNull: false }
-}, {
-    tableName: 'CHI_TIET_DON_HANG',
-    timestamps: false
-});
+  const Voucher = sequelize.define('Voucher', {
+    voucher_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    code: { type: DataTypes.STRING, allowNull: false, unique: true },
+    discount_type: { type: DataTypes.ENUM('percent', 'fixed'), defaultValue: 'fixed' },
+    value: { type: DataTypes.DECIMAL(10, 2) },
+    min_order_value: { type: DataTypes.DECIMAL(10, 2) },
+    usage_limit: { type: DataTypes.INTEGER },
+    start_at: { type: DataTypes.DATE },
+    end_at: { type: DataTypes.DATE },
+  }, { tableName: 'VOUCHERS', timestamps: false });
 
-// ============================================================
-// 4. NHÓM NHẬP HÀNG (KHO) - MỚI THÊM
-// ============================================================
+  const Order = sequelize.define('Order', {
+    order_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    total_amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    final_amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    order_status: { type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled'), defaultValue: 'pending' },
+    payment_status: { type: DataTypes.STRING }, // paid, unpaid
+    // shipping_address trong ERD là FK trỏ Address
+  }, {
+    tableName: 'ORDERS',
+    paranoid: true,
+    createdAt: 'created_at',
+    updatedAt: false,
+    deletedAt: 'deleted_at'
+  });
 
-// Bảng: PHIEU_NHAP
-const ImportSlip = sequelize.define('ImportSlip', {
-    PhieuNhapID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    NgayNhap: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
-}, {
-    tableName: 'PHIEU_NHAP',
-    timestamps: false
-});
+  const OrderItem = sequelize.define('OrderItem', {
+    order_item_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, allowNull: false },
+    unit_price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    subtotal: { type: DataTypes.DECIMAL(10, 2) },
+  }, { tableName: 'ORDER_ITEMS', timestamps: false });
 
-// Bảng: CT_PHIEU_NHAP
-const ImportSlipDetail = sequelize.define('ImportSlipDetail', {
-    CTNhapID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    SoLuongNhap: { type: DataTypes.INTEGER, allowNull: false }
-}, {
-    tableName: 'CT_PHIEU_NHAP',
-    timestamps: false
-});
+  const Transaction = sequelize.define('Transaction', {
+    transaction_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    payment_method: { type: DataTypes.STRING },
+    amount: { type: DataTypes.DECIMAL(10, 2) },
+    status: { type: DataTypes.STRING }, // success, failed
+    payment_info: { type: DataTypes.JSON }, // Lưu meta data thanh toán
+  }, {
+    tableName: 'TRANSACTIONS',
+    createdAt: 'created_at',
+    updatedAt: false
+  });
 
-// ============================================================
-// 5. THIẾT LẬP QUAN HỆ (ASSOCIATIONS)
-// Quan trọng: Phải chỉ định rõ 'foreignKey' để nó không tự đẻ ra cái tên tào lao
-// ============================================================
+  // --- Reviews ---
+  const Review = sequelize.define('Review', {
+    review_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
+    comment: { type: DataTypes.TEXT },
+  }, { tableName: 'REVIEWS', timestamps: false });
 
-// User (1) -> Address (N)
-User.hasMany(Address, { foreignKey: 'UserID' });
-Address.belongsTo(User, { foreignKey: 'UserID' });
+  // --- Imports ---
+  const ImportReceipt = sequelize.define('ImportReceipt', {
+    import_receipt_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    supplier_name: { type: DataTypes.STRING },
+    total_cost: { type: DataTypes.DECIMAL(10, 2) },
+  }, {
+    tableName: 'IMPORT_RECEIPTS',
+    createdAt: 'created_at',
+    updatedAt: false
+  });
 
-// Author (1) -> Book (N)
-Author.hasMany(Book, { foreignKey: 'TacGiaID' });
-Book.belongsTo(Author, { foreignKey: 'TacGiaID' });
+  const ImportItem = sequelize.define('ImportItem', {
+    import_item_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, allowNull: false },
+    import_price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  }, { tableName: 'IMPORT_ITEMS', timestamps: false });
 
-// Category (1) -> Book (N)
-Category.hasMany(Book, { foreignKey: 'TheLoaiID' });
-Book.belongsTo(Category, { foreignKey: 'TheLoaiID' });
 
-// Publisher (1) -> Book (N)
-Publisher.hasMany(Book, { foreignKey: 'NhaXBID' });
-Book.belongsTo(Publisher, { foreignKey: 'NhaXBID' });
+  // ==========================================================
+  // 2. ASSOCIATIONS (Thiết lập quan hệ)
+  // ==========================================================
 
-// Book (1) -> Image (N)
-Book.hasMany(BookImage, { foreignKey: 'SachID' });
-BookImage.belongsTo(Book, { foreignKey: 'SachID' });
+  // --- Book Dependencies ---
+  Author.hasMany(Book, { foreignKey: 'author_id' });
+  Book.belongsTo(Author, { foreignKey: 'author_id' });
 
-// User (1) -> Order (N)
-User.hasMany(Order, { foreignKey: 'UserID' });
-Order.belongsTo(User, { foreignKey: 'UserID' });
+  Genre.hasMany(Book, { foreignKey: 'genre_id' });
+  Book.belongsTo(Genre, { foreignKey: 'genre_id' });
 
-// Discount (1) -> Order (N) - Optional
-Discount.hasMany(Order, { foreignKey: 'GiamID' });
-Order.belongsTo(Discount, { foreignKey: 'GiamID' });
+  Publisher.hasMany(Book, { foreignKey: 'publisher_id' });
+  Book.belongsTo(Publisher, { foreignKey: 'publisher_id' });
 
-// Order (1) -> OrderDetail (N)
-Order.hasMany(OrderDetail, { foreignKey: 'DonID' });
-OrderDetail.belongsTo(Order, { foreignKey: 'DonID' });
+  Book.hasMany(BookImage, { foreignKey: 'book_id' });
+  BookImage.belongsTo(Book, { foreignKey: 'book_id' });
 
-// Book (1) -> OrderDetail (N)
-Book.hasMany(OrderDetail, { foreignKey: 'SachID' });
-OrderDetail.belongsTo(Book, { foreignKey: 'SachID' });
+  // --- User Related ---
+  User.hasMany(Address, { foreignKey: 'user_id' });
+  Address.belongsTo(User, { foreignKey: 'user_id' });
 
-// ImportSlip (1) -> ImportSlipDetail (N)
-ImportSlip.hasMany(ImportSlipDetail, { foreignKey: 'PhieuNhapID' });
-ImportSlipDetail.belongsTo(ImportSlip, { foreignKey: 'PhieuNhapID' });
+  User.hasMany(Cart, { foreignKey: 'user_id' });
+  Cart.belongsTo(User, { foreignKey: 'user_id' });
 
-// Book (1) -> ImportSlipDetail (N)
-Book.hasMany(ImportSlipDetail, { foreignKey: 'SachID' });
-ImportSlipDetail.belongsTo(Book, { foreignKey: 'SachID' });
+  User.hasMany(Order, { foreignKey: 'user_id' });
+  Order.belongsTo(User, { foreignKey: 'user_id' });
 
-// Export hết ra
-module.exports = { 
-    sequelize, // Export cả cái instance để dùng transaction nếu cần
-    User, Address, 
-    Author, Category, Publisher, Book, BookImage, 
-    Discount, Order, OrderDetail, 
-    ImportSlip, ImportSlipDetail 
-};
+  User.hasMany(Post, { foreignKey: 'user_id' });
+  Post.belongsTo(User, { foreignKey: 'user_id' });
+
+  // --- Cart ---
+  Cart.hasMany(CartItem, { foreignKey: 'cart_id' });
+  CartItem.belongsTo(Cart, { foreignKey: 'cart_id' });
+
+  Book.hasMany(CartItem, { foreignKey: 'book_id' });
+  CartItem.belongsTo(Book, { foreignKey: 'book_id' });
+
+  // --- Order ---
+  Address.hasMany(Order, { foreignKey: 'shipping_address' }); // Link address giao hàng
+  Order.belongsTo(Address, { foreignKey: 'shipping_address' });
+
+  Voucher.hasMany(Order, { foreignKey: 'voucher_id' });
+  Order.belongsTo(Voucher, { foreignKey: 'voucher_id' });
+
+  Order.hasMany(OrderItem, { foreignKey: 'order_id' });
+  OrderItem.belongsTo(Order, { foreignKey: 'order_id' });
+
+  Book.hasMany(OrderItem, { foreignKey: 'book_id' });
+  OrderItem.belongsTo(Book, { foreignKey: 'book_id' });
+
+  User.hasMany(Transaction, { foreignKey: 'user_id' });
+  Transaction.belongsTo(User, { foreignKey: 'user_id' });
+
+  Order.hasMany(Transaction, { foreignKey: 'order_id' });
+  Transaction.belongsTo(Order, { foreignKey: 'order_id' });
+
+  // --- Reviews ---
+  User.hasMany(Review, { foreignKey: 'user_id' });
+  Review.belongsTo(User, { foreignKey: 'user_id' });
+
+  Book.hasMany(Review, { foreignKey: 'book_id' });
+  Review.belongsTo(Book, { foreignKey: 'book_id' });
+
+  Order.hasMany(Review, { foreignKey: 'order_id' });
+  Review.belongsTo(Order, { foreignKey: 'order_id' });
+
+  // --- Posts & Categories ---
+  Category.hasMany(Post, { foreignKey: 'category_id' });
+  Post.belongsTo(Category, { foreignKey: 'category_id' });
+
+  // --- Imports ---
+  ImportReceipt.hasMany(ImportItem, { foreignKey: 'import_receipt_id' });
+  ImportItem.belongsTo(ImportReceipt, { foreignKey: 'import_receipt_id' });
+
+  Book.hasMany(ImportItem, { foreignKey: 'book_id' });
+  ImportItem.belongsTo(Book, { foreignKey: 'book_id' });
+
+
+  // Trả về object chứa tất cả model
+  return {
+    User, Address, Book, BookImage, Author, Genre, Publisher, Category, Post,
+    Cart, CartItem, Voucher, Order, OrderItem, Transaction, Review,
+    ImportReceipt, ImportItem
+  };
+}
+
+module.exports = initModels;

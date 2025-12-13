@@ -3,7 +3,6 @@
     
     <div class="container mx-auto py-4 px-4">
       <div class="grid grid-cols-12 gap-4">
-        
         <div class="col-span-12 lg:col-span-8 bg-white rounded-lg overflow-hidden shadow-sm relative group h-[320px]">
           <div class="w-full h-full relative">
              <img 
@@ -45,7 +44,6 @@
             />
           </div>
         </div>
-
       </div>
     </div>
     
@@ -91,7 +89,7 @@
       title="Xu Hướng Mua Sắm" 
       headerClass="bg-pink-100"
       :books="trendingBooks"
-      seemoreLink="/trending"
+      seeMoreLink="/trending"
     />
 
     <BookListSection 
@@ -115,6 +113,7 @@
       iconBgClass="bg-yellow-100 text-yellow-600"
       :books="literatureBooks"
     />
+
     <BookListSection 
       title="Gợi Ý Cho Bạn" 
       headerClass="bg-green-50"
@@ -139,7 +138,7 @@ import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-// Import Service API (Giữ lại cái này để lấy dữ liệu thật)
+// Import Service API
 import { bookService } from '@/services/bookService'; 
 
 // --- Cấu hình cho Banner Slide ---
@@ -173,7 +172,7 @@ const skillBooks = ref([]);
 const literatureBooks = ref([]);
 const suggestionsBooks = ref([]);
 
-// Hàm lấy dữ liệu thật từ API (Ưu tiên dùng cái này hơn mock data)
+// Hàm lấy dữ liệu thật từ API
 const fetchAllData = async () => {
   try {
     // Gọi API lấy dữ liệu thật
@@ -188,7 +187,6 @@ const fetchAllData = async () => {
     newBooks.value = news;
 
     // Điền dữ liệu bổ sung (cho các phần chưa có API hoặc mock tạm)
-    // Nếu API trả về rỗng, có thể uncomment đống mock data cũ để test giao diện
     skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
     literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
     suggestionsBooks.value = [
@@ -197,7 +195,7 @@ const fetchAllData = async () => {
     ];
     
   } catch (error) {
-    console.error("Lỗi khi load dữ liệu:", error);
+    console.error("Lỗi khi tải dữ liệu:", error);
   }
 };
 
