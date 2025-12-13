@@ -6,7 +6,7 @@
         <router-link 
           v-for="(item, index) in categories" 
           :key="index" 
-          :to="item.path"
+          :to="item.path" 
           class="flex flex-col items-center justify-start cursor-pointer group hover:-translate-y-1 transition-transform duration-300 gap-2"
         >
           <div 
@@ -50,7 +50,7 @@ const categories = ref([
     icon: Present, 
     bgClass: 'bg-green-50 group-hover:bg-green-100',
     iconClass: 'text-green-600',
-    path: '/gift-card' // 👈 Đường dẫn sang trang Gift Card (nếu có)
+    path: '/gift-card' // 👈 Đường dẫn sang trang Gift Card
   },
   // Các mục khác tạm thời để dấu # (đứng yên)
   { name: 'Mã Giảm Giá', icon: Ticket, bgClass: 'bg-orange-50 group-hover:bg-orange-100', iconClass: 'text-orange-500', path: '#' },

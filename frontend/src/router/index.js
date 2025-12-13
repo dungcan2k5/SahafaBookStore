@@ -29,7 +29,8 @@ const routes = [
   },
   { path: '/event-1212', 
     name: 'Event1212', 
-    component: Event1212 }
+    component: Event1212 
+  },
 ]
 
 const router = createRouter({
