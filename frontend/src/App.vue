@@ -13,4 +13,9 @@ import LandingPage1212 from './Pages/LandingPage1212.vue';
   padding: 0;
   font-weight: normal;
 }
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1F5EFF;
+}
 </style>
