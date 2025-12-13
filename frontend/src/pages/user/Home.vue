@@ -3,7 +3,6 @@
     
     <div class="container mx-auto py-4 px-4">
       <div class="grid grid-cols-12 gap-4">
-        
         <div class="col-span-12 lg:col-span-8 bg-white rounded-lg overflow-hidden shadow-sm relative group h-[320px]">
           <div class="w-full h-full relative">
              <img 
@@ -45,31 +44,26 @@
             />
           </div>
         </div>
-
       </div>
     </div>
     
     <div class="container mx-auto px-4 mb-4">
       <div class="grid grid-cols-4 gap-4">
-        
         <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
           <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 1</span>
         </div>
-
         <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
            <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 2</span>
         </div>
-
         <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
            <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 3</span>
         </div>
-
         <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
            <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 4</span>
         </div>
-
       </div>
     </div>
+
     <CategoryNav />
     
     <BookListSection 
@@ -95,6 +89,7 @@
       title="Xu Hướng Mua Sắm" 
       headerClass="bg-pink-100"
       :books="trendingBooks"
+      seeMoreLink="/trending"
     />
 
     <BookListSection 
@@ -119,24 +114,37 @@
       :books="literatureBooks"
     />
 
+    <BookListSection 
+      title="Gợi Ý Cho Bạn" 
+      headerClass="bg-green-50"
+      iconBgClass="bg-green-100 text-purple-600"
+      :books="suggestionsBooks"
+      seeMoreLink="/suggestions"
+    >
+      <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      </template>
+    </BookListSection>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import CategoryNav from '@/components/user/CategoryNav.vue';
-import GiftCardSection from '@/components/user/GiftCardSection.vue';
+import GiftCardSection from '@/components/user/GiftCardSection.vue'; // Của Khai
 import BookListSection from '@/components/user/BookListSection.vue'; 
-import ProductCategory from '@/components/user/ProductCategory.vue';
+import ProductCategory from '@/components/user/ProductCategory.vue'; // Của bạn
+import { bookService } from '@/services/bookService'; // Service API của Khai
 
 // --- Cấu hình cho Banner Slide ---
 const currentSlide = ref(0);
-
-// Danh sách ảnh Slide (Đã đúng theo file bạn gửi)
 const bannerImages = [
-  '/banners/WELCOME_TO_SAHAFA.png',    // Ảnh 1
-  '/banners/12.12_BIG_SALE.png',       // Ảnh 2
-  '/banners/MERRY_CHRISTMAS.png'       // Ảnh 3
+  '/banners/WELCOME_TO_SAHAFA.png',
+  '/banners/12.12_BIG_SALE.png',
+  '/banners/MERRY_CHRISTMAS.png'
 ];
 
 let slideInterval;
@@ -153,39 +161,43 @@ const startAutoSlide = () => {
   slideInterval = setInterval(nextSlide, 3000);
 };
 
-// --- Dữ liệu Sách (Mock Data) ---
+// --- Dữ liệu Sách ---
 const flashSaleBooks = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 const skillBooks = ref([]);
 const literatureBooks = ref([]);
+const suggestionsBooks = ref([]);
 
-onMounted(async () => {
-  startAutoSlide(); 
+const fetchAllData = async () => {
+  try {
+    // 1. Gọi API lấy dữ liệu thật (Code của Khai)
+    const [flash, trend, news] = await Promise.all([
+      bookService.getFlashSale(),
+      bookService.getTrending(),
+      bookService.getNewArrivals()
+    ]);
 
-  await new Promise(r => setTimeout(r, 500)); 
-  
-  // Sửa lại đoạn dữ liệu Flash Sale trong onMounted
-  flashSaleBooks.value = [
-     { id: 99, title: 'Harry Potter Boxset', price: 1200000, oldPrice: 2000000, discount: 40, sold: 15, image: 'https://cdn0.fahasa.com/media/catalog/product/h/a/harry-potter-full.jpg' },
-     { id: 98, title: 'Sherlock Holmes', price: 150000, oldPrice: 300000, discount: 50, sold: 45, image: 'https://cdn0.fahasa.com/media/catalog/product/s/h/sherlock-holmes.jpg' },
-     { id: 97, title: 'Thám Tử Conan 100', price: 25000, oldPrice: 50000, discount: 50, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_235737.jpg' },
-     { id: 96, title: 'Doraemon Truyện Dài', price: 18000, oldPrice: 30000, discount: 40, sold: 850, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' }, // Ảnh minh họa tạm
-     { id: 95, title: 'One Piece Tập 99', price: 22000, oldPrice: 45000, discount: 51, sold: 3000, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_244716.jpg' }, // Ảnh minh họa tạm
-  ];
+    flashSaleBooks.value = flash;
+    trendingBooks.value = trend;
+    newBooks.value = news;
 
-  // Sửa lại đoạn Trending Books (Xu hướng) cho đầy đặn
-  trendingBooks.value = [
-    { id: 1, title: 'Nhà Giả Kim', price: 63000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' }, 
-    { id: 2, title: 'Cây Cam Ngọt Của Tôi', price: 86000, discount: 20, sold: 540, image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg' },
-    { id: 3, title: 'Hoàng Tử Bé', price: 75000, discount: 15, sold: 2300, image: 'https://cdn0.fahasa.com/media/catalog/product/h/o/hoang-tu-be-tai-ban-2019_1.jpg' },
-    { id: 4, title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', price: 80000, discount: 10, sold: 4100, image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tuoi-tre-dang-gia-bao-nhieu-u.jpg' },
-    { id: 5, title: 'Đời Thay Đổi Khi Ta Thay Đổi', price: 90000, discount: 25, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/o/doi-thay-doi-khi-chung-ta-thay-doi-tap-1.jpg' }
-  ];
-  
-  newBooks.value = [{ id: 3, title: 'Muôn Kiếp Nhân Sinh', price: 180000, discount: 10, sold: 50, image: 'https://cdn0.fahasa.com/media/catalog/product/m/u/muon-kiep-nhan-sinh-2.jpg' }];
-  skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
-  literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    // 2. Điền dữ liệu bổ sung (cho các phần chưa có API)
+    skillBooks.value = [{ id: 4, title: 'Đắc Nhân Tâm', price: 76000, discount: 15, sold: 890, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' }];
+    literatureBooks.value = [{ id: 5, title: 'Rừng Na Uy', price: 120000, discount: 15, sold: 300, image: 'https://cdn0.fahasa.com/media/catalog/product/r/u/rung-na-uy.jpg' }];
+    suggestionsBooks.value = [
+      { id: 6, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', price: 95000, discount: 10, sold: 200, image: 'https://cdn0.fahasa.com/media/catalog/product/t/o/toi-thay-hoa-vang-tren-co-xanh.jpg' },
+      { id: 7, title: 'Sapiens: Lược Sử Loài Người', price: 150000, discount: 20, sold: 150, image: 'https://cdn0.fahasa.com/media/catalog/product/s/a/sapiens.jpg' }
+    ];
+    
+  } catch (error) {
+    console.error("Lỗi khi tải dữ liệu:", error);
+  }
+};
+
+onMounted(() => {
+  startAutoSlide();
+  fetchAllData();
 });
 
 onUnmounted(() => {

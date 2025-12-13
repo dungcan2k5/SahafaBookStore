@@ -49,7 +49,8 @@
       </div>
 
       <div class="text-center pb-4 pt-2">
-         <button class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300">Xem Thêm</button>
+         <router-link v-if="seeMoreLink" :to="seeMoreLink" class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</router-link>
+         <button v-else class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</button>
       </div>
     </div>
   </div>
@@ -57,7 +58,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-// QUAN TRỌNG: Import BookCard vào đây
 import BookCard from '@/components/user/BookCard.vue';
 
 const props = defineProps({
@@ -66,7 +66,8 @@ const props = defineProps({
   headerClass: { type: String, default: 'bg-white' },
   iconBgClass: String,
   showTimer: { type: Boolean, default: false },
-  showProgressBar: { type: Boolean, default: false }
+  showProgressBar: { type: Boolean, default: false },
+  seeMoreLink: String // Prop mới từ code của Khai
 });
 
 const scrollContainer = ref(null);
@@ -77,7 +78,7 @@ const scroll = (direction) => {
   }
 };
 
-// Logic đồng hồ (giữ nguyên)
+// Logic đồng hồ
 const hours = ref('02');
 const minutes = ref('00');
 const seconds = ref('00');
