@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: dungcan2k5/sahafa-backend:latest
@@ -25,5 +23,11 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # Cấu trúc: /đường/dẫn/trên/vps : /đường/dẫn/trong/container
+      # Ví dụ bạn lưu cert ở /home/zun/certs/ trên VPS:
+      - /etc/ssl/cf-origin.crt:/etc/nginx/ssl/cf-origin.crt
+      - /etc/ssl/cf-origin.key:/etc/nginx/ssl/cf-origin.key
     depends_on:
       - backend
