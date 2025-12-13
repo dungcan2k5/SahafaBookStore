@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/user/Home.vue'
-// import BookDetail from '../pages/user/BookDetail.vue'
-import Login from '../pages/user/Login.vue'
-import SuggestionsPage from '../pages/user/SuggestionsPage.vue'
-import CheckoutPage from '../pages/user/CheckoutPage.vue'
-import TrendingPage from '../pages/user/TrendingPage.vue'
+import Home from '../Pages/user/Home.vue'
+import Event1212 from '../Pages/event/Event1212.vue'
+//import BookDetail from '../Pages/user/BookDetail.vue'
+import Login from '../Pages/user/Login.vue'
+import SuggestionsPage from '../Pages/user/SuggestionsPage.vue'
+import CheckoutPage from '../Pages/user/CheckoutPage.vue'
+import TrendingPage from '../Pages/user/TrendingPage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -25,7 +26,10 @@ const routes = [
     path: '/checkout', 
     name: 'Checkout', 
     component: CheckoutPage 
-  }
+  },
+  { path: '/event-1212', 
+    name: 'Event1212', 
+    component: Event1212 }
 ]
 
 const router = createRouter({

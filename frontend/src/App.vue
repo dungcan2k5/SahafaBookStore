@@ -1,9 +1,18 @@
-<!-- <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>
+import Navbar from '@/components/user/Navbar.vue';
+import Footer from '@/components/user/Footer.vue';
 </script>
 
 <template>
-  <LandingPage1212 />
+  <div class="flex flex-col min-h-screen bg-[#F0F0F0] font-sans text-gray-700">
+    <Navbar />
+
+    <main class="flex-1">
+      <router-view />
+    </main>
+
+    <Footer />
+  </div>
 </template>
 
 <style>
@@ -21,21 +30,4 @@ body {
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
-</style> -->
-<template>
-  <div class="flex flex-col min-h-screen bg-[#F0F0F0] font-sans text-gray-700">
-    <Navbar />
-
-    <main class="flex-1">
-      <router-view />
-    </main>
-
-
-    <Footer />
-  </div>
-</template>
-
-<script setup>
-import Navbar from '@/components/user/Navbar.vue';
-import Footer from '@/components/user/Footer.vue';
-</script>
+</style>
