@@ -49,13 +49,21 @@
       </div>
 
       <div class="text-center pb-4 pt-2">
-<<<<<<<<< Temporary merge branch 1
-         <router-link v-if="seeMoreLink" :to="seeMoreLink" class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</router-link>
-         <button v-else class="border-2 border-[#C92127] text-[#C92127] px-10 py-1.5 rounded-lg font-bold text-sm hover:bg-red-50 transition">Xem Thêm</button>
-=========
-         <button class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300">Xem Thêm</button>
->>>>>>>>> Temporary merge branch 2
-      </div>
+  <router-link 
+    v-if="seeMoreLink" 
+    :to="seeMoreLink" 
+    class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300 inline-block"
+  >
+    Xem Thêm
+  </router-link>
+  
+  <button 
+    v-else 
+    class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300"
+  >
+    Xem Thêm
+  </button>
+</div>
     </div>
   </div>
 </template>

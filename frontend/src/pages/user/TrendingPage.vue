@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { bookService } from '@/services/bookService'; // Đảm bảo bạn đã có file service này
+import { bookService } from '@/services/bookService';
 import BookListSection from '@/components/user/BookListSection.vue';
 
 const books = ref([]);

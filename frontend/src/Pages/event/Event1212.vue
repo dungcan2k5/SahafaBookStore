@@ -115,6 +115,7 @@
 </template>
 
 <script setup>
+import Footer from '@/components/user/Footer.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 // Sử dụng bộ icon Element Plus có sẵn trong dự án của bạn
 import { 
