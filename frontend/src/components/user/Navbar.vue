@@ -14,64 +14,60 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute bottom-2 right-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </div>
 
-            <div class="absolute top-full left-0 pt-6 w-[800px] hidden group-hover:block animate-fade-in">
-               
-               <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
-                  
+            <div class="absolute top-full left-0 pt-4 w-[800px] hidden group-hover:block animate-fade-in">
+                <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
                   <div class="w-1/3 bg-gray-50 border-r border-gray-200 py-2">
                     <ul class="flex flex-col text-sm">
-                      <li class="px-4 py-3 bg-white text-[#C92127] font-bold border-l-4 border-[#C92127] cursor-pointer flex justify-between items-center group/item">
-                        Sách Trong Nước <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                      <li 
+                        v-for="(item, index) in menuData" 
+                        :key="index"
+                        @mouseenter="activeCategory = item"
+                        class="px-4 py-3 cursor-pointer flex justify-between items-center transition-all border-l-4"
+                        :class="activeCategory.name === item.name 
+                          ? 'bg-white text-[#C92127] font-bold border-[#C92127] shadow-sm' 
+                          : 'text-gray-600 border-transparent hover:bg-white hover:text-[#C92127]'"
+                      >
+                        {{ item.name }}
+                        <svg v-if="activeCategory.name === item.name" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                       </li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">Foreign Books</li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">VPP - Dụng Cụ Học Sinh</li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">Đồ Chơi</li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">Làm Đẹp - Sức Khỏe</li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">Hành Trang Đến Trường</li>
-                      <li class="px-4 py-3 hover:bg-white hover:text-[#C92127] hover:font-bold cursor-pointer transition border-l-4 border-transparent hover:border-[#C92127] text-gray-600">VPP - Theo Thương Hiệu</li>
                     </ul>
                   </div>
 
                   <div class="w-2/3 p-6 bg-white">
-                    <h3 class="font-bold text-[#C92127] mb-4 flex items-center gap-2 text-lg border-b pb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                        Sách Trong Nước
-                    </h3>
-                    <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm text-gray-600">
-                      <div class="flex flex-col gap-1">
-                         <strong class="text-gray-800 mb-1 uppercase">Văn Học</strong>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Tiểu Thuyết</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Truyện Ngắn - Tản Văn</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Light Novel</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Ngôn Tình</a>
-                      </div>
-                       <div class="flex flex-col gap-1">
-                         <strong class="text-gray-800 mb-1 uppercase">Kinh Tế</strong>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Bài Học Kinh Doanh</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Quản Trị - Lãnh Đạo</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Marketing - Bán Hàng</a>
-                      </div>
-                       <div class="flex flex-col gap-1">
-                         <strong class="text-gray-800 mb-1 uppercase">Tâm Lý - Kỹ Năng</strong>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Kỹ Năng Sống</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Rèn Luyện Nhân Cách</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Tâm Lý Học</a>
-                      </div>
-                       <div class="flex flex-col gap-1">
-                         <strong class="text-gray-800 mb-1 uppercase">Nuôi Dạy Con</strong>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Cẩm Nang Làm Cha Mẹ</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Phương Pháp Giáo Dục</a>
-                         <a href="#" class="hover:text-[#C92127] hover:underline transition">Phát Triển Trí Tuệ</a>
+                    <router-link 
+                      :to="activeCategory.path" 
+                      class="font-bold text-[#C92127] mb-6 flex items-center gap-2 text-xl border-b pb-3 hover:underline"
+                    >
+                        <img :src="activeCategory.icon" class="w-8 h-8 object-contain" alt="">
+                        {{ activeCategory.name }}
+                    </router-link>
+
+                    <div v-if="activeCategory.subItems && activeCategory.subItems.length > 0" class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm text-gray-600">
+                      <div v-for="(sub, idx) in activeCategory.subItems" :key="idx" class="flex flex-col gap-1">
+                          <strong class="text-gray-800 mb-1 uppercase text-xs font-bold">{{ sub.title }}</strong>
+                          <a v-for="(link, lIdx) in sub.links" :key="lIdx" href="#" class="hover:text-[#C92127] hover:underline transition pl-1 border-l-2 border-transparent hover:border-gray-200">
+                            {{ link }}
+                          </a>
                       </div>
                     </div>
+                    
+                    <div v-else class="flex flex-col items-center justify-center h-[200px] text-center">
+                        <p class="text-gray-500 mb-4">Khám phá hàng ngàn đầu sách hấp dẫn.</p>
+                        <router-link 
+                          :to="activeCategory.path" 
+                          class="bg-[#C92127] text-white px-6 py-2 rounded-full font-bold shadow hover:bg-red-700 transition"
+                        >
+                          Xem Chi Tiết
+                        </router-link>
+                    </div>
                   </div>
-               </div>
+                </div>
             </div>
           </div>
         </div>
 
         <div class="flex-1 bg-white rounded-lg flex items-center p-1 shadow-md">
-          <input type="text" placeholder="Tìm kiếm sách, văn phòng phẩm, đồ chơi..." class="w-full px-6 py-3 text-gray-700 outline-none rounded-md text-base" />
+          <input type="text" placeholder="Tìm kiếm sách, văn phòng phẩm..." class="w-full px-6 py-3 text-gray-700 outline-none rounded-md text-base" />
           <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-medium transition flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </button>
@@ -104,17 +100,25 @@
           </router-link>
 
           <div class="relative group z-50 py-2">
+            
             <router-link to="/login" class="flex flex-col items-center cursor-pointer hover:opacity-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               <span class="text-xs mt-1 font-semibold">Tài khoản</span>
             </router-link>
+            
             <div class="absolute top-full right-[-10px] pt-4 hidden group-hover:block w-[240px]">
               <div class="bg-white rounded-lg shadow-xl p-4 border border-gray-100 flex flex-col gap-3 relative mt-1">
                  <div class="absolute -top-2 right-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100"></div>
-                <button @click="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">Đăng nhập</button>
-                <button @click="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">Đăng ký</button>
+                
+                <button @click="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">
+                  Đăng nhập
+                </button>
+                <button @click="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">
+                  Đăng ký
+                </button>
               </div>
             </div>
+
           </div>
 
         </div>
@@ -128,7 +132,6 @@
         @close="showLoginModal = false" 
       />
     </Teleport>
-
   </div>
 </template>
 
@@ -145,6 +148,20 @@ const openModal = (tab) => {
   modalTab.value = tab;
   showLoginModal.value = true;
 };
+
+// DATA MEGA MENU
+const menuData = [
+    { name: 'Văn Học', path: '/category/van-hoc', icon: 'https://cdn-icons-png.flaticon.com/512/3389/3389081.png', subItems: [{ title: 'Thể Loại', links: ['Tiểu Thuyết', 'Truyện Ngắn'] }] },
+    { name: 'Kinh Tế', path: '/category/kinh-te', icon: 'https://cdn-icons-png.flaticon.com/512/2666/2666505.png', subItems: [{ title: 'Quản Trị', links: ['Lãnh Đạo', 'Nhân Sự'] }] },
+    { name: 'Tâm Lý Kỹ Năng', path: '/category/tam-ly', icon: 'https://cdn-icons-png.flaticon.com/512/3079/3079166.png', subItems: [{ title: 'Kỹ Năng', links: ['Giao Tiếp', 'Tư Duy'] }] },
+    { name: 'Thiếu Nhi', path: '/category/thieu-nhi', icon: 'https://cdn-icons-png.flaticon.com/512/3468/3468306.png', subItems: [{ title: 'Độ Tuổi', links: ['6-11 Tuổi', '11-15 Tuổi'] }] },
+    { name: 'Giáo Khoa', path: '/category/giao-khoa', icon: 'https://cdn-icons-png.flaticon.com/512/167/167755.png', subItems: [{ title: 'Cấp Học', links: ['Tiểu Học', 'Trung Học'] }] },
+    { name: 'Nuôi Dạy Con', path: '/category/nuoi-day-con', icon: 'https://cdn-icons-png.flaticon.com/512/2990/2990263.png', subItems: [{ title: 'Cha Mẹ', links: ['Thai Giáo', 'Dinh Dưỡng'] }] },
+    { name: 'Sách Ngoại Văn', path: '/foreign-books', icon: 'https://cdn-icons-png.flaticon.com/512/2436/2436636.png', subItems: [] },
+    { name: 'Truyện Tranh', path: '/manga', icon: 'https://cdn-icons-png.flaticon.com/512/2405/2405597.png', subItems: [] }
+];
+
+const activeCategory = ref(menuData[0]);
 </script>
 
 <style scoped>

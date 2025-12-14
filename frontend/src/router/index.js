@@ -15,32 +15,19 @@ import NewArrivalsPage from '../Pages/event/NewArrivalsPage.vue'
 import SecondHandPage from '../Pages/event/SecondHandPage.vue'
 import ForeignBooksPage from '../Pages/event/ForeignBooksPage.vue'
 import MangaPage from '../Pages/event/MangaPage.vue'
+
+// --- THÊM DÒNG NÀY ---
+import CategoryDetail from '@/Pages/user/CategoryDetail.vue'
+
 const routes = [
-  // Trang chủ
   { path: '/', name: 'Home', component: Home },
-  
-  // Đăng nhập
   { path: '/login', name: 'Login', component: Login },
-  
-  // Sự kiện 12.12
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
-  
-  // Giỏ hàng
   { path: '/cart', name: 'Cart', component: Cart },
-  
-  // Thanh toán
   { path: '/checkout', name: 'Checkout', component: CheckoutPage },
-  
-  // Xu hướng
   { path: '/trending', name: 'Trending', component: TrendingPage },
-  
-  // Gợi ý
   { path: '/suggestions', name: 'Suggestions', component: SuggestionsPage },
-  { 
-    path: '/books/:id', 
-    name: 'BookDetail', 
-    component: BookDetail 
-  },
+  { path: '/books/:id', name: 'BookDetail', component: BookDetail },
   { path: '/gift-card', name: 'GiftCard', component: GiftCardPage },
   { path: '/vouchers', name: 'VoucherPage', component: VoucherPage },
   { path: '/attendance', name: 'Attendance', component: AttendancePage },
@@ -48,14 +35,20 @@ const routes = [
   { path: '/new-arrivals', name: 'NewArrivals', component: NewArrivalsPage },
   { path: '/second-hand', name: 'SecondHand', component: SecondHandPage },
   { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage },
-  { path: '/manga', name: 'Manga', component: MangaPage }
+  { path: '/manga', name: 'Manga', component: MangaPage },
+  
+  // --- THÊM ROUTE NÀY ĐỂ CHẠY CÁC TRANG DANH MỤC ---
+  { 
+    path: '/category/:id', 
+    name: 'CategoryDetail', 
+    component: CategoryDetail 
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    // Luôn cuộn lên đầu trang khi chuyển route
     return { top: 0 };
   }
 })
