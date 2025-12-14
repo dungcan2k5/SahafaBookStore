@@ -1,7 +1,5 @@
 <template>
-  <div class="bg-blue-600 min-h-screen font-sans pb-10">
-    
-    <div class="container mx-auto px-4 py-8">
+  <div class="bg-blue-600 min-h-screen font-sans pb-0"> <div class="container mx-auto px-4 py-8">
         <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-b from-blue-800 to-blue-600 border-4 border-white/20">
             <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             
@@ -59,18 +57,9 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-4">
-        <div class="flex flex-wrap justify-center gap-6 md:gap-12 py-8">
-            <div v-for="(item, idx) in menuIcons" :key="idx" class="flex flex-col items-center gap-2 cursor-pointer group">
-                <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg group-hover:-translate-y-2 transition duration-300">
-                    <component :is="item.icon" class="w-8 h-8 text-blue-600 group-hover:text-yellow-500 transition" />
-                </div>
-                <span class="text-white font-medium text-sm group-hover:text-yellow-300 transition-colors">{{ item.label }}</span>
-            </div>
-        </div>
-    </div>
+    <CategoryNav />
 
-    <div class="container mx-auto px-4 mb-12">
+    <div class="container mx-auto px-4 mt-8 mb-12">
         <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-yellow-400">
             <div class="bg-gradient-to-r from-blue-700 to-blue-500 p-4 flex justify-between items-center text-white">
                 <div class="flex items-center gap-2">
@@ -111,13 +100,20 @@
         </div>
     </div>
 
+    <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
+       <div class="container mx-auto px-4">
+          <SuggestionsPage :is-embedded="true" />
+       </div>
+    </div>
+
+
   </div>
 </template>
 
 <script setup>
 import Footer from '@/components/user/Footer.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
-// Sử dụng bộ icon Element Plus có sẵn trong dự án của bạn
+import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
 import { 
   Lightning, 
   Ticket, 
@@ -126,6 +122,9 @@ import {
   Calendar, 
   ShoppingBag 
 } from '@element-plus/icons-vue';
+
+// Import Component con
+import CategoryNav from '@/components/user/CategoryNav.vue';
 
 const vouchers = ref([
   { value: '10K', code: 'GIAM10K', condition: 'Đơn từ 120K' },
@@ -150,26 +149,20 @@ const menuIcons = [
     { icon: ShoppingBag, label: "Bán Chạy" },
 ];
 
-// --- LOGIC ĐẾM NGƯỢC (Đã fix lỗi kẹt số) ---
 const countdown = ref({ h: '02', m: '45', s: '12' });
 let timer = null;
 
 onMounted(() => {
-  // Tổng thời gian tính bằng giây (Ví dụ: 2 giờ 45 phút 12 giây)
   let totalSeconds = 2 * 3600 + 45 * 60 + 12;
-
   timer = setInterval(() => {
     if (totalSeconds <= 0) {
       clearInterval(timer);
       return;
     }
     totalSeconds--;
-
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
     const s = totalSeconds % 60;
-
-    // Format thêm số 0 đằng trước
     countdown.value.h = h.toString().padStart(2, '0');
     countdown.value.m = m.toString().padStart(2, '0');
     countdown.value.s = s.toString().padStart(2, '0');
@@ -182,11 +175,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

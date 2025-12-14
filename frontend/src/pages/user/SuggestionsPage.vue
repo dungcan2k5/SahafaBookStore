@@ -58,7 +58,16 @@
           </div>
         </router-link>
       </div>
-
+      
+      <div class="flex justify-center mt-10 mb-4">
+        <router-link 
+          v-if="isEmbedded" 
+          to="/suggestions" 
+          class="bg-white border-2 border-green-500 text-green-600 font-bold px-12 py-2.5 rounded-full hover:bg-green-500 hover:text-white transition shadow-md uppercase text-sm tracking-wide"
+        >
+          Xem tất cả sản phẩm
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -87,6 +96,12 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+const props = defineProps({
+  isEmbedded: {
+    type: Boolean,
+    default: false // Mặc định là false (tức là chạy như trang bình thường)
+  }
+});
 
 // Tải dữ liệu khi component được mount
 onMounted(() => {

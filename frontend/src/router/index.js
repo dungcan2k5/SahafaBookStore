@@ -12,8 +12,9 @@ import VoucherPage from '../Pages/event/VoucherPage.vue'
 import AttendancePage from '../Pages/event/AttendancePage.vue'
 import FlashSalePage from '../Pages/event/FlashSalePage.vue'
 import NewArrivalsPage from '../Pages/event/NewArrivalsPage.vue'
-import SecondHandPage from '../Pages/user/SecondHandPage.vue'
+import SecondHandPage from '../Pages/event/SecondHandPage.vue'
 import ForeignBooksPage from '../Pages/event/ForeignBooksPage.vue'
+import MangaPage from '../Pages/event/MangaPage.vue'
 const routes = [
   // Trang chủ
   { path: '/', name: 'Home', component: Home },
@@ -46,7 +47,8 @@ const routes = [
   { path: '/flash-sale', name: 'FlashSale', component: FlashSalePage },
   { path: '/new-arrivals', name: 'NewArrivals', component: NewArrivalsPage },
   { path: '/second-hand', name: 'SecondHand', component: SecondHandPage },
-  { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage }
+  { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage },
+  { path: '/manga', name: 'Manga', component: MangaPage }
 ]
 
 const router = createRouter({

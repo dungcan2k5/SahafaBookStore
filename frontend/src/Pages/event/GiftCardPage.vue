@@ -216,12 +216,19 @@
        </div>
     </div>
 
+    <div class="mt-12 bg-white pt-10 pb-8 rounded-t-[3rem] shadow-[0_-5px_20px_rgba(0,0,0,0.05)] border-t border-blue-100">
+       <div class="container mx-auto px-4">
+          <div class="flex items-center justify-center gap-3 mb-8">
+          </div>
+          <SuggestionsPage :is-embedded="true" />
+       </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 // State quản lý Tabs
 const activeTab = ref('desktop');
 </script>

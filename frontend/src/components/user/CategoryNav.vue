@@ -113,8 +113,9 @@ const categories = ref([
   { 
     name: 'Manga', 
     icon: Notebook, 
-    bgClass: 'bg-rose-50 group-hover:bg-rose-100',
-    iconClass: 'text-rose-500'
+    bgClass: 'bg-rose-50 group-hover:bg-rose-100', 
+    iconClass: 'text-rose-500',
+    path: '/manga' // 👈 GẮN LINK VÀO ĐÂY
   },
 ]);
 </script>

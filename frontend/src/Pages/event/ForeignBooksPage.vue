@@ -156,11 +156,17 @@
        </div>
     </div>
 
+   <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
+      <div class="container mx-auto px-4">
+          <SuggestionsPage :is-embedded="true" />
+       </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
 
 const englishBooks = ref([
   { id: 1, title: 'Mindset For IELTS - Level 1 Student Book', price: 437000, oldPrice: 461000, discount: 5, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },

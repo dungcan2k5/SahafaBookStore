@@ -94,12 +94,17 @@
        </div>
     </div>
 
+   <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
+       <div class="container mx-auto px-4">
+          <SuggestionsPage :is-embedded="true" />
+       </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-
+import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
 const days = [
   { label: 'Thứ 2', category: 'Văn Học' },
   { label: 'Thứ 3', category: 'Kinh Tế' },
