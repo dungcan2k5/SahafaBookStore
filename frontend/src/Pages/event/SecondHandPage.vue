@@ -131,7 +131,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import SuggestionsPage from '../user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const activeCat = ref('all');
 const products = ref([]);
 

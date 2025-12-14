@@ -100,20 +100,11 @@
       seeMoreLink="/new-arrivals"
     />
 
-    <BookListSection 
-      title="Gợi Ý Cho Bạn" 
-      headerClass="bg-green-50"
-      iconBgClass="bg-green-100 text-purple-600"
-      :books="suggestionsBooks"
-      seeMoreLink="/suggestions"
-    >
-      <template #icon>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      </template>
-    </BookListSection>
-
+    <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
+      <div class="container mx-auto px-4">
+         <SuggestionsPage :is-embedded="true" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -124,6 +115,7 @@ import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
+import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
 
 // --- Cấu hình cho Banner Slide ---
 const currentSlide = ref(0);

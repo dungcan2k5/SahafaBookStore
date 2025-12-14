@@ -305,6 +305,74 @@ const policiesData = {
     </div>
   `
 },
+// chinh sach doi tra
+// ... (các phần cũ giữ nguyên)
+
+  'chinh-sach-doi-tra': {
+    title: 'CHÍNH SÁCH ĐỔI - TRẢ - HOÀN TIỀN',
+    updatedAt: '01/12/2025',
+    content: `
+      <div class="space-y-6 text-justify text-gray-700">
+        <p class="font-medium">
+          Tại SAHAFA, chúng tôi luôn trân trọng sự tin yêu của Quý khách. Chính sách đổi trả được xây dựng để đảm bảo quyền lợi tốt nhất cho khách hàng khi mua sắm sách và văn phòng phẩm.
+        </p>
+
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3 uppercase border-l-4 border-blue-600 pl-3">1. Thời gian đổi trả</h3>
+          <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <ul class="space-y-2 text-sm">
+              <li><strong>Sách lỗi do in ấn/nhà xuất bản:</strong> Đổi mới trong vòng <span class="text-red-600 font-bold">30 ngày</span>.</li>
+              <li><strong>Lỗi do vận chuyển (rách, móp méo):</strong> Thông báo trong vòng <span class="text-red-600 font-bold">48 giờ</span> kể từ khi nhận hàng.</li>
+              <li><strong>Đổi ý/Không ưng ý:</strong> Hỗ trợ đổi hàng trong vòng <span class="text-red-600 font-bold">07 ngày</span> (Sản phẩm phải còn nguyên vẹn).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3 uppercase border-l-4 border-blue-600 pl-3">2. Điều kiện đổi trả</h3>
+          <p class="mb-2">Sản phẩm được chấp nhận đổi trả khi thỏa mãn các điều kiện sau:</p>
+          <ul class="list-disc pl-5 space-y-1 text-sm">
+            <li>Sản phẩm còn nguyên tem, mác, niêm phong (nếu có).</li>
+            <li>Có đầy đủ hóa đơn mua hàng hoặc xác nhận đơn hàng từ Sahafa.</li>
+            <li>Sản phẩm không bị dơ bẩn, viết vẽ, bôi xóa (trừ trường hợp lỗi in ấn).</li>
+            <li>Quà tặng kèm (nếu có) phải được hoàn trả đầy đủ.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3 uppercase border-l-4 border-blue-600 pl-3">3. Các trường hợp từ chối đổi trả</h3>
+          <ul class="list-disc pl-5 space-y-1 text-sm">
+            <li>Sản phẩm thuộc nhóm "Thanh lý" hoặc "Sách cũ giá rẻ" (đã có ghi chú tình trạng trước khi bán).</li>
+            <li>Các sản phẩm hư hỏng do lỗi bảo quản của khách hàng (thấm nước, rách do va chạm vật lý...).</li>
+            <li>Quá thời hạn quy định đổi trả.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3 uppercase border-l-4 border-blue-600 pl-3">4. Phương thức hoàn tiền</h3>
+          <p class="mb-2 text-sm">Tùy theo lý do đổi trả, Sahafa sẽ hỗ trợ:</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div class="border p-4 rounded hover:shadow-md transition">
+                <strong class="text-blue-600">Đổi sản phẩm mới</strong>
+                <p class="text-xs mt-1">Áp dụng cho sản phẩm lỗi. Sahafa chịu 100% phí vận chuyển 2 chiều.</p>
+             </div>
+             <div class="border p-4 rounded hover:shadow-md transition">
+                <strong class="text-green-600">Hoàn tiền qua F-Point/Voucher</strong>
+                <p class="text-xs mt-1">Tiện lợi để mua đơn hàng tiếp theo. Cộng ngay vào tài khoản.</p>
+             </div>
+             <div class="border p-4 rounded hover:shadow-md transition">
+                <strong class="text-orange-600">Hoàn tiền qua Ngân hàng</strong>
+                <p class="text-xs mt-1">Thời gian xử lý từ 3-7 ngày làm việc (không tính T7, CN).</p>
+             </div>
+          </div>
+        </div>
+
+        <div class="bg-yellow-50 p-4 rounded border border-yellow-200 mt-4 text-sm">
+          <strong>Lưu ý:</strong> Để được hỗ trợ nhanh nhất, quý khách vui lòng quay video clip khi mở hộp hàng (unboxing) để làm bằng chứng đối chiếu khi có sự cố phát sinh.
+        </div>
+      </div>
+    `
+  }
 
 };
 
