@@ -107,32 +107,47 @@
           </div>
         </div>
 
+        
         <div class="w-full lg:w-1/3">
           <div class="bg-white p-6 rounded-lg shadow-sm sticky top-20 border border-gray-100">
-            <h2 class="font-bold text-gray-800 mb-4 uppercase text-sm border-b pb-2">Đơn hàng (1 sản phẩm)</h2>
-            
-            <div class="flex gap-3 mb-4">
-              <img src="https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg" class="w-16 h-20 object-cover border rounded">
-              <div class="flex-1">
-                <h3 class="text-sm font-medium text-gray-700 line-clamp-2">Nhà Giả Kim (Tái Bản 2024)</h3>
-                <p class="text-sm text-gray-500">x1</p>
-                <p class="font-bold text-[#2563EB]">63.000đ</p>
+    
+            <h2 class="font-bold text-gray-800 mb-4 uppercase text-sm border-b pb-2">
+              Đơn hàng ({{ cartStore.totalItems }} sản phẩm)
+            </h2>
+    
+            <div class="space-y-4 mb-4 max-h-[300px] overflow-y-auto pr-2">
+              <div v-for="item in cartStore.items" :key="item.id" class="flex gap-3">
+                <img :src="item.image" class="w-16 h-20 object-cover border rounded shrink-0">
+                <div class="flex-1">
+                  <h3 class="text-sm font-medium text-gray-700 line-clamp-2">{{ item.title }}</h3>
+                  <p class="text-sm text-gray-500">Số lượng: {{ item.quantity }}</p>
+                  <p class="font-bold text-[#2563EB]">{{ formatPrice(item.price * item.quantity) }}đ</p>
+                </div>
               </div>
             </div>
 
             <div class="border-t pt-4 space-y-2 text-sm text-gray-600">
-              <div class="flex justify-between"><span>Tạm tính</span><span>63.000đ</span></div>
-              <div class="flex justify-between"><span>Phí vận chuyển</span><span>30.000đ</span></div>
-              <div class="flex justify-between text-xl font-bold text-[#2563EB] pt-2 border-t mt-2">
-                <span>Tổng cộng</span><span>93.000đ</span>
+              <div class="flex justify-between">
+                <span>Tạm tính</span>
+                <span>{{ formatPrice(cartStore.totalPrice) }}đ</span>
               </div>
+              <div class="flex justify-between">
+                <span>Phí vận chuyển</span>
+                <span>{{ formatPrice(shippingFee) }}đ</span>
+              </div>
+      
+            <div class="flex justify-between text-xl font-bold text-[#2563EB] pt-2 border-t mt-2">
+              <span>Tổng cộng</span>
+              <span>{{ formatPrice(finalTotal) }}đ</span>
+            </div>
             </div>
 
-            <button @click="submitOrder" class="w-full bg-[#2563EB] text-white font-bold py-3 rounded-lg mt-6 hover:bg-red-700 transition shadow-md uppercase">
-              Xác nhận thanh toán
+            <button @click="submitOrder" class="w-full bg-[#2563EB] text-white font-bold py-3 rounded-lg mt-6 hover:bg-blue-700 transition shadow-md uppercase">
+            Xác nhận thanh toán
             </button>
           </div>
         </div>
+        
 
       </div>
     </div>
@@ -140,12 +155,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted,computed } from 'vue';
 import { useRouter } from 'vue-router'; // Dùng để chuyển trang
-import axios from 'axios'; // Thư viện gọi API
+import axios from 'axios';
+import { useCartStore } from '@/stores/cart'; // Thư viện gọi API
 
 const router = useRouter();
-
+const cartStore = useCartStore(); // Khởi tạo Store
+const formatPrice = (value) => {
+  return new Intl.NumberFormat('vi-VN').format(value);
+};// hàm format tiền từ cart.vue
+//tính tổng tiền cuối cùng
+const shippingFee = 30000;
+const finalTotal = computed(() => {
+  return cartStore.totalPrice + shippingFee;
+});
 // 1. Khai báo State (Biến lưu dữ liệu form)
 const form = reactive({
   name: '',
@@ -246,10 +270,11 @@ const submitOrder = () => {
   
   // 5. Xử lý thành công
   if (form.payment === 'qr') {
-    alert(`Chuyển đến trang quét mã QR...\nĐịa chỉ: ${fullAddress}`);
+    alert(`Chuyển đến trang quét mã QR...\nTổng thanh toán: ${formatPrice(finalTotal.value)}đ`);
   } else {
-    alert(`Đặt hàng thành công!\nĐơn hàng sẽ giao đến: ${fullAddress}`);
-    router.push('/'); // Quay về trang chủ
+    alert(`Đặt hàng thành công!\nTổng tiền: ${formatPrice(finalTotal.value)}đ\nĐơn hàng sẽ giao đến: ${fullAddress}`);
+    cartStore.clearCart(); // Xóa giỏ hàng sau khi mua thành công (Tuỳ chọn)
+    router.push('/');
   }
 };
 </script>
