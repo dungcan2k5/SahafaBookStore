@@ -35,7 +35,7 @@
       <div class="mt-6 text-center">
         <router-link 
           to="/gift-card" 
-          class="inline-block bg-[#C92127] text-white px-12 py-2.5 rounded-lg font-bold shadow-md hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+          class="inline-block bg-[#2563eb] text-white px-12 py-2.5 rounded-lg font-bold shadow-md hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
         >
           Xem Thêm
         </router-link>

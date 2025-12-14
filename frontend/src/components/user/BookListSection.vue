@@ -3,7 +3,7 @@
     <div class="bg-white rounded-lg shadow-sm overflow-hidden relative group border border-gray-100">
       
       <div class="p-4 flex items-center gap-3 border-b border-gray-100" :class="headerClass">
-        <div class="p-1.5 rounded" :class="iconBgClass || 'bg-red-100 text-[#C92127]'">
+        <div class="p-1.5 rounded" :class="iconBgClass || 'bg-red-100 text-[#2563eb]'">
            <slot name="icon">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -20,7 +20,7 @@
       </div>
 
       <div class="relative p-2">
-        <button @click="scroll('left')" class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#C92127] opacity-0 group-hover:opacity-100 transition border hidden md:flex hover:scale-110">
+        <button @click="scroll('left')" class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#2563eb] opacity-0 group-hover:opacity-100 transition border hidden md:flex hover:scale-110">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
 
@@ -35,7 +35,7 @@
              
              <div v-if="showProgressBar" class="mt-2 px-1">
                 <div class="w-full bg-pink-100 rounded-full h-4 relative overflow-hidden">
-                  <div class="bg-[#C92127] h-full absolute left-0 top-0" :style="{ width: (book.sold / 1200) * 100 + '%' }"></div>
+                  <div class="bg-[#2563eb] h-full absolute left-0 top-0" :style="{ width: (book.sold / 1200) * 100 + '%' }"></div>
                   <span class="absolute w-full text-center text-[10px] text-white font-bold leading-4 z-10 uppercase">Đã bán {{ book.sold }}</span>
                 </div>
              </div>
@@ -43,7 +43,7 @@
 
         </div>
 
-        <button @click="scroll('right')" class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#C92127] opacity-0 group-hover:opacity-100 transition border hidden md:flex hover:scale-110">
+        <button @click="scroll('right')" class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#2563eb] opacity-0 group-hover:opacity-100 transition border hidden md:flex hover:scale-110">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -52,14 +52,14 @@
   <router-link 
     v-if="seeMoreLink" 
     :to="seeMoreLink" 
-    class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300 inline-block"
+    class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300 inline-block"
   >
     Xem Thêm
   </router-link>
   
   <button 
     v-else 
-    class="border-2 border-[#C92127] text-[#C92127] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#C92127] hover:text-white transition duration-300"
+    class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300"
   >
     Xem Thêm
   </button>
