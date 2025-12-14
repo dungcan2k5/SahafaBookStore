@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto mt-6 px-4">
-    <div class="bg-white rounded-lg p-4 shadow-sm">
+    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
       
       <div class="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
         <div class="flex items-center gap-2">
@@ -29,14 +29,16 @@
              />
              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
           </div>
-          
-          </div>
+        </div>
       </div>
 
       <div class="mt-6 text-center">
-        <button class="border-2 border-fahasa-blue text-fahasa-blue px-12 py-2 rounded-lg font-bold hover:bg-blue-50 transition duration-300">
+        <router-link 
+          to="/gift-card" 
+          class="inline-block bg-[#2563eb] text-white px-12 py-2.5 rounded-lg font-bold shadow-md hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+        >
           Xem Thêm
-        </button>
+        </router-link>
       </div>
 
     </div>
@@ -46,30 +48,26 @@
 <script setup>
 import { ref } from 'vue';
 
-// Mock Data: Dùng ảnh placeholder màu sắc tương tự mẫu
+// Mock Data
 const giftCards = ref([
   { 
     id: 1, 
     title: 'Christmas Gift Card 200K', 
-    // Ảnh màu Xanh Lá (Giống mẫu 1)
     image: 'https://placehold.co/600x375/166534/FFF?text=Christmas+Gift+Card\n200.000+VND&font=playfair-display' 
   },
   { 
     id: 2, 
     title: 'Gift Card 200K - Rạp Xiếc', 
-    // Ảnh màu Đỏ/Vàng (Giống mẫu 2)
     image: 'https://placehold.co/600x375/991b1b/FFF?text=Fahasa+Gift+Card\n200K&font=roboto' 
   },
   { 
     id: 3, 
     title: 'Gift Card 200K - Nutcracker', 
-    // Ảnh màu Xanh Đậm (Giống mẫu 3)
     image: 'https://placehold.co/600x375/0f172a/FFF?text=Gift+Card+Premium\n200K&font=montserrat' 
   },
   { 
     id: 4, 
     title: 'Gift Card 100K - Winter', 
-    // Ảnh màu Xám/Bạc (Giống mẫu 4)
     image: 'https://placehold.co/600x375/475569/FFF?text=Winter+Collection\n100.000+VND&font=lato' 
   },
 ]);
