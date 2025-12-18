@@ -1,16 +1,17 @@
 <template>
   <div class="container mx-auto mt-6 px-4">
-    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-      <div class="flex flex-wrap justify-between items-start gap-4 md:gap-8 px-4">
+    <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      
+      <div class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-9 gap-y-6 gap-x-2 md:gap-4 justify-items-center">
         
         <div 
           v-for="(item, index) in categories" 
           :key="index" 
           @click="goTo(item.path)"
-          class="flex flex-col items-center justify-start cursor-pointer group hover:-translate-y-1 transition-transform duration-300 gap-2"
+          class="flex flex-col items-center justify-start cursor-pointer group hover:-translate-y-1 transition-transform duration-300 gap-2 w-full"
         >
           <div 
-            class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl transition-colors p-3"
+            class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl transition-colors p-3 shadow-sm"
             :class="item.bgClass"
           >
             <component 
@@ -20,7 +21,7 @@
             />
           </div>
           
-          <span class="text-[13px] text-center text-gray-600 font-medium group-hover:text-blue-600 transition-colors leading-tight px-1 h-8 flex items-start justify-center">
+          <span class="text-[11px] md:text-[13px] text-center text-gray-600 font-medium group-hover:text-blue-600 transition-colors leading-tight px-1 h-8 flex items-start justify-center">
             {{ item.name }}
           </span>
         </div>
@@ -32,11 +33,6 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-const router = useRouter();
-
-const goTo = (path) => {
-  if (path) router.push(path);
-};
 import { ref } from 'vue';
 
 // Import các icon từ thư viện @element-plus/icons-vue
@@ -52,6 +48,12 @@ import {
   Compass,        // Thay cho Globe2 (Ngoại văn)
   Notebook        // Thay cho BookOpen (Manga)
 } from '@element-plus/icons-vue';
+
+const router = useRouter();
+
+const goTo = (path) => {
+  if (path) router.push(path);
+};
 
 const categories = ref([
   { 
@@ -115,7 +117,7 @@ const categories = ref([
     icon: Notebook, 
     bgClass: 'bg-rose-50 group-hover:bg-rose-100', 
     iconClass: 'text-rose-500',
-    path: '/manga' // 👈 GẮN LINK VÀO ĐÂY
+    path: '/manga' 
   },
 ]);
 </script>

@@ -1,9 +1,7 @@
 <template>
   <div class="pb-10 bg-gray-50 min-h-screen">
     
-    <div class="container mx-auto py-4 px-4">
-      <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 lg:col-span-8 bg-white rounded-lg overflow-hidden shadow-sm relative group h-[320px]">
+    <div class="container mx-auto py-6 px-4"> <div class="grid grid-cols-12 gap-6"> <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]"> 
           <div class="w-full h-full relative">
              <img 
                 :src="bannerImages[currentSlide]" 
@@ -12,12 +10,12 @@
              />
           </div>
 
-          <button @click="prevSlide" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <button @click="prevSlide" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
           </button>
 
-          <button @click="nextSlide" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          <button @click="nextSlide" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           </button>
 
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -25,41 +23,34 @@
               v-for="(img, index) in bannerImages" 
               :key="index"
               @click="currentSlide = index"
-              :class="['w-3 h-3 rounded-full transition-all', currentSlide === index ? 'bg-red-600 w-6' : 'bg-white/70 hover:bg-white']"
+              :class="['h-2 rounded-full transition-all duration-300 shadow-sm', currentSlide === index ? 'bg-red-600 w-8' : 'bg-white/70 w-2 hover:bg-white']"
             ></button>
           </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-[320px]">
-          <div class="h-1/2 rounded-lg overflow-hidden shadow-sm">
-            <img 
+        <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]"> <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group"> <img 
               src="/banners/SAHAFA.COM.png" 
-              class="w-full h-full object-cover hover:scale-105 transition duration-500 cursor-pointer"
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
             />
           </div>
-          <div class="h-1/2 rounded-lg overflow-hidden shadow-sm">
+          <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
             <img 
               src="/banners/GIAM_GIA.png" 
-              class="w-full h-full object-cover hover:scale-105 transition duration-500 cursor-pointer"
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
             />
           </div>
         </div>
       </div>
     </div>
     
-    <div class="container mx-auto px-4 mb-4">
+    <div class="container mx-auto px-4 mb-8">
       <div class="grid grid-cols-4 gap-4">
-        <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
-          <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 1</span>
-        </div>
-        <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
-           <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 2</span>
-        </div>
-        <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
-           <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 3</span>
-        </div>
-        <div class="col-span-2 md:col-span-1 h-[150px] bg-gray-300 rounded-lg flex items-center justify-center hover:shadow-md transition cursor-pointer group">
-           <span class="text-2xl font-bold text-gray-500 group-hover:text-gray-700">IMG 4</span>
+        <div v-for="n in 4" :key="n" 
+             class="col-span-2 md:col-span-1 h-[120px] bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center shadow-sm hover:shadow-lg transition-all cursor-pointer group hover:-translate-y-1">
+          <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100 transition">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </div>
+          <span class="text-sm font-bold text-gray-600 group-hover:text-blue-600 transition">IMG {{ n }}</span>
         </div>
       </div>
     </div>
@@ -145,7 +136,6 @@ const flashSaleBooks = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 const suggestionsBooks = ref([]);
-// Đã xóa ref skillBooks và literatureBooks để dọn dẹp code thừa
 
 const fetchAllData = async () => {
   try {
