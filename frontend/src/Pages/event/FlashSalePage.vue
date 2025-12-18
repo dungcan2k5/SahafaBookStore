@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const days = [
   { label: 'Thứ 2', category: 'Văn Học' },
   { label: 'Thứ 3', category: 'Kinh Tế' },

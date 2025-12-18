@@ -166,7 +166,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 const englishBooks = ref([
   { id: 1, title: 'Mindset For IELTS - Level 1 Student Book', price: 437000, oldPrice: 461000, discount: 5, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },

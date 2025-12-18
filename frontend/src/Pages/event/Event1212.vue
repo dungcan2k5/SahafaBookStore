@@ -113,7 +113,7 @@
 <script setup>
 import Footer from '@/components/user/Footer.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import { 
   Lightning, 
   Ticket, 
