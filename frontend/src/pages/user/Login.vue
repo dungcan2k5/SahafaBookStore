@@ -7,7 +7,7 @@
       </router-link>
     </div>
 
-    <div class="bg-white p-8 rounded-lg shadow-sm w-full max-w-[500px]">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-[500px]">
       
       <div v-if="activeTab !== 'forgot'" class="flex border-b border-gray-200 mb-6">
         <button 
@@ -28,61 +28,62 @@
 
       <div v-if="activeTab === 'login'" class="flex flex-col gap-4">
         <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Số điện thoại/Email</label>
-          <input type="text" placeholder="Nhập số điện thoại hoặc email" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-400 transition" />
+          <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+          <input type="email" placeholder="Nhập địa chỉ email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
         </div>
         <div class="relative">
           <label class="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label>
-          <input :type="showPassword ? 'text' : 'password'" placeholder="Nhập mật khẩu" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-400 transition pr-12" />
-          <button @click="showPassword = !showPassword" class="absolute right-3 top-[34px] text-sm text-blue-500 font-medium hover:underline">
+          <input :type="showPassword ? 'text' : 'password'" placeholder="Nhập mật khẩu" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition pr-12" />
+          <button @click="showPassword = !showPassword" class="absolute right-3 top-[38px] text-sm text-blue-600 font-medium hover:underline">
             {{ showPassword ? 'Ẩn' : 'Hiện' }}
           </button>
         </div>
         <div class="text-right">
-          <a @click="activeTab = 'forgot'" class="text-sm text-blue-600 hover:underline cursor-pointer">Quên mật khẩu?</a>
+          <a @click="activeTab = 'forgot'" class="text-sm text-[#C92127] hover:underline cursor-pointer font-medium">Quên mật khẩu?</a>
         </div>
-        <button class="bg-blue-600 text-white font-bold py-3 rounded mt-2 hover:bg-blue-700 transition duration-300 shadow-sm">
+        <button class="bg-blue-600 text-white font-bold py-3 rounded-lg mt-2 hover:bg-blue-700 transition duration-300 shadow-lg">
           Đăng nhập
         </button>
       </div>
 
       <div v-else-if="activeTab === 'register'" class="flex flex-col gap-5">
         <div>
-          <label class="block text-gray-600 text-[15px] mb-1">Số điện thoại</label>
-          <input type="text" placeholder="Nhập số điện thoại" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-400 transition" />
+          <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+          <input type="email" placeholder="Nhập địa chỉ email của bạn" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
         </div>
-        <div>
-          <label class="block text-gray-600 text-[15px] mb-2">Chọn phương thức xác minh OTP</label>
-          <div class="grid grid-cols-2 gap-4">
-            <div @click="otpMethod = 'sms'" class="border rounded p-2 flex items-center justify-center gap-2 cursor-pointer transition relative h-[42px]" :class="otpMethod === 'sms' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'">
-              <span class="text-gray-600 text-sm">Tin nhắn SMS</span>
-            </div>
-            <div @click="otpMethod = 'zalo'" class="border rounded p-2 flex items-center justify-center gap-2 cursor-pointer transition relative h-[42px]" :class="otpMethod === 'zalo' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'">
-              <span class="text-blue-500 text-sm font-medium">Zalo ZNS</span>
-            </div>
-          </div>
-        </div>
-         <div>
-          <label class="block text-gray-600 text-[15px] mb-1">Mã xác nhận OTP</label>
-          <input type="text" placeholder="6 ký tự" class="w-full px-4 py-2 border border-gray-300 rounded bg-gray-50 focus:outline-none focus:border-blue-400 transition" disabled />
-        </div>
+        
         <div class="relative">
-          <label class="block text-gray-600 text-[15px] mb-1">Mật khẩu</label>
-          <input :type="showPasswordRegister ? 'text' : 'password'" placeholder="Nhập mật khẩu" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-400 transition pr-12" />
-          <button @click="showPasswordRegister = !showPasswordRegister" class="absolute right-3 top-[34px] text-sm text-blue-500 font-medium hover:underline">{{ showPasswordRegister ? 'Ẩn' : 'Hiện' }}</button>
+          <label class="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label>
+          <input :type="showPasswordRegister ? 'text' : 'password'" placeholder="Tạo mật khẩu" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition pr-12" />
+          <button @click="showPasswordRegister = !showPasswordRegister" class="absolute right-3 top-[38px] text-sm text-blue-600 font-medium hover:underline">
+            {{ showPasswordRegister ? 'Ẩn' : 'Hiện' }}
+          </button>
         </div>
-        <button class="bg-gray-300 text-gray-500 font-bold py-3 rounded mt-2 cursor-not-allowed hover:bg-gray-400 transition">Đăng ký</button>
+
+        <button class="bg-blue-600 text-white font-bold py-3 rounded-lg mt-2 hover:bg-blue-700 transition duration-300 shadow-lg">
+          Đăng ký tài khoản
+        </button>
+
+        <div class="text-center text-xs text-gray-500 mt-1">
+          Bằng việc đăng ký, bạn đồng ý với <a href="#" class="text-blue-600 underline">Điều khoản & Chính sách</a> của Sahafa.
+        </div>
       </div>
 
       <div v-else-if="activeTab === 'forgot'" class="flex flex-col gap-5">
-        <h2 class="text-xl font-bold text-gray-700 text-center uppercase mb-2">Khôi Phục Mật Khẩu</h2>
+        <h2 class="text-xl font-bold text-gray-800 text-center uppercase mb-2">Khôi Phục Mật Khẩu</h2>
         <div>
-          <label class="block text-gray-600 text-[15px] mb-1">Số điện thoại/Email</label>
-          <input type="text" placeholder="Nhập số điện thoại hoặc email" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-400 transition" />
+          <label class="block text-gray-700 text-sm font-medium mb-1">Email đăng ký</label>
+          <input type="email" placeholder="Nhập địa chỉ email của bạn" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
+          <p class="text-xs text-gray-500 mt-2 italic">*Link khôi phục mật khẩu sẽ được gửi vào email này.</p>
         </div>
+        
         <div class="flex flex-col gap-3 mt-2">
-          <button class="bg-gray-300 text-gray-600 font-bold py-3 rounded cursor-not-allowed hover:bg-gray-400 transition shadow-sm">Xác nhận</button>
-          <button @click="activeTab = 'login'" class="bg-white text-blue-600 border border-blue-600 font-bold py-3 rounded hover:bg-blue-50 transition">Trở về</button>
+          <button class="bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">
+            Gửi yêu cầu
+          </button>
+          <button @click="activeTab = 'login'" class="bg-white text-[#C92127] border border-[#C92127] font-bold py-3 rounded-lg hover:bg-red-50 transition">
+            Trở về
+          </button>
         </div>
       </div>
 
@@ -98,7 +99,6 @@ const route = useRoute();
 const activeTab = ref('login');
 const showPassword = ref(false);
 const showPasswordRegister = ref(false);
-const otpMethod = ref('sms');
 
 // Logic: Lấy thông tin từ đường dẫn (URL) để chọn Tab
 const checkTabFromUrl = () => {
