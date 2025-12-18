@@ -65,7 +65,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { bookService } from '@/services/bookService';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 
 const books = ref([]);

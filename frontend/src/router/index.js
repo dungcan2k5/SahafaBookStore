@@ -1,24 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/Pages/user/Home.vue'
-import Login from '@/Pages/user/Login.vue'
-import Event1212 from '@/Pages/event/Event1212.vue' 
-import Cart from '@/Pages/user/Cart.vue' 
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue' 
-import CheckoutPage from '@/Pages/user/CheckoutPage.vue' 
-import TrendingPage from '@/Pages/user/TrendingPage.vue' 
-import BookDetail from '@/Pages/user/BookDetail.vue' 
-import GiftCardPage from '../Pages/event/GiftCardPage.vue'
-import VoucherPage from '../Pages/event/VoucherPage.vue'
-import AttendancePage from '../Pages/event/AttendancePage.vue'
-import FlashSalePage from '../Pages/event/FlashSalePage.vue'
-import NewArrivalsPage from '../Pages/event/NewArrivalsPage.vue'
-import SecondHandPage from '../Pages/event/SecondHandPage.vue'
-import ForeignBooksPage from '../Pages/event/ForeignBooksPage.vue'
-import MangaPage from '../Pages/event/MangaPage.vue'
-import Term from '@/Pages/user/Term.vue'
+import Home from '@/pages/user/Home.vue' 
+import Login from '@/pages/user/Login.vue'
+import Event1212 from '@/pages/event/Event1212.vue'
+import Cart from '@/pages/user/Cart.vue' 
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue' 
+import CheckoutPage from '@/pages/user/CheckoutPage.vue' 
+import TrendingPage from '@/pages/user/TrendingPage.vue' 
+import BookDetail from '@/pages/user/BookDetail.vue' 
+import GiftCardPage from '@/pages/event/GiftCardPage.vue'
+import VoucherPage from '@/pages/event/VoucherPage.vue'
+import AttendancePage from '@/pages/event/AttendancePage.vue'
+import FlashSalePage from '@/pages/event/FlashSalePage.vue'
+import NewArrivalsPage from '@/pages/event/NewArrivalsPage.vue'
+import SecondHandPage from '@/pages/event/SecondHandPage.vue'
+import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
+import MangaPage from '@/pages/event/MangaPage.vue'
+import Term from '@/pages/user/Term.vue'
 
 // --- THÊM DÒNG NÀY ---
-import CategoryDetail from '@/Pages/user/CategoryDetail.vue'
+import CategoryDetail from '@/pages/user/CategoryDetail.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -39,7 +39,6 @@ const routes = [
   { path: '/manga', name: 'Manga', component: MangaPage },
   { path: '/policy/:slug', name: 'policy', component: Term },
   
-  // --- THÊM ROUTE NÀY ĐỂ CHẠY CÁC TRANG DANH MỤC ---
   { 
     path: '/category/:id', 
     name: 'CategoryDetail', 

@@ -128,7 +128,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const activeTab = ref('all');
 
 const tabs = [

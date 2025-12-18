@@ -115,7 +115,7 @@ import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 // --- Cấu hình cho Banner Slide ---
 const currentSlide = ref(0);

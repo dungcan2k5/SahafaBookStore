@@ -103,7 +103,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const activeCat = ref('all');
 const loading = ref(false);
 const books = ref([]);

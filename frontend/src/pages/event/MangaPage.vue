@@ -134,7 +134,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const genres = [
   { id: 1, name: 'Shonen', img: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },
   { id: 2, name: 'Shojo', img: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935244878332.jpg' },

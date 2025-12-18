@@ -107,5 +107,5 @@
 </template>
 
 <script setup>
-import SuggestionsPage from '@/Pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 </script>
