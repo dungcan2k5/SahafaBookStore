@@ -49,8 +49,8 @@
 {
   "dependencies": {
     "express": "^4.x",
-    "sequelize": "^6.x",          // ORM (MySQL)
-    "mysql2": "^3.x",             // MySQL driver
+    "sequelize": "^6.x",          // ORM
+    "sqlite3": "^5.1.7",
     "jsonwebtoken": "^9.x",       // JWT Auth
     "bcryptjs": "^2.x",           // Password hashing
     "joi": "^17.x",               // Validation
@@ -64,7 +64,7 @@
 ```
 
 ### Database
-- **MySQL 8.0+ / MariaDB 10.6+**
+- **SQLite3**
 - Dùng **Sequelize migrations** để quản lý schema
 
 ### DevOps
