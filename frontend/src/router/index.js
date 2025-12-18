@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/user/Home.vue' 
 import Login from '@/pages/user/Login.vue'
-// import Event1212 from '@/pages/event/Event1212.vue'
+import Event1212 from '@/pages/event/Event1212.vue'
 import Cart from '@/pages/user/Cart.vue' 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue' 
 import CheckoutPage from '@/pages/user/CheckoutPage.vue' 
