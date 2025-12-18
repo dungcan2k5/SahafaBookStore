@@ -30,7 +30,7 @@ app.use('/api/cart', cartRoutes); // <--- Đăng ký Cart
 app.use('/api/orders', orderRoutes); // <--- Đăng ký Order
 
 // Route cho API Docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get('/', (req, res) => {
     res.json({ message: 'Sahafa Backend is ready!' });
