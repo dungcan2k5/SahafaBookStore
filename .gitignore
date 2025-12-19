@@ -11,7 +11,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
-
+.gemini
 # Node
 node_modules/
 npm-debug.log*
