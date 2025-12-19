@@ -7,7 +7,7 @@ const sequelize = new Sequelize({
     logging: false,
 });
 
-const initModels = require("./models");
+const initModels = require("../models/models");
 // Khởi tạo models và gán vào biến db
 const models = initModels(sequelize);
 
