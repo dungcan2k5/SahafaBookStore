@@ -1,7 +1,10 @@
 <template>
   <div class="pb-10 bg-gray-50 min-h-screen">
     
-    <div class="container mx-auto py-6 px-4"> <div class="grid grid-cols-12 gap-6"> <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]"> 
+    <div class="container mx-auto py-6 px-4">
+      <div class="grid grid-cols-12 gap-6">
+        
+        <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]">
           <div class="w-full h-full relative">
              <img 
                 :src="bannerImages[currentSlide]" 
@@ -28,14 +31,16 @@
           </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]"> <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group"> <img 
-              src="/banners/SAHAFA.COM.png" 
+        <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]">
+          <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
+            <img 
+              :src="sideBanner1" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
             />
           </div>
           <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
             <img 
-              src="/banners/GIAM_GIA.png" 
+              :src="sideBanner2" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
             />
           </div>
@@ -108,13 +113,21 @@ import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
+// --- IMPORT ẢNH TỪ ASSETS ---
+import banner1 from '@/assets/banners/WELCOME_TO_SAHAFA.png';
+import banner2 from '@/assets/banners/12.12_BIG_SALE.png';
+import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
+import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
+import sideBanner2 from '@/assets/banners/GIAM_GIA.png';
+
 // --- Cấu hình cho Banner Slide ---
 const currentSlide = ref(0);
 
+// Gán biến import vào mảng thay vì chuỗi string
 const bannerImages = [
-  '/banners/WELCOME_TO_SAHAFA.png',    
-  '/banners/12.12_BIG_SALE.png',       
-  '/banners/MERRY_CHRISTMAS.png'       
+  banner1,    
+  banner2,       
+  banner3       
 ];
 
 let slideInterval;
