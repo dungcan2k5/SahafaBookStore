@@ -15,7 +15,8 @@ const connectDB = async () => {
     try {
         await sequelize.authenticate();
         console.log("✅ Kết nối Database thành công!");
-        await sequelize.sync({ alter: true });
+        // await sequelize.sync({ alter: true });
+        await sequelize.sync();
         console.log("✅ Đã đồng bộ Models với Database!");
     } catch (error) {
         console.error("❌ Kết nối thất bại:", error);

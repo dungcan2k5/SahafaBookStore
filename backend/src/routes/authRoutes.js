@@ -23,11 +23,9 @@ const verifyToken = require('../middleware/authMiddleware'); // Import middlewar
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               email:
  *                 type: string
  *               password:
- *                 type: string
- *               email:
  *                 type: string
  *     responses:
  *       201:
@@ -50,7 +48,7 @@ router.post('/register', authController.register);
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               email:
  *                 type: string
  *               password:
  *                 type: string
