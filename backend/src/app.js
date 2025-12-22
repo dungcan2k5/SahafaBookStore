@@ -9,6 +9,11 @@ const bookRoutes = require('./routes/bookRoutes'); // <--- Thêm dòng này
 const authRoutes = require('./routes/authRoutes'); // <--- Thêm
 const cartRoutes = require('./routes/cartRoutes'); // <--- Thêm
 const orderRoutes = require('./routes/orderRoutes');
+const userRoutes = require('./routes/userRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const postRoutes = require('./routes/postRoutes');
+const voucherRoutes = require('./routes/voucherRoutes');
+const paymentRoutes = require('./routes/paymentRoutes'); // <--- Thêm Payment Routes
 const { swaggerUi, specs } = require('./config/swagger');
 
 const app = express();
@@ -24,10 +29,15 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 // Routes
-app.use('/api/books', bookRoutes); // <--- Đăng ký route: tất cả đường dẫn bắt đầu bằng /api/books sẽ vào đây
-app.use('/api/auth', authRoutes); // <--- Đăng ký Auth
-app.use('/api/cart', cartRoutes); // <--- Đăng ký Cart
-app.use('/api/orders', orderRoutes); // <--- Đăng ký Order
+app.use('/api/books', bookRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/vouchers', voucherRoutes);
+app.use('/api/payment', paymentRoutes); // <--- Đăng ký URL
 
 // Route cho API Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));

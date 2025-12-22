@@ -22,4 +22,24 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-module.exports = verifyToken;
+// Middleware phân quyền
+const authorize = (roles = []) => {
+    // roles param có thể là string (1 role) hoặc array (nhiều role)
+    if (typeof roles === 'string') {
+        roles = [roles];
+    }
+
+    return (req, res, next) => {
+        if (!req.user_role) {
+            return res.status(401).json({ success: false, message: 'Chưa xác thực danh tính' });
+        }
+
+        if (roles.length && !roles.includes(req.user_role)) {
+            return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
+        }
+
+        next();
+    };
+};
+
+module.exports = { verifyToken, authorize };

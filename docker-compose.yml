@@ -1,33 +1,29 @@
 services:
-  backend:
-    image: dungcan2k5/sahafa-backend:latest
-    restart: always
-    ports:
-      - "3000:3000"
-    volumes:
-      # QUAN TRỌNG: Map thư mục chứa DB ở máy thật vào trong container
-      # ./data là thư mục trên VPS (tự tạo ra)
-      # /app/data là thư mục bên trong container (nơi code backend trỏ tới)
-      - ./data:/app/data
-    environment:
-      # Với SQLite, backend thường chỉ cần biết file nằm ở đâu
-      # Tên biến này (DATABASE_URL hay DB_PATH) phụ thuộc vào code backend của bạn viết là gì.
-      # Ví dụ phổ biến với Prisma/TypeORM/Sequelize:
-      - DATABASE_URL=file:/app/data/sahafa.sqlite
-      
-      # Các biến khác (JWT, PORT,...) nếu có
-      - PORT=3000
+    backend:
+        image: dungcan2k5/sahafa-backend:latest
+        restart: always
+        ports:
+            - "3000:3000"
+        volumes:
+            # Map thư mục data chứa DB
+            - ./data:/app/data
+            # Map thêm thư mục uploads để lưu resource/asset sau này
+            - ./uploads:/app/uploads
+        environment:
+            - DB_STORAGE=/app/data/sahafa.sqlite
+            - PORT=3000
+            - UPLOAD_DIR=/app/uploads
 
-  frontend:
-    image: dungcan2k5/sahafa-frontend:latest
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      # Cấu trúc: /đường/dẫn/trên/vps : /đường/dẫn/trong/container
-      # Ví dụ bạn lưu cert ở /home/zun/certs/ trên VPS:
-      - /etc/ssl/cf-origin.crt:/etc/nginx/ssl/cf-origin.crt
-      - /etc/ssl/cf-origin.key:/etc/nginx/ssl/cf-origin.key
-    depends_on:
-      - backend
+    frontend:
+        image: dungcan2k5/sahafa-frontend:latest
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            # Cấu trúc: /đường/dẫn/trên/vps : /đường/dẫn/trong/container
+            # Ví dụ bạn lưu cert ở /home/zun/certs/ trên VPS:
+            - /etc/ssl/cf-origin.crt:/etc/nginx/ssl/cf-origin.crt
+            - /etc/ssl/cf-origin.key:/etc/nginx/ssl/cf-origin.key
+        depends_on:
+            - backend

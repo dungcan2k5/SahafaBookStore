@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const verifyToken = require('../middleware/authMiddleware'); // Import middleware
+const { verifyToken } = require('../middleware/authMiddleware'); // Import middleware
 
 /**
  * @swagger
@@ -23,11 +23,9 @@ const verifyToken = require('../middleware/authMiddleware'); // Import middlewar
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               email:
  *                 type: string
  *               password:
- *                 type: string
- *               email:
  *                 type: string
  *     responses:
  *       201:
@@ -50,7 +48,7 @@ router.post('/register', authController.register);
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               email:
  *                 type: string
  *               password:
  *                 type: string
