@@ -1,10 +1,30 @@
 const { models } = require('../config/database');
 const { Book, Author, Genre, BookImage } = models; // Lấy các model cần dùng
+const { Op } = require('sequelize');
 
-// [GET] /api/books - Lấy danh sách sách
+// [GET] /api/books - Lấy danh sách sách (có tìm kiếm và lọc)
 const getAllBooks = async (req, res) => {
     try {
+        const { search, genre, author } = req.query;
+        const whereClause = {};
+
+        // Tìm kiếm theo tên sách
+        if (search) {
+            whereClause.book_title = { [Op.like]: `%${search}%` };
+        }
+
+        // Lọc theo danh mục (Genre)
+        if (genre) {
+            whereClause.genre_id = genre;
+        }
+
+        // Lọc theo tác giả
+        if (author) {
+            whereClause.author_id = author;
+        }
+
         const books = await Book.findAll({
+            where: whereClause,
             include: [
                 { model: Author, attributes: ['author_name'] },
                 { model: Genre, attributes: ['genre_name'] },
@@ -15,6 +35,39 @@ const getAllBooks = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách sách' });
+    }
+};
+
+// [GET] /api/books/genres - Lấy danh sách danh mục (thể loại)
+const getGenres = async (req, res) => {
+    try {
+        const genres = await Genre.findAll();
+        res.status(200).json({ success: true, data: genres });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách thể loại' });
+    }
+};
+
+// [GET] /api/books/authors - Lấy danh sách tác giả
+const getAuthors = async (req, res) => {
+    try {
+        const authors = await Author.findAll();
+        res.status(200).json({ success: true, data: authors });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách tác giả' });
+    }
+};
+
+// [GET] /api/books/publishers - Lấy danh sách nhà xuất bản
+const getPublishers = async (req, res) => {
+    try {
+        const publishers = await models.Publisher.findAll();
+        res.status(200).json({ success: true, data: publishers });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách NXB' });
     }
 };
 
@@ -47,4 +100,4 @@ const createBook = async (req, res) => {
     }
 };
 
-module.exports = { getAllBooks, getBookDetail, createBook };
+module.exports = { getAllBooks, getBookDetail, createBook, getGenres, getAuthors, getPublishers };
