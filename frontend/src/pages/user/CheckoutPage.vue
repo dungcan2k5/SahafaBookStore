@@ -278,6 +278,11 @@ const submitOrder = async () => {
   const distName = locations.districts.find(d => d.code == form.district)?.name;
   const wardName = locations.wards.find(w => w.code == form.ward)?.name;
   const fullAddress = `${form.address}, ${wardName}, ${distName}, ${cityName}`;
+  const orderItems = cartStore.items.map(item => ({
+        book_id: item.id,       // Hoặc item.book_id tùy vào cartStore của bạn
+        quantity: item.quantity,
+        price: item.price       // Có thể gửi hoặc để Backend tự query lại giá cho an toàn
+    }));
 
   isLoading.value = true;
   
