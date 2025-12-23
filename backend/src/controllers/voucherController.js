@@ -114,4 +114,22 @@ const deleteVoucher = async (req, res) => {
     }
 };
 
-module.exports = { getVouchers, checkVoucher, createVoucher, updateVoucher, deleteVoucher };
+// [GET] /api/vouchers/admin
+const getAllVouchersAdmin = async (req, res) => {
+    try {
+        const vouchers = await Voucher.findAll({
+            // SỬA DÒNG NÀY:
+            // Thay vì 'createdAt', hãy dùng 'voucher_id' (cột chắc chắn có)
+            order: [['voucher_id', 'DESC']] 
+        });
+        res.json({ success: true, data: vouchers });
+    } catch (error) {
+        console.error("LỖI BACKEND:", error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
+module.exports = { 
+    getVouchers, checkVoucher, createVoucher, updateVoucher, deleteVoucher,
+    getAllVouchersAdmin
+ };
