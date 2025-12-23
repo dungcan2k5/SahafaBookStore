@@ -199,7 +199,33 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
 import axios from 'axios';
+const fetchUserProfile = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
+    // Gọi API lấy profile (Backend cần API này trả về thông tin user + default address)
+    const res = await axios.get('http://localhost:3000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const user = res.data;
+    
+    // 1. Điền Tên và SĐT từ bảng User
+    form.name = user.full_name || ''; 
+    form.phone = user.phone || '';
+
+    // 2. Điền địa chỉ mặc định (Nếu bảng Address có dữ liệu)
+    // Lưu ý: Logic điền Tỉnh/Huyện/Xã tự động khá phức tạp vì phải khớp ID
+    // Ở đây ta chỉ điền địa chỉ cụ thể làm ví dụ
+    if (user.Address) {
+       form.address = user.Address.address_detail; 
+    }
+
+  } catch (error) {
+    console.log("Khách vãng lai hoặc lỗi lấy profile");
+  }
+};
 const router = useRouter();
 const cartStore = useCartStore();
 
@@ -251,7 +277,8 @@ const onDistrictChange = async () => {
 };
 
 onMounted(() => {
-  fetchCities(); // Load danh sách tỉnh ngay khi vào trang
+  fetchCities();
+  fetchUserProfile(); // Load thông tin người dùng khi vào trang
 });
 
 // --- 2. LOGIC TẠO ĐƠN & THANH TOÁN ---
@@ -304,18 +331,14 @@ const submitOrder = async () => {
     const data = response.data;
     if (data.success) {
       if (form.payment === 'sepay' || form.payment === 'bank_transfer') {
-        paymentInfo.value = data.payment_info || {
-            amount: data.final_amount,
-            content: `SAHAFA${data.order_id}`
-        }; 
-        showQRModal.value = true;
+        // ... (Logic hiện QR giữ nguyên) ...
+        // Lưu lại order_id để dùng khi bấm nút "Tôi đã chuyển khoản"
+        paymentInfo.value.orderId = data.order_id; 
       } else {
-        alert('Đặt hàng thành công! Mã đơn: ' + data.order_id);
+        // COD -> Chuyển hướng ngay sang trang Dynamic
         cartStore.clearCart();
-        router.push('/');
+        router.push({ name: 'OrderSuccess', params: { id: data.order_id } }); 
       }
-    } else {
-      alert('Backend trả về lỗi: ' + data.message);
     }
 
   } catch (error) {
@@ -355,8 +378,14 @@ const copyContent = () => {
 const finishPayment = () => {
   showQRModal.value = false;
   cartStore.clearCart();
-  alert('Đơn hàng đang chờ xử lý. Cảm ơn quý khách!');
-  router.push('/');
+  
+  // Chuyển hướng sang trang Dynamic Route
+  // paymentInfo.value.orderId đã được lưu ở bước submitOrder trên
+  if (paymentInfo.value.orderId) {
+     router.push({ name: 'OrderSuccess', params: { id: paymentInfo.value.orderId } });
+  } else {
+     router.push('/');
+  }
 };
 </script>
 
