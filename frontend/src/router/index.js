@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 
 // --- USER PAGES ---
 import Home from '@/pages/user/Home.vue' 
-import Login from '@/pages/user/Login.vue'
 import Event1212 from '@/pages/event/Event1212.vue'
 import Cart from '@/pages/user/Cart.vue' 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue' 
@@ -27,7 +26,6 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 const routes = [
   // ================== USER ROUTES ==================
   { path: '/', name: 'Home', component: Home },
-  { path: '/login', name: 'Login', component: Login },
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
   { path: '/cart', name: 'Cart', component: Cart },
   { path: '/checkout', name: 'Checkout', component: CheckoutPage },
@@ -44,6 +42,8 @@ const routes = [
   { path: '/manga', name: 'Manga', component: MangaPage },
   { path: '/policy/:slug', name: 'policy', component: Term },
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
+  { path: '/about', name: 'About', component: () => import('@/pages/user/About.vue') },
+  { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
 
   // ================== ADMIN ROUTES ==================
   {
