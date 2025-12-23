@@ -1,90 +1,82 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-10 px-4">
-    
-    <div class="mb-8 text-center">
-      <router-link to="/" class="text-4xl font-extrabold tracking-tighter italic text-blue-600 flex items-center gap-1">
-        Sahafa<span class="text-yellow-400">.com</span>
-      </router-link>
-    </div>
-
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-[500px]">
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
       
-      <div v-if="activeTab !== 'forgot'" class="flex border-b border-gray-200 mb-6">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-black text-blue-600 tracking-tighter">
+          Sahafa<span class="text-yellow-400">.com</span>
+        </h1>
+      </div>
+
+      <div class="flex border-b border-gray-200 mb-6">
         <button 
           @click="activeTab = 'login'"
-          class="w-1/2 pb-3 text-lg font-medium transition-all relative"
-          :class="activeTab === 'login' ? 'text-blue-600 border-b-2 border-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600'"
+          class="flex-1 pb-4 text-center font-bold text-sm transition relative"
+          :class="activeTab === 'login' ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'"
         >
           Đăng nhập
+          <span v-if="activeTab === 'login'" class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
         </button>
         <button 
           @click="activeTab = 'register'"
-          class="w-1/2 pb-3 text-lg font-medium transition-all relative"
-          :class="activeTab === 'register' ? 'text-blue-600 border-b-2 border-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600'"
+          class="flex-1 pb-4 text-center font-bold text-sm transition relative"
+          :class="activeTab === 'register' ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'"
         >
           Đăng ký
+          <span v-if="activeTab === 'register'" class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
         </button>
       </div>
 
-      <div v-if="activeTab === 'login'" class="flex flex-col gap-4">
+      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-5">
         <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
-          <input type="email" placeholder="Nhập địa chỉ email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input v-model="loginForm.email" type="email" required class="w-full px-4 py-3 rounded-lg bg-blue-50 border border-blue-100 focus:border-blue-500 focus:bg-white focus:outline-none transition text-sm" placeholder="khachhang@sahafa.com">
         </div>
-        <div class="relative">
-          <label class="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label>
-          <input :type="showPassword ? 'text' : 'password'" placeholder="Nhập mật khẩu" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition pr-12" />
-          <button @click="showPassword = !showPassword" class="absolute right-3 top-[38px] text-sm text-blue-600 font-medium hover:underline">
-            {{ showPassword ? 'Ẩn' : 'Hiện' }}
-          </button>
-        </div>
-        <div class="text-right">
-          <a @click="activeTab = 'forgot'" class="text-sm text-[#C92127] hover:underline cursor-pointer font-medium">Quên mật khẩu?</a>
-        </div>
-        <button class="bg-blue-600 text-white font-bold py-3 rounded-lg mt-2 hover:bg-blue-700 transition duration-300 shadow-lg">
-          Đăng nhập
-        </button>
-      </div>
-
-      <div v-else-if="activeTab === 'register'" class="flex flex-col gap-5">
         <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
-          <input type="email" placeholder="Nhập địa chỉ email của bạn" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+          <input v-model="loginForm.password" type="password" required class="w-full px-4 py-3 rounded-lg bg-blue-50 border border-blue-100 focus:border-blue-500 focus:bg-white focus:outline-none transition text-sm" placeholder="••••••">
         </div>
         
-        <div class="relative">
-          <label class="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label>
-          <input :type="showPasswordRegister ? 'text' : 'password'" placeholder="Tạo mật khẩu" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition pr-12" />
-          <button @click="showPasswordRegister = !showPasswordRegister" class="absolute right-3 top-[38px] text-sm text-blue-600 font-medium hover:underline">
-            {{ showPasswordRegister ? 'Ẩn' : 'Hiện' }}
-          </button>
+        <div class="flex justify-end">
+          <a href="#" class="text-sm text-red-500 hover:underline">Quên mật khẩu?</a>
         </div>
 
-        <button class="bg-blue-600 text-white font-bold py-3 rounded-lg mt-2 hover:bg-blue-700 transition duration-300 shadow-lg">
-          Đăng ký tài khoản
+        <button 
+          type="submit" 
+          :disabled="isLoading"
+          class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md flex justify-center items-center gap-2"
+        >
+          <span v-if="isLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          {{ isLoading ? 'Đang xử lý...' : 'Đăng nhập' }}
         </button>
+      </form>
 
-        <div class="text-center text-xs text-gray-500 mt-1">
-          Bằng việc đăng ký, bạn đồng ý với <a href="#" class="text-blue-600 underline">Điều khoản & Chính sách</a> của Sahafa.
-        </div>
-      </div>
-
-      <div v-else-if="activeTab === 'forgot'" class="flex flex-col gap-5">
-        <h2 class="text-xl font-bold text-gray-800 text-center uppercase mb-2">Khôi Phục Mật Khẩu</h2>
+      <form v-else @submit.prevent="handleRegister" class="space-y-5">
         <div>
-          <label class="block text-gray-700 text-sm font-medium mb-1">Email đăng ký</label>
-          <input type="email" placeholder="Nhập địa chỉ email của bạn" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition" />
-          <p class="text-xs text-gray-500 mt-2 italic">*Link khôi phục mật khẩu sẽ được gửi vào email này.</p>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+          <input v-model="registerForm.full_name" type="text" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none transition text-sm" placeholder="Nguyễn Văn A">
         </div>
-        
-        <div class="flex flex-col gap-3 mt-2">
-          <button class="bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">
-            Gửi yêu cầu
-          </button>
-          <button @click="activeTab = 'login'" class="bg-white text-[#C92127] border border-[#C92127] font-bold py-3 rounded-lg hover:bg-red-50 transition">
-            Trở về
-          </button>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input v-model="registerForm.email" type="email" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none transition text-sm" placeholder="email@example.com">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+          <input v-model="registerForm.password" type="password" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none transition text-sm" placeholder="Tối thiểu 6 ký tự">
+        </div>
+
+        <button 
+          type="submit" 
+          :disabled="isLoading"
+          class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-md flex justify-center items-center gap-2"
+        >
+          <span v-if="isLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          {{ isLoading ? 'Đang đăng ký...' : 'Tạo tài khoản' }}
+        </button>
+      </form>
+
+      <div class="mt-8 text-center text-xs text-gray-400">
+        &copy; 2025 Sahafa BookStore. All rights reserved.
       </div>
 
     </div>
@@ -92,28 +84,95 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-const route = useRoute();
-const activeTab = ref('login');
-const showPassword = ref(false);
-const showPasswordRegister = ref(false);
+const router = useRouter();
+const activeTab = ref('login'); // 'login' | 'register'
+const isLoading = ref(false);
 
-// Logic: Lấy thông tin từ đường dẫn (URL) để chọn Tab
-const checkTabFromUrl = () => {
-  if (route.query.tab === 'register') {
-    activeTab.value = 'register';
-  } else {
-    activeTab.value = 'login';
+// State form đăng nhập
+const loginForm = reactive({
+  email: '',
+  password: ''
+});
+
+// State form đăng ký
+const registerForm = reactive({
+  full_name: '',
+  email: '',
+  password: ''
+});
+
+// --- XỬ LÝ ĐĂNG NHẬP ---
+const handleLogin = async () => {
+  isLoading.value = true;
+  try {
+    // Gọi API Backend: /api/auth/login
+    // Lưu ý: Đổi localhost:3000 nếu port backend bạn khác
+    const res = await axios.post('http://localhost:3000/api/auth/login', {
+      email: loginForm.email,
+      password: loginForm.password
+    });
+
+    if (res.data.success) {
+      // 1. Lưu token vào localStorage (Quan trọng nhất!)
+      localStorage.setItem('token', res.data.token);
+      
+      // 2. Lưu thông tin user (Optional - để hiện tên trên Header)
+      if (res.data.user) {
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+      }
+
+      // 3. Chuyển hướng về trang chủ
+      alert('Đăng nhập thành công!');
+      router.push('/');
+    } else {
+      alert(res.data.message || 'Đăng nhập thất bại');
+    }
+  } catch (error) {
+    console.error(error);
+    const msg = error.response?.data?.message || 'Lỗi kết nối Server';
+    alert('Lỗi: ' + msg);
+  } finally {
+    isLoading.value = false;
   }
-}
+};
 
-onMounted(() => {
-  checkTabFromUrl();
-});
+// --- XỬ LÝ ĐĂNG KÝ ---
+const handleRegister = async () => {
+  isLoading.value = true;
+  try {
+    // Gọi API Backend: /api/auth/register
+    const res = await axios.post('http://localhost:3000/api/auth/register', {
+      full_name: registerForm.full_name,
+      email: registerForm.email,
+      password: registerForm.password
+    });
 
-watch(() => route.query.tab, () => {
-  checkTabFromUrl();
-});
+    if (res.data.success) {
+      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+      // Chuyển sang tab đăng nhập và điền sẵn email
+      activeTab.value = 'login';
+      loginForm.email = registerForm.email;
+      loginForm.password = '';
+    } else {
+      alert(res.data.message || 'Đăng ký thất bại');
+    }
+  } catch (error) {
+    console.error(error);
+    const msg = error.response?.data?.message || 'Lỗi kết nối Server';
+    alert('Lỗi: ' + msg);
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
+
+<style scoped>
+/* Hiệu ứng focus input */
+input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+</style>

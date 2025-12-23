@@ -1,71 +1,104 @@
+// frontend/src/stores/cart.js
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import axios from 'axios';
 
-export const useCartStore = defineStore('cart', () => {
-  // State: Lấy dữ liệu từ LocalStorage ngay khi khởi tạo
-  const items = ref(JSON.parse(localStorage.getItem('cart-items')) || []);
+export const useCartStore = defineStore('cart', {
+  state: () => ({
+    items: [], // Danh sách sản phẩm trong giỏ
+    isLoading: false
+  }),
 
-  // Getter: Tổng số lượng
-  const totalItems = computed(() => {
-    return items.value.reduce((total, item) => total + item.quantity, 0);
-  });
+  getters: {
+    // Tính tổng số lượng
+    totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
+    // Tính tổng tiền
+    totalPrice: (state) => state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+  },
 
-  // Getter: Tổng tiền
-  const totalPrice = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0);
-  });
-
-  // Action: Thêm vào giỏ
-  function addToCart(product, quantity = 1) {
-    const existingItem = items.value.find(item => item.id === product.id);
-    
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      items.value.push({ ...product, quantity });
-    }
-    
-    saveToLocalStorage();
-    // alert('Đã thêm vào giỏ hàng thành công!'); // Có thể bỏ alert này nếu thấy phiền
-  }
-
-  // Action: Xóa sản phẩm
-  function removeFromCart(productId) {
-    items.value = items.value.filter(item => item.id !== productId);
-    saveToLocalStorage();
-  }
-
-  // Action MỚI: Cập nhật số lượng (Tăng/Giảm)
-  function updateQuantity(productId, change) {
-    const item = items.value.find(item => item.id === productId);
-    if (item) {
-      const newQuantity = item.quantity + change;
-      // Chỉ cho phép cập nhật nếu số lượng > 0
-      if (newQuantity > 0) {
-        item.quantity = newQuantity;
-        saveToLocalStorage();
+  actions: {
+    // 1. Lấy giỏ hàng từ Server (Gọi khi Load trang hoặc Đăng nhập xong)
+    async fetchCart() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+         this.items = []; 
+         return;
       }
+
+      this.isLoading = true;
+      try {
+        const res = await axios.get('http://localhost:3000/api/cart', {
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.data.success && res.data.data) {
+          // Map dữ liệu từ Backend sang chuẩn Frontend
+          // Backend trả về: CartItems -> Book -> BookImages
+          this.items = res.data.data.CartItems.map(item => ({
+             id: item.cart_item_id, // ID dòng trong giỏ hàng để xóa
+             book_id: item.book_id,
+             title: item.Book.book_title,
+             price: parseFloat(item.Book.price),
+             image: item.Book.BookImages?.[0]?.book_image_url || 'https://via.placeholder.com/150',
+             quantity: item.quantity
+          }));
+        }
+      } catch (error) {
+        console.error("Lỗi lấy giỏ hàng:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // 2. Thêm vào giỏ (Gọi API POST /api/cart/add)
+    async addToCart(book, quantity = 1) {
+      const token = localStorage.getItem('token');
+      
+      // Nếu chưa đăng nhập -> Chỉ lưu tạm hoặc bắt đăng nhập (Ở đây mình bắt đăng nhập cho đồng bộ)
+      if (!token) {
+        alert("Vui lòng đăng nhập để mua hàng!");
+        return false; // Trả về false để UI biết
+      }
+
+      try {
+        await axios.post('http://localhost:3000/api/cart/add', {
+           book_id: book.book_id || book.id, // Tuỳ cách bạn đặt tên ID ở object book
+           quantity: quantity
+        }, {
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        // Sau khi thêm thành công, tải lại giỏ hàng mới nhất từ server
+        await this.fetchCart();
+        alert("Đã thêm vào giỏ hàng!");
+        return true;
+      } catch (error) {
+        console.error("Lỗi thêm giỏ hàng:", error);
+        alert("Lỗi thêm vào giỏ: " + (error.response?.data?.message || error.message));
+        return false;
+      }
+    },
+
+    // 3. Xóa khỏi giỏ (Gọi API DELETE /api/cart/item/:id)
+    async removeFromCart(cartItemId) {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        await axios.delete(`http://localhost:3000/api/cart/item/${cartItemId}`, {
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Cập nhật lại list local (Xóa nhanh khỏi mảng đỡ phải gọi lại API)
+        this.items = this.items.filter(item => item.id !== cartItemId);
+      } catch (error) {
+        console.error("Lỗi xóa sản phẩm:", error);
+        alert("Không thể xóa sản phẩm.");
+      }
+    },
+    
+    // 4. Clear giỏ hàng (Dùng khi Đăng xuất hoặc Thanh toán xong)
+    clearCart() {
+      this.items = [];
     }
   }
-
-  // Action MỚI: Xóa sạch giỏ (Dùng khi thanh toán xong)
-  function clearCart() {
-    items.value = [];
-    saveToLocalStorage();
-  }
-
-  // Helper: Lưu LocalStorage
-  function saveToLocalStorage() {
-    localStorage.setItem('cart-items', JSON.stringify(items.value));
-  }
-
-  return { 
-    items, 
-    totalItems, 
-    totalPrice, 
-    addToCart, 
-    removeFromCart, 
-    updateQuantity, 
-    clearCart 
-  };
 });
