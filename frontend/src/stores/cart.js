@@ -95,6 +95,65 @@ export const useCartStore = defineStore('cart', {
         alert("Không thể xóa sản phẩm.");
       }
     },
+    // . Cập nhật số lượng (Gọi API PUT)
+    async updateQuantity(cartItemId, newQuantity) {
+      // Chặn không cho giảm xuống dưới 1
+      if (newQuantity < 1) return;
+
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Tìm sản phẩm trong danh sách local để cập nhật giao diện trước (Optimistic UI)
+      const itemIndex = this.items.findIndex(item => item.id === cartItemId);
+      if (itemIndex === -1) return;
+
+      // Lưu lại số lượng cũ để nếu API lỗi thì quay xe (revert)
+      const oldQuantity = this.items[itemIndex].quantity;
+      
+      // Cập nhật ngay trên giao diện cho mượt
+      this.items[itemIndex].quantity = newQuantity;
+
+      try {
+        // Gọi API cập nhật xuống DB
+        // LƯU Ý: Bạn cần kiểm tra xem API backend của bạn là đường dẫn nào. 
+        // Thường là PUT /api/cart/item/:id hoặc PUT /api/cart/update
+        await axios.put(`http://localhost:3000/api/cart/item/${cartItemId}`, {
+           quantity: newQuantity
+        }, {
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Nếu API trả về data mới chuẩn xác thì có thể cập nhật lại lần nữa cho chắc
+        // this.items[itemIndex].quantity = res.data.quantity; 
+
+      } catch (error) {
+        console.error("Lỗi cập nhật số lượng:", error);
+        // Nếu lỗi, trả lại số lượng cũ
+        this.items[itemIndex].quantity = oldQuantity;
+        alert("Không thể cập nhật số lượng.");
+      }
+    },
+    // Xóa toàn bộ giỏ hàng (Gọi API)
+    async clearCartAPI() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      if (!confirm("Bạn chắc chắn muốn xóa toàn bộ giỏ hàng?")) return;
+
+      try {
+        // Gọi API Backend để xóa dữ liệu thật
+        await axios.delete('http://localhost:3000/api/cart/clear', {
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Sau đó xóa ở Frontend
+        this.items = [];
+        alert("Đã xóa sạch giỏ hàng!");
+      } catch (error) {
+        console.error("Lỗi clear cart:", error);
+        alert("Lỗi khi xóa giỏ hàng.");
+      }
+    },
     
     // 4. Clear giỏ hàng (Dùng khi Đăng xuất hoặc Thanh toán xong)
     clearCart() {
