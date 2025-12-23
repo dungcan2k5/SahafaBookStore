@@ -33,7 +33,7 @@
                       </ul>
                     </div>
                     <div class="w-2/3 p-4 lg:p-6 bg-white">
-                         <router-link 
+                          <router-link 
                             :to="activeCategory.path" 
                             class="font-bold text-[#C92127] mb-6 flex items-center gap-2 text-lg lg:text-xl border-b pb-3 hover:underline"
                           >
@@ -54,6 +54,13 @@
           </div>
         </div>
 
+        <div class="flex-1 bg-white rounded-lg flex items-center p-1 shadow-md w-full order-3 lg:order-2 mt-3 lg:mt-0">
+          <input type="text" placeholder="Tìm kiếm sách, văn phòng phẩm..." class="w-full px-4 lg:px-6 py-2 lg:py-3 text-gray-700 outline-none rounded-md text-sm lg:text-base" />
+          <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-md font-medium transition flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </button>
+        </div>
+
         <div class="flex items-center gap-4 lg:gap-10 text-sm font-medium shrink-0 order-2 lg:order-3">
           
           <div class="relative group z-50 py-2">
@@ -63,8 +70,8 @@
             </div>
             <div class="absolute top-full right-[-80px] pt-4 hidden group-hover:block w-[300px]">
                <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-100 flex flex-col items-center gap-3 relative mt-1 text-center">
-                  <p class="text-sm text-gray-600 mb-2 font-medium">Vui lòng đăng nhập để xem thông báo</p>
-                  <button @click="openModal('login')" class="w-full bg-[#C92127] text-white font-bold py-2 rounded-md hover:bg-red-700 transition shadow-sm">Đăng nhập</button>
+                  <div class="absolute -top-2 right-[88px] w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100 z-10"></div>
+                  <p class="text-sm text-gray-600 mb-2 font-medium">Chưa có thông báo nào</p>
                </div>
             </div>
           </div>
@@ -78,25 +85,49 @@
           <div class="relative group z-50 py-2">
             <router-link to="/login" class="flex flex-col items-center cursor-pointer hover:opacity-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              <span class="text-xs mt-1 font-semibold hidden lg:block">Tài khoản</span>
+              <span class="text-xs mt-1 font-semibold hidden lg:block">
+                {{ authStore.user ? authStore.user.name : 'Tài khoản' }}
+              </span>
             </router-link>
+
             <div class="absolute top-full right-[-10px] pt-4 hidden group-hover:block w-[240px]">
               <div class="bg-white rounded-lg shadow-xl p-4 border border-gray-100 flex flex-col gap-3 relative mt-1">
                  <div class="absolute -top-2 right-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100"></div>
-                <button @click="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">Đăng nhập</button>
-                <button @click="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">Đăng ký</button>
+                
+                <template v-if="!authStore.user">
+                    <button @click="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">
+                      Đăng nhập
+                    </button>
+                    <button @click="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">
+                      Đăng ký
+                    </button>
+                </template>
+
+                <template v-else>
+                     <div class="text-center font-bold text-gray-700 border-b pb-2 mb-2 truncate">
+                        Xin chào, {{ authStore.user.name }}
+                    </div>
+
+                    <router-link 
+                        v-if="['admin', 'employee'].includes(authStore.user.role)" 
+                        to="/admin" 
+                        class="w-full block text-center bg-gray-800 text-white font-bold py-2 rounded-md hover:bg-black transition shadow-sm mb-2"
+                    >
+                        <div class="flex items-center justify-center gap-2">
+                           Trang Quản Trị
+                        </div>
+                    </router-link>
+
+                    <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
+                        Đăng xuất
+                    </button>
+                </template>
+
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="flex-1 bg-white rounded-lg flex items-center p-1 shadow-md w-full order-3 lg:order-2 mt-3 lg:mt-0">
-          <input type="text" placeholder="Tìm kiếm sách, văn phòng phẩm..." class="w-full px-4 lg:px-6 py-2 lg:py-3 text-gray-700 outline-none rounded-md text-sm lg:text-base" />
-          <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-md font-medium transition flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </button>
         </div>
-
       </div>
     </header>
 
@@ -113,9 +144,13 @@
 <script setup>
 import { ref } from 'vue';
 import { useCartStore } from '@/stores/cart';
+// Import store Auth vừa tạo
+import { useAuthStore } from '@/stores/auth';
 import LoginModal from '@/components/user/LoginModal.vue';
 
 const cartStore = useCartStore();
+const authStore = useAuthStore(); // Khởi tạo auth store
+
 const showLoginModal = ref(false);
 const modalTab = ref('login');
 

@@ -62,7 +62,7 @@ router.get('/my-orders', orderController.getMyOrders); // Xem lịch sử
  *         description: Không có quyền
  */
 router.get('/admin', authorize(['admin', 'employee']), orderController.getAllOrders);
-
+router.post('/admin/fake', authorize(['admin', 'employee']), orderController.createFakeOrder);
 /**
  * @swagger
  * /api/orders/admin/{id}:
