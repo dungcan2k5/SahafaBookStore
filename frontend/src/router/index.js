@@ -19,7 +19,7 @@ import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
 import MangaPage from '@/pages/event/MangaPage.vue'
 import Term from '@/pages/user/Term.vue'
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
-
+import UserProfile from '@/pages/user/UserProfile.vue'
 // --- ADMIN LAYOUT ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
 
@@ -98,6 +98,11 @@ const routes = [
         component: () => import('@/pages/admin/PostManager.vue'),
         meta: { title: 'Quản lý Bài viết' }
     },
+      { 
+      path: '/user/profile', 
+      name: 'UserProfile', 
+      component: UserProfile,
+      },
     ]
   }
 ]
