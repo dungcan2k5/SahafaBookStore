@@ -97,11 +97,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
-import axios from 'axios';
-import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue'; // Import component gợi ý
 
 const route = useRoute();
 const cartStore = useCartStore();
@@ -112,63 +111,47 @@ const isLoading = ref(false);
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-// Lấy ảnh đầu tiên của sách để hiển thị
-const currentImage = computed(() => {
-    if (book.value?.BookImages?.length > 0) {
-        return book.value.BookImages[0].book_image_url;
-    }
-    return null;
-});
+// DỮ LIỆU MOCK (Giả lập Database)
+const mockDatabase = [
+  { id: 1, category: 'van-hoc', title: 'Mắt Biếc - Nguyễn Nhật Ánh', price: 110000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/m/a/mat-biec-bia-mem-2019.jpg' },
+  { id: 2, category: 'van-hoc', title: 'Nhà Giả Kim', price: 79000, discount: 15, sold: 5000, image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_1.jpg' },
+  { id: 3, category: 'van-hoc', title: 'Cây Cam Ngọt Của Tôi', price: 108000, discount: 30, sold: 3200, image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg' },
+  { id: 4, category: 'kinh-te', title: 'Cha Giàu Cha Nghèo', price: 85000, discount: 30, sold: 3000, image: 'https://cdn0.fahasa.com/media/catalog/product/c/h/cha-giau-cha-ngheo-tap-1-_tai-ban-2021_.jpg' },
+  { id: 5, category: 'kinh-te', title: 'Nhà Đầu Tư Thông Minh', price: 150000, discount: 10, sold: 500, image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_dau_tu_thong_minh_tai_ban_2020.jpg' },
+  { id: 6, category: 'tam-ly', title: 'Đắc Nhân Tâm', price: 76000, discount: 25, sold: 9000, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dac-nhan-tam-biamem-2023.jpg' },
+  { id: 7, category: 'tam-ly', title: 'Tâm Lý Học Về Tiền', price: 189000, discount: 15, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/t/a/tam-ly-hoc-ve-tien.jpg' },
+  { id: 8, category: 'thieu-nhi', title: 'Dế Mèn Phiêu Lưu Ký', price: 35000, discount: 10, sold: 800, image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8936037718029.jpg' },
+  { id: 9, category: 'thieu-nhi', title: 'Chuyện Con Mèo Dạy Hải Âu Bay', price: 49000, discount: 20, sold: 2500, image: 'https://cdn0.fahasa.com/media/catalog/product/c/h/chuyen-con-meo-day-hai-au-bay-tai-ban-2019.jpg' },
+  { id: 10, category: 'giao-khoa', title: 'Toán Lớp 1 - Cánh Diều', price: 20000, discount: 0, sold: 10000, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_41989.jpg' },
+  { id: 11, category: 'nuoi-day-con', title: 'Phương Pháp Ăn Dặm Bé Chỉ Huy', price: 120000, discount: 15, sold: 400, image: 'https://cdn0.fahasa.com/media/catalog/product/p/h/phuong-phap-an-dam-be-chi-huy.jpg' },
+];
 
-// Hàm gọi API lấy chi tiết sách
-const fetchBookDetail = async (id) => {
-  if (!id) return;
-  isLoading.value = true;
-  book.value = null; 
-
-  try {
-    // Gọi API Backend lấy sách theo ID
-    const response = await axios.get(`http://localhost:3000/api/books/${id}`);
-    
-    if (response.data.success) {
-       book.value = response.data.data;
-    } else {
-       console.error("API trả về lỗi:", response.data.message);
-    }
-  } catch (error) {
-    console.error("Lỗi tải sách:", error);
-  } finally {
-    isLoading.value = false;
-  }
+const loadBook = (id) => {
+  const foundBook = mockDatabase.find(b => b.id === id);
+  book.value = foundBook || mockDatabase[0];
+  // Scroll lên đầu trang khi đổi sách
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 onMounted(() => {
-  const idFromUrl = route.params.id;
-  fetchBookDetail(idFromUrl);
+  const idFromUrl = parseInt(route.params.id);
+  loadBook(idFromUrl);
 });
 
-// Quan trọng: Watch ID trên URL để load lại sách khi người dùng bấm vào phần "Gợi ý"
+// Quan trọng: Theo dõi route thay đổi để load lại sách mới (khi bấm vào sách gợi ý)
 watch(() => route.params.id, (newId) => {
-    quantity.value = 1;
-    fetchBookDetail(newId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadBook(parseInt(newId));
 });
 
-const handleAddToCart = async () => {
+const handleAddToCart = () => {
   if (book.value) {
-    // Chuẩn bị dữ liệu gửi sang store
     const productToAdd = {
       id: book.value.book_id, // Lấy ID chuẩn từ DB
       title: book.value.book_title,
       price: book.value.price
     };
-    
-    // Gọi hàm addToCart trong store (đã viết ở trên)
-    const success = await cartStore.addToCart(productToAdd, quantity.value);
-    
-    if (success) {
-       console.log("Thêm thành công");
-    }
+    cartStore.addToCart(productToAdd, quantity.value);
+    alert(`Đã thêm ${quantity.value} cuốn "${book.value.title}" vào giỏ hàng!`);
   }
 };
 </script>

@@ -68,10 +68,25 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               <span class="text-xs mt-1 font-semibold hidden lg:block">Thông báo</span>
             </div>
+            
             <div class="absolute top-full right-[-80px] pt-4 hidden group-hover:block w-[300px]">
                <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-100 flex flex-col items-center gap-3 relative mt-1 text-center">
                   <div class="absolute -top-2 right-[88px] w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100 z-10"></div>
-                  <p class="text-sm text-gray-600 mb-2 font-medium">Chưa có thông báo nào</p>
+                  
+                  <template v-if="!authStore.user">
+                      <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                      </div>
+                      <p class="text-sm text-gray-600 mb-2 font-medium">Đăng nhập để xem thông báo</p>
+                      <button @click="openModal('login')" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition text-sm font-bold shadow-sm">
+                          Đăng nhập ngay
+                      </button>
+                  </template>
+
+                  <template v-else>
+                      <img src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png" class="w-16 h-16 opacity-50 mb-2" alt="Empty">
+                      <p class="text-sm text-gray-500 font-medium">Bạn chưa có thông báo nào</p>
+                  </template>
                </div>
             </div>
           </div>
@@ -83,46 +98,66 @@
           </router-link>
 
           <div class="relative group z-50 py-2">
-            <router-link to="/login" class="flex flex-col items-center cursor-pointer hover:opacity-90">
+            
+            <div 
+              @click="!authStore.user ? openModal('login') : null" 
+              class="flex flex-col items-center cursor-pointer hover:opacity-90"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               <span class="text-xs mt-1 font-semibold hidden lg:block">
                 {{ authStore.user ? authStore.user.name : 'Tài khoản' }}
               </span>
-            </router-link>
+            </div>
 
             <div class="absolute top-full right-[-10px] pt-4 hidden group-hover:block w-[240px]">
               <div class="bg-white rounded-lg shadow-xl p-4 border border-gray-100 flex flex-col gap-3 relative mt-1">
                  <div class="absolute -top-2 right-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100"></div>
                 
                 <template v-if="!authStore.user">
-                    <button @click="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">
+                    <button @click.stop="openModal('login')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition shadow-sm">
                       Đăng nhập
                     </button>
-                    <button @click="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">
+                    <button @click.stop="openModal('register')" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-2 rounded-md hover:bg-blue-50 transition">
                       Đăng ký
                     </button>
                 </template>
 
                 <template v-else>
-                     <div class="text-center font-bold text-gray-700 border-b pb-2 mb-2 truncate">
+                      <div class="text-center font-bold text-gray-700 border-b pb-2 mb-2 truncate">
                         Xin chào, {{ authStore.user.name }}
-                    </div>
+                      </div>
 
-                    <router-link 
+                      <router-link 
                         v-if="['admin', 'employee'].includes(authStore.user.role)" 
                         to="/admin" 
                         class="w-full block text-center bg-gray-800 text-white font-bold py-2 rounded-md hover:bg-black transition shadow-sm mb-2"
-                    >
+                      >
                         <div class="flex items-center justify-center gap-2">
                            Trang Quản Trị
                         </div>
-                    </router-link>
+                      </router-link>
+                      <router-link 
+                        to="/user/profile" 
+                        class="w-full block text-center py-2 hover:bg-blue-50 text-blue-600 rounded text-sm font-bold mb-1 transition"
+                      >
+                         Hồ sơ cá nhân
+                      </router-link>
 
-                    <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
+                      <router-link 
+                        v-if="['admin', 'employee'].includes(authStore.user.role)" 
+                        to="/admin" 
+                        class="w-full block text-center bg-gray-800 text-white font-bold py-2 rounded-md hover:bg-black transition shadow-sm mb-2"
+                      >
+                        <div class="flex items-center justify-center gap-2">
+                           Trang Quản Trị
+                        </div>
+                      </router-link>
+
+                      <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
                         Đăng xuất
-                    </button>
+                      </button>
                 </template>
-
+                
               </div>
             </div>
           </div>
@@ -144,12 +179,11 @@
 <script setup>
 import { ref } from 'vue';
 import { useCartStore } from '@/stores/cart';
-// Import store Auth vừa tạo
 import { useAuthStore } from '@/stores/auth';
 import LoginModal from '@/components/user/LoginModal.vue';
 
 const cartStore = useCartStore();
-const authStore = useAuthStore(); // Khởi tạo auth store
+const authStore = useAuthStore(); 
 
 const showLoginModal = ref(false);
 const modalTab = ref('login');
@@ -159,7 +193,7 @@ const openModal = (tab) => {
   showLoginModal.value = true;
 };
 
-// DATA MEGA MENU (GIỮ NGUYÊN)
+// DATA MEGA MENU
 const menuData = [
     { name: 'Văn Học', path: '/category/van-hoc', icon: 'https://cdn-icons-png.flaticon.com/512/3389/3389081.png', subItems: [{ title: 'Thể Loại', links: ['Tiểu Thuyết', 'Truyện Ngắn'] }] },
     { name: 'Kinh Tế', path: '/category/kinh-te', icon: 'https://cdn-icons-png.flaticon.com/512/2666/2666505.png', subItems: [{ title: 'Quản Trị', links: ['Lãnh Đạo', 'Nhân Sự'] }] },

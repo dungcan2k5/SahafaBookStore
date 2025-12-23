@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 
 // --- USER PAGES ---
 import Home from '@/pages/user/Home.vue' 
-import Login from '@/pages/user/Login.vue'
 import Event1212 from '@/pages/event/Event1212.vue'
 import Cart from '@/pages/user/Cart.vue' 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue' 
@@ -20,14 +19,13 @@ import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
 import MangaPage from '@/pages/event/MangaPage.vue'
 import Term from '@/pages/user/Term.vue'
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
-
+import UserProfile from '@/pages/user/UserProfile.vue'
 // --- ADMIN LAYOUT ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
-
+import Login from '../pages/user/Login.vue'
 const routes = [
   // ================== USER ROUTES ==================
   { path: '/', name: 'Home', component: Home },
-  { path: '/login', name: 'Login', component: Login },
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
   { path: '/cart', name: 'Cart', component: Cart },
   { path: '/checkout', name: 'Checkout', component: CheckoutPage },
@@ -44,7 +42,11 @@ const routes = [
   { path: '/manga', name: 'Manga', component: MangaPage },
   { path: '/policy/:slug', name: 'policy', component: Term },
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
-
+  { path: '/about', name: 'About', component: () => import('@/pages/user/About.vue') },
+  { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
+  { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
+  { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
+  { path: '/user/profile', name: 'UserProfile', component: () => import('@/pages/user/UserProfile.vue')},
   // ================== ADMIN ROUTES ==================
   {
     path: '/admin',
@@ -97,7 +99,7 @@ const routes = [
         name: 'AdminPosts',
         component: () => import('@/pages/admin/PostManager.vue'),
         meta: { title: 'Quản lý Bài viết' }
-    },
+      },
     ]
   }
 ]
