@@ -44,6 +44,8 @@ const routes = [
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
   { path: '/about', name: 'About', component: () => import('@/pages/user/About.vue') },
   { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
+  { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
+  { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
 
   // ================== ADMIN ROUTES ==================
   {

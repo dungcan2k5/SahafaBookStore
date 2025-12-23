@@ -2,9 +2,19 @@
   <div class="min-h-[60vh] bg-gray-50 py-8 px-4">
     <div class="container mx-auto">
       
-      <h1 class="text-xl font-bold text-gray-800 mb-6 uppercase flex items-center gap-2">
-        Giỏ hàng <span class="text-base font-normal text-gray-500 normal-case">({{ cartStore.totalItems }} sản phẩm)</span>
-      </h1>
+      <div class="flex justify-between items-end mb-6">
+        <h1 class="text-xl font-bold text-gray-800 uppercase flex items-center gap-2">
+          Giỏ hàng <span class="text-base font-normal text-gray-500 normal-case">({{ cartStore.totalItems }} sản phẩm)</span>
+        </h1>
+        
+        <button 
+          v-if="cartStore.items.length > 0"
+          @click="cartStore.clearCartAPI()"
+          class="text-red-500 hover:text-red-700 font-medium text-sm underline cursor-pointer"
+        >
+          Xóa tất cả
+        </button>
+      </div>
 
       <div v-if="cartStore.totalItems === 0" class="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center text-center h-[400px]">
         <div class="mb-6 opacity-80">
@@ -56,9 +66,19 @@
 
             <div class="col-span-6 md:col-span-2 flex justify-end md:justify-center">
                <div class="flex items-center border border-gray-300 rounded h-8 bg-white">
-                  <button @click="cartStore.updateQuantity(item.id, -1)" class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold">-</button>
+                  <button 
+                    @click="cartStore.updateQuantity(item.id, item.quantity - 1)" 
+                    :disabled="item.quantity <= 1"
+                    :class="{'opacity-50 cursor-not-allowed': item.quantity <= 1}"
+                    class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold"
+                  >-</button>
+                  
                   <input type="text" :value="item.quantity" class="w-10 text-center outline-none h-full font-bold text-gray-700 text-sm" readonly />
-                  <button @click="cartStore.updateQuantity(item.id, 1)" class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold">+</button>
+                  
+                  <button 
+                    @click="cartStore.updateQuantity(item.id, item.quantity + 1)" 
+                    class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold"
+                  >+</button>
                </div>
             </div>
 

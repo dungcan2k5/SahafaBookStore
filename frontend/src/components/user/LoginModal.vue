@@ -195,7 +195,7 @@ const handleClose = () => {
 const handleLogin = async () => {
   loading.value = true;
   try {
-    const success = await authStore.login(loginForm);
+    const success = await authStore.login(loginForm.email, loginForm.password);
     if (success) {
       ElMessage.success('Đăng nhập thành công!');
       handleClose();

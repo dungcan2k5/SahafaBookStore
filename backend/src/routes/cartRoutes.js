@@ -83,4 +83,6 @@ router.post('/add', cartController.addToCart);
  */
 router.delete('/item/:id', cartController.removeCartItem);
 
+router.put('/item/:id', cartController.updateCartItem); // Route cập nhật số lượng
+router.delete('/clear', cartController.clearCart);      // Route xóa sạch giỏ
 module.exports = router;

@@ -31,6 +31,23 @@ const getPostDetail = async (req, res) => {
     }
 };
 
+// [GET] /api/posts/slug/:slug - Lấy chi tiết bài viết theo slug
+const getPostBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const post = await Post.findOne({
+            where: { post_slug: slug, status: 'published' },
+            include: [Category]
+        });
+
+        if (!post) return res.status(404).json({ success: false, message: 'Bài viết không tồn tại' });
+
+        res.json({ success: true, data: post });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
 // [GET] /api/posts/categories - Lấy danh mục bài viết (VD: Tin tức, Review, Khuyến mãi)
 const getPostCategories = async (req, res) => {
     try {
@@ -112,6 +129,7 @@ const deletePost = async (req, res) => {
 module.exports = { 
     getAllPosts, 
     getPostDetail, 
+    getPostBySlug,
     getPostCategories, 
     createPost, 
     updatePost, 
