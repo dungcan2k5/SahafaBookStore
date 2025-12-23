@@ -41,4 +41,48 @@ const getAllTransactions = async (req, res) => {
     }
 };
 
-module.exports = { handleSepayWebhook, getAllTransactions };
+// [PUT] /api/payment/transactions/:id/approve - Duyệt giao dịch thủ công
+const approveTransaction = async (req, res) => {
+    const t = await sequelize.transaction(); // Dùng transaction để đảm bảo toàn vẹn
+    try {
+        const { id } = req.params;
+
+        // 1. Tìm giao dịch
+        const transaction = await Transaction.findByPk(id);
+        if (!transaction) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Giao dịch không tồn tại' });
+        }
+
+        if (transaction.status === 'success') {
+            await t.rollback();
+            return res.status(400).json({ success: false, message: 'Giao dịch này đã thành công rồi' });
+        }
+
+        // 2. Tìm đơn hàng tương ứng
+        const order = await Order.findByPk(transaction.order_id);
+        if (!order) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Đơn hàng gốc không tồn tại' });
+        }
+
+        // 3. Cập nhật trạng thái Giao dịch -> success
+        await transaction.update({ status: 'success' }, { transaction: t });
+
+        // 4. Cập nhật trạng thái Đơn hàng -> paid & processing
+        await order.update({
+            payment_status: 'paid',
+            order_status: 'processing' // Chuyển sang đang xử lý để kho đóng gói
+        }, { transaction: t });
+
+        await t.commit();
+        res.json({ success: true, message: 'Đã duyệt thanh toán thành công!' });
+
+    } catch (error) {
+        await t.rollback();
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi duyệt đơn' });
+    }
+};
+
+module.exports = { handleSepayWebhook, getAllTransactions, approveTransaction };

@@ -88,7 +88,7 @@ router.post('/', verifyToken, authorize(['admin', 'employee']), voucherControlle
  *         description: Mã không tìm thấy
  */
 router.post('/check', voucherController.checkVoucher);
-
+router.get('/admin', verifyToken, authorize(['admin', 'employee']), voucherController.getAllVouchersAdmin);
 /**
  * @swagger
  * /api/vouchers/{id}:

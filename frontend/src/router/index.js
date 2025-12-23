@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth' 
+
+// --- USER PAGES ---
 import Home from '@/pages/user/Home.vue' 
 import Login from '@/pages/user/Login.vue'
 import Event1212 from '@/pages/event/Event1212.vue'
@@ -16,11 +19,13 @@ import SecondHandPage from '@/pages/event/SecondHandPage.vue'
 import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
 import MangaPage from '@/pages/event/MangaPage.vue'
 import Term from '@/pages/user/Term.vue'
-
-// --- THÊM DÒNG NÀY ---
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
 
+// --- ADMIN LAYOUT ---
+import AdminLayout from '@/layouts/AdminLayout.vue' 
+
 const routes = [
+  // ================== USER ROUTES ==================
   { path: '/', name: 'Home', component: Home },
   { path: '/login', name: 'Login', component: Login },
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
@@ -38,11 +43,62 @@ const routes = [
   { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage },
   { path: '/manga', name: 'Manga', component: MangaPage },
   { path: '/policy/:slug', name: 'policy', component: Term },
-  
-  { 
-    path: '/category/:id', 
-    name: 'CategoryDetail', 
-    component: CategoryDetail 
+  { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
+
+  // ================== ADMIN ROUTES ==================
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { requiresAuth: true, role: ['admin', 'employee'] },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('@/pages/admin/DashboardPage.vue') 
+      },
+      { 
+        path: 'authors', 
+        name: 'AdminAuthors',
+        component: () => import('@/pages/admin/AuthorManager.vue') 
+      },
+      { 
+        path: 'books', 
+        name: 'AdminBooks',
+        component: () => import('@/pages/admin/BookManager.vue') 
+      },
+      { 
+        path: 'categories', 
+        name: 'AdminCategories',
+        component: () => import('@/pages/admin/CategoryManager.vue')
+      },
+      { 
+        path: 'inventory', 
+        name: 'AdminInventory',
+        component: () => import('@/pages/admin/InventoryManager.vue') 
+      },
+      { 
+        path: 'orders', 
+        name: 'AdminOrders',
+        component: () => import('@/pages/admin/OrderManager.vue') 
+      },
+      { 
+        path: 'vouchers', 
+        name: 'AdminVouchers',
+        component: () => import('@/pages/admin/VoucherManager.vue') 
+      },
+      {
+        path: 'payments',
+        name: 'admin-payments',
+        component: () => import('@/pages/admin/TransactionManager.vue'),
+        meta: { title: 'Quản lý Thanh toán' }
+      },
+      { 
+        path: 'posts',
+        name: 'AdminPosts',
+        component: () => import('@/pages/admin/PostManager.vue'),
+        meta: { title: 'Quản lý Bài viết' }
+    },
+    ]
   }
 ]
 
@@ -53,5 +109,22 @@ const router = createRouter({
     return { top: 0 };
   }
 })
+
+// ================== SECURITY GUARD ==================
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  const user = authStore.user;
+
+  if (to.meta.requiresAuth) {
+    if (!user) {
+      return next({ path: '/' }); 
+    }
+    if (to.meta.role && !to.meta.role.includes(user.role)) {
+      alert('Bạn không có quyền truy cập trang này!');
+      return next({ path: '/' });
+    }
+  }
+  next();
+});
 
 export default router
