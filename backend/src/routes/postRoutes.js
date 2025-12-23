@@ -70,6 +70,24 @@ router.get('/categories', postController.getPostCategories);
 
 /**
  * @swagger
+ * /api/posts/slug/{slug}:
+ *   get:
+ *     summary: Chi tiết bài viết theo slug
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Nội dung bài viết
+ */
+router.get('/slug/:slug', postController.getPostBySlug);
+
+/**
+ * @swagger
  * /api/posts/{id}:
  *   get:
  *     summary: Chi tiết bài viết
