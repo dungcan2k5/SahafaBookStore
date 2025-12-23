@@ -77,7 +77,7 @@
         </div>
       </div>
 
-      <div v-if="book" class="bg-white rounded-lg shadow-sm p-6">
+      <div v-if="book" class="bg-white rounded-lg shadow-sm p-6 mb-8">
         <h3 class="text-xl font-bold uppercase border-b pb-3 mb-4 text-gray-800">Mô tả sản phẩm</h3>
         <div class="text-gray-700 leading-relaxed space-y-3 text-justify">
           <p>
@@ -98,13 +98,21 @@
       </div>
 
     </div>
+
+    <div class="bg-white border-t border-gray-100 pt-8 pb-4">
+        <div class="container mx-auto px-4">
+             <SuggestionsPage :is-embedded="true" />
+        </div>
+    </div>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue'; // Import component gợi ý
 
 const route = useRoute();
 const cartStore = useCartStore();
@@ -112,10 +120,9 @@ const cartStore = useCartStore();
 const quantity = ref(1);
 const book = ref(null);
 
-// Format tiền tệ
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-// DỮ LIỆU MOCK (Giả lập Database - Phải khớp ID với bên CategoryDetail)
+// DỮ LIỆU MOCK (Giả lập Database)
 const mockDatabase = [
   { id: 1, category: 'van-hoc', title: 'Mắt Biếc - Nguyễn Nhật Ánh', price: 110000, discount: 20, sold: 1200, image: 'https://cdn0.fahasa.com/media/catalog/product/m/a/mat-biec-bia-mem-2019.jpg' },
   { id: 2, category: 'van-hoc', title: 'Nhà Giả Kim', price: 79000, discount: 15, sold: 5000, image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_1.jpg' },
@@ -130,37 +137,32 @@ const mockDatabase = [
   { id: 11, category: 'nuoi-day-con', title: 'Phương Pháp Ăn Dặm Bé Chỉ Huy', price: 120000, discount: 15, sold: 400, image: 'https://cdn0.fahasa.com/media/catalog/product/p/h/phuong-phap-an-dam-be-chi-huy.jpg' },
 ];
 
+const loadBook = (id) => {
+  const foundBook = mockDatabase.find(b => b.id === id);
+  book.value = foundBook || mockDatabase[0];
+  // Scroll lên đầu trang khi đổi sách
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 onMounted(() => {
-  // 1. Lấy ID từ trên thanh địa chỉ (URL)
   const idFromUrl = parseInt(route.params.id);
-  
-  // 2. Tìm sách tương ứng trong Database giả
-  const foundBook = mockDatabase.find(b => b.id === idFromUrl);
-  
-  // 3. Nếu thấy thì hiển thị, không thấy thì hiện sách mặc định (để tránh lỗi trắng trang)
-  if (foundBook) {
-    book.value = foundBook;
-  } else {
-    // Fallback nếu người dùng nhập ID linh tinh
-    book.value = mockDatabase[0];
-  }
+  loadBook(idFromUrl);
 });
 
-// Xử lý Thêm vào giỏ hàng
+// Quan trọng: Theo dõi route thay đổi để load lại sách mới (khi bấm vào sách gợi ý)
+watch(() => route.params.id, (newId) => {
+    loadBook(parseInt(newId));
+});
+
 const handleAddToCart = () => {
   if (book.value) {
-    // Tạo object sản phẩm để gửi vào Store
     const productToAdd = {
       id: book.value.id,
       title: book.value.title,
       price: book.value.price,
       image: book.value.image,
     };
-    
-    // Gọi hàm từ Store (kèm số lượng)
     cartStore.addToCart(productToAdd, quantity.value);
-    
-    // Thông báo đơn giản
     alert(`Đã thêm ${quantity.value} cuốn "${book.value.title}" vào giỏ hàng!`);
   }
 };

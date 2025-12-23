@@ -11,7 +11,7 @@
           
           <div class="space-y-3">
             <p class="font-bold text-gray-800 uppercase">Công Ty Cổ Phần Phát Hành Sách Sahafa</p>
-            <p>Địa chỉ: (Đang cập nhật...)</p> 
+            <p>Địa chỉ: Hà Nội</p> 
             
             <p class="leading-relaxed">
               Sahafa.com nhận đặt hàng trực tuyến và giao hàng tận nơi. KHÔNG hỗ trợ đặt mua và nhận hàng trực tiếp tại văn phòng.
@@ -53,7 +53,14 @@
         <div>
           <h3 class="font-bold text-gray-800 uppercase mb-4 text-base">TÀI KHOẢN CỦA TÔI</h3>
           <ul class="space-y-2 mb-6">
-            <li><router-link to="/login" class="hover:text-blue-600 transition">Đăng nhập / Tạo mới tài khoản</router-link></li>
+            <li>
+                <span 
+                    @click="openModal('login')" 
+                    class="hover:text-blue-600 transition cursor-pointer"
+                >
+                    Đăng nhập / Tạo mới tài khoản
+                </span>
+            </li>
             <li><a href="#" class="hover:text-blue-600 transition">Thay đổi địa chỉ khách hàng</a></li>
             <li><a href="#" class="hover:text-blue-600 transition">Chi tiết tài khoản</a></li>
             <li><a href="#" class="hover:text-blue-600 transition">Lịch sử mua hàng</a></li>
@@ -84,5 +91,27 @@
       </div>
 
     </div>
+
+    <Teleport to="body">
+      <LoginModal 
+        v-if="showLoginModal" 
+        :initialTab="modalTab" 
+        @close="showLoginModal = false" 
+      />
+    </Teleport>
   </footer>
 </template>
+
+<script setup>
+import { ref } from 'vue';
+// Import LoginModal
+import LoginModal from '@/components/user/LoginModal.vue';
+
+const showLoginModal = ref(false);
+const modalTab = ref('login');
+
+const openModal = (tab) => {
+  modalTab.value = tab;
+  showLoginModal.value = true;
+};
+</script>

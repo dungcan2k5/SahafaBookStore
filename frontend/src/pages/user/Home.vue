@@ -32,12 +32,12 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]">
-          <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
+          <router-link to="/about" class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group block relative">
             <img 
               :src="sideBanner1" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
             />
-          </div>
+          </router-link>
           <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
             <img 
               :src="sideBanner2" 
