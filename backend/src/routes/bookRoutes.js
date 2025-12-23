@@ -2,216 +2,46 @@ const express = require('express');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
 
-/**
- * @swagger
- * tags:
- *   name: Books
- *   description: Quản lý sách
- */
+// --- CÁC ROUTE LẤY DỮ LIỆU (GET) ---
 
-/**
- * @swagger
- * /api/books:
- *   get:
- *     summary: Lấy danh sách tất cả sách (có hỗ trợ tìm kiếm và lọc)
- *     tags: [Books]
- *     parameters:
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Tìm kiếm theo tên sách
- *       - in: query
- *         name: genre
- *         schema:
- *           type: integer
- *         description: ID của danh mục (thể loại) để lọc
- *       - in: query
- *         name: author
- *         schema:
- *           type: integer
- *         description: ID của tác giả để lọc
- *     responses:
- *       200:
- *         description: Danh sách sách
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       book_id:
- *                         type: integer
- *                       book_title:
- *                         type: string
- *                       price:
- *                         type: number
- *                       Author:
- *                         type: object
- *                         properties:
- *                           author_name:
- *                             type: string
- *                       Genre:
- *                         type: object
- *                         properties:
- *                           genre_name:
- *                             type: string
- */
+// Lấy danh sách sách (có tìm kiếm, lọc)
 router.get('/', bookController.getAllBooks);
 
-/**
- * @swagger
- * /api/books/genres:
- *   get:
- *     summary: Lấy danh sách danh mục (thể loại)
- *     tags: [Books]
- *     responses:
- *       200:
- *         description: Danh sách danh mục
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       genre_id:
- *                         type: integer
- *                       genre_name:
- *                         type: string
- *                       genre_slug:
- *                         type: string
- */
+// Lấy danh sách thể loại
 router.get('/genres', bookController.getGenres);
 
-/**
- * @swagger
- * /api/books/publishers:
- *   get:
- *     summary: Lấy danh sách nhà xuất bản
- *     tags: [Books]
- *     responses:
- *       200:
- *         description: Danh sách nhà xuất bản
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       publisher_id:
- *                         type: integer
- *                       publisher_name:
- *                         type: string
- *                       publisher_slug:
- *                         type: string
- */
+// Lấy danh sách NXB
 router.get('/publishers', bookController.getPublishers);
 
-/**
- * @swagger
- * /api/books/authors:
- *   get:
- *     summary: Lấy danh sách tác giả
- *     tags: [Books]
- *     responses:
- *       200:
- *         description: Danh sách tác giả
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       author_id:
- *                         type: integer
- *                       author_name:
- *                         type: string
- *                       author_slug:
- *                         type: string
- */
+// Lấy danh sách tác giả
 router.get('/authors', bookController.getAuthors);
 
-/**
- * @swagger
- * /api/books/{id}:
- *   get:
- *     summary: Lấy chi tiết sách
- *     tags: [Books]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID của sách
- *     responses:
- *       200:
- *         description: Chi tiết sách
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 book_id:
- *                   type: integer
- *                 book_title:
- *                   type: string
- *                 price:
- *                   type: number
- *       404:
- *         description: Không tìm thấy sách
- */
+// Lấy chi tiết 1 cuốn sách
 router.get('/:id', bookController.getBookDetail);
 
-/**
- * @swagger
- * /api/books:
- *   post:
- *     summary: Tạo sách mới
- *     tags: [Books]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               book_title:
- *                 type: string
- *               price:
- *                 type: number
- *               author:
- *                 type: string
- *     responses:
- *       201:
- *         description: Tạo sách thành công
- *       400:
- *         description: Lỗi đầu vào
- */
+
+// --- CÁC ROUTE ADMIN (THÊM / SỬA / XÓA) ---
+
+// Tạo sách mới
 router.post('/', bookController.createBook);
+
+// Cập nhật sách (Sửa)
+router.put('/:id', bookController.updateBook);
+
+// Xóa sách
+router.delete('/:id', bookController.deleteBook);
+
+// --- ROUTE TÁC GIẢ ---
+router.post('/authors', bookController.createAuthor);       // Thêm
+router.put('/authors/:id', bookController.updateAuthor);    // Sửa
+router.delete('/authors/:id', bookController.deleteAuthor); // Xóa
+
+// --- ROUTE THỂ LOẠI (BẠN ĐANG THIẾU ĐOẠN NÀY) ---
+router.post('/genres', bookController.createGenre);       // Thêm
+router.put('/genres/:id', bookController.updateGenre);    // Sửa
+router.delete('/genres/:id', bookController.deleteGenre); // Xóa
+
+// --- QUẢN LÝ NHẬP KHO ---
+router.post('/import', bookController.importStock);
 
 module.exports = router;

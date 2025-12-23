@@ -210,8 +210,9 @@
 
 
 const { models, sequelize } = require('../config/database');
-const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher } = models;
+const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher, User } = models;
 const { BaseOrderPrice, VoucherDecorator, ShippingFeeDecorator } = require('../patterns/PricingDecorators');
+
 
 // [POST] /api/orders - Tạo đơn hàng từ giỏ hàng
 const createOrder = async (req, res) => {
@@ -391,7 +392,7 @@ const getMyOrders = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
-            order: [['created_at', 'DESC']],
+            order: [['order_id', 'ASC']],
             include: [
                 { 
                     model: OrderItem,
@@ -437,4 +438,53 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-module.exports = { createOrder, getMyOrders, getAllOrders, updateOrderStatus };
+// [POST] ADMIN ONLY - Tạo đơn hàng giả để test
+const createFakeOrder = async (req, res) => {
+    try {
+        // 1. Tìm User Admin (ID 1) hoặc lấy User bất kỳ đầu tiên
+        let user = await User.findByPk(1);
+        if (!user) {
+            user = await User.findOne(); // Lấy đại user đầu tiên tìm thấy
+        }
+        
+        if (!user) {
+             return res.status(400).json({ success: false, message: 'Chưa có User nào trong DB để gán đơn hàng!' });
+        }
+
+        // 2. TẠO ĐỊA CHỈ GIẢ (Fix lỗi Foreign Key)
+        // Kiểm tra xem user này có địa chỉ nào chưa, nếu chưa thì tạo mới
+        let fakeAddress = await models.Address.findOne({ where: { user_id: user.user_id } });
+        
+        if (!fakeAddress) {
+            fakeAddress = await models.Address.create({
+                user_id: user.user_id,
+                recipient_name: 'Khách Test Admin',
+                phone: '0999999999',
+                address_detail: 'Số 1 Đường Test, Hà Nội',
+                is_default: true
+            });
+        }
+
+        // 3. TẠO ĐƠN HÀNG (Giờ đã có address_id xịn rồi)
+        const newOrder = await Order.create({
+            user_id: user.user_id, 
+            total_amount: 500000,
+            final_amount: 530000,
+            shipping_address: fakeAddress.address_id, // <--- Dùng ID thật vừa tìm/tạo được
+            payment_method: 'COD',
+            payment_status: 'unpaid',
+            order_status: 'pending'
+        });
+
+        res.status(201).json({ success: true, message: 'Đã tạo đơn giả thành công!', data: newOrder });
+
+    } catch (error) {
+        console.error("Lỗi tạo đơn giả:", error); // In lỗi ra Terminal backend để dễ sửa
+        res.status(500).json({ success: false, message: 'Lỗi Server: ' + error.message });
+    }
+};
+
+module.exports = { 
+    createOrder, getMyOrders, getAllOrders, updateOrderStatus,
+    createFakeOrder
+};

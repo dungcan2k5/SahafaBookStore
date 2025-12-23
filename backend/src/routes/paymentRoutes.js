@@ -54,5 +54,6 @@ router.post('/sepay-webhook', paymentController.handleSepayWebhook);
  *         description: Không có quyền
  */
 router.get('/transactions', verifyToken, authorize(['admin', 'employee']), paymentController.getAllTransactions);
+router.put('/transactions/:id/approve', verifyToken, authorize(['admin', 'employee']), paymentController.approveTransaction);
 
 module.exports = router;

@@ -49,13 +49,38 @@
     </div>
     
     <div class="container mx-auto px-4 mb-8">
-      <div class="grid grid-cols-4 gap-4">
-        <div v-for="n in 4" :key="n" 
-             class="col-span-2 md:col-span-1 h-[120px] bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center shadow-sm hover:shadow-lg transition-all cursor-pointer group hover:-translate-y-1">
-          <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100 transition">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+      <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+          <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Top Bán Chạy Nhất</h3>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div 
+          v-for="(book, index) in bestSellers" 
+          :key="index" 
+          class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
+        >
+          <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
+             <img 
+               :src="book.image" 
+               class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+               alt="Book Cover"
+             />
+             <div class="absolute top-2 left-2 w-8 h-8 flex items-center justify-center bg-yellow-400 text-white font-bold rounded-full shadow-md z-10 border-2 border-white">
+                #{{ index + 1 }}
+             </div>
           </div>
-          <span class="text-sm font-bold text-gray-600 group-hover:text-blue-600 transition">IMG {{ n }}</span>
+
+          <div class="flex-1 flex flex-col">
+              <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">{{ book.title }}</h4>
+              <div class="mt-auto flex items-end justify-between">
+                  <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
+                  <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.originalPrice) }}</div>
+              </div>
+              <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center">
+                  Đã bán {{ book.sold }}k
+              </div>
+          </div>
         </div>
       </div>
     </div>
@@ -113,22 +138,54 @@ import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
-// --- IMPORT ẢNH TỪ ASSETS ---
-import banner1 from '@/assets/banners/WELCOME_TO_SAHAFA.png';
-import banner2 from '@/assets/banners/12.12_BIG_SALE.png';
+// --- IMPORT ẢNH BANNER ---
+import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
+import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
-import sideBanner2 from '@/assets/banners/GIAM_GIA.png';
+import sideBanner2 from '@/assets/banners/promo1.jpg';
 
-// --- Cấu hình cho Banner Slide ---
+// (Đã xóa các import ảnh promo1...promo4 vì không dùng nữa)
+
+// --- Helper Format Tiền ---
+const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+
+// Banner Slider Logic
 const currentSlide = ref(0);
+const bannerImages = [banner1, banner2, banner3];
 
-// Gán biến import vào mảng thay vì chuỗi string
-const bannerImages = [
-  banner1,    
-  banner2,       
-  banner3       
-];
+// --- DỮ LIỆU GIẢ CHO BEST SELLER ---
+// Placeholder để chờ có API thật thì thay vào
+const bestSellers = ref([
+    { 
+        title: 'Cây Cam Ngọt Của Tôi', 
+        price: 85000, 
+        originalPrice: 108000, 
+        sold: 5.2,
+        image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' 
+    },
+    { 
+        title: 'Nhà Giả Kim (Tái Bản)', 
+        price: 63000, 
+        originalPrice: 79000, 
+        sold: 12.5,
+        image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_bia_cung.jpg' 
+    },
+    { 
+        title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', 
+        price: 72000, 
+        originalPrice: 90000, 
+        sold: 8.9,
+        image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tuoi-tre-dang-gia-bao-nhieu-u.jpg' 
+    },
+    { 
+        title: 'Đắc Nhân Tâm (Khổ Nhỏ)', 
+        price: 55000, 
+        originalPrice: 86000, 
+        sold: 21.1,
+        image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086851928.jpg' 
+    }
+]);
 
 let slideInterval;
 
@@ -144,11 +201,10 @@ const startAutoSlide = () => {
   slideInterval = setInterval(nextSlide, 3000);
 };
 
-// --- Dữ liệu Sách ---
+// Data Fetching Logic
 const flashSaleBooks = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
-const suggestionsBooks = ref([]);
 
 const fetchAllData = async () => {
   try {
@@ -161,12 +217,6 @@ const fetchAllData = async () => {
     flashSaleBooks.value = flash;
     trendingBooks.value = trend;
     newBooks.value = news;
-
-    // Dữ liệu mock cho Suggestion
-    suggestionsBooks.value = [
-      { id: 6, title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', price: 95000, discount: 10, sold: 200, image: 'https://cdn0.fahasa.com/media/catalog/product/t/o/toi-thay-hoa-vang-tren-co-xanh.jpg' },
-      { id: 7, title: 'Sapiens: Lược Sử Loài Người', price: 150000, discount: 20, sold: 150, image: 'https://cdn0.fahasa.com/media/catalog/product/s/a/sapiens.jpg' }
-    ];
     
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu:", error);
