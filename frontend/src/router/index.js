@@ -22,7 +22,7 @@ import CategoryDetail from '@/pages/user/CategoryDetail.vue'
 import UserProfile from '@/pages/user/UserProfile.vue'
 // --- ADMIN LAYOUT ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
-
+import Login from '../pages/user/Login.vue'
 const routes = [
   // ================== USER ROUTES ==================
   { path: '/', name: 'Home', component: Home },
@@ -46,7 +46,7 @@ const routes = [
   { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
   { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
   { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
-
+  { path: '/user/profile', name: 'UserProfile', component: () => import('@/pages/user/UserProfile.vue')},
   // ================== ADMIN ROUTES ==================
   {
     path: '/admin',
@@ -99,11 +99,6 @@ const routes = [
         name: 'AdminPosts',
         component: () => import('@/pages/admin/PostManager.vue'),
         meta: { title: 'Quản lý Bài viết' }
-    },
-      { 
-      path: '/user/profile', 
-      name: 'UserProfile', 
-      component: UserProfile,
       },
     ]
   }

@@ -136,12 +136,28 @@
                            Trang Quản Trị
                         </div>
                       </router-link>
+                      <router-link 
+                        to="/user/profile" 
+                        class="w-full block text-center py-2 hover:bg-blue-50 text-blue-600 rounded text-sm font-bold mb-1 transition"
+                      >
+                         Hồ sơ cá nhân
+                      </router-link>
+
+                      <router-link 
+                        v-if="['admin', 'employee'].includes(authStore.user.role)" 
+                        to="/admin" 
+                        class="w-full block text-center bg-gray-800 text-white font-bold py-2 rounded-md hover:bg-black transition shadow-sm mb-2"
+                      >
+                        <div class="flex items-center justify-center gap-2">
+                           Trang Quản Trị
+                        </div>
+                      </router-link>
 
                       <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
                         Đăng xuất
                       </button>
                 </template>
-
+                
               </div>
             </div>
           </div>
