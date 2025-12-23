@@ -237,10 +237,64 @@ const importStock = async (req, res) => {
     }
 };
 
+
+// [GET] /api/books/flash-sale - Lấy sách Flash Sale (Giả lập)
+const getFlashSaleBooks = async (req, res) => {
+    try {
+        // Lấy 10 cuốn sách ngẫu nhiên hoặc mới nhất
+        const books = await Book.findAll({
+            limit: 10,
+            order: [['book_id', 'DESC']], // Lấy sách mới nhất
+            include: [
+                { model: BookImage, attributes: ['book_image_url'] }
+            ]
+        });
+
+        // Map dữ liệu để thêm thông tin giả lập cho Flash Sale
+        const flashSaleData = books.map(book => {
+            const originalPrice = parseFloat(book.price);
+            // Random giảm giá từ 10% - 50%
+            const discountPercent = Math.floor(Math.random() * (50 - 10 + 1)) + 10; 
+            const salePrice = originalPrice * (1 - discountPercent / 100);
+            
+            // Random số lượng đã bán và tồn kho giả định
+            const totalStock = book.stock_quantity > 0 ? book.stock_quantity : 50;
+            const sold = Math.floor(Math.random() * (totalStock - 1));
+
+            // Lấy ảnh đầu tiên
+            let imageUrl = 'https://via.placeholder.com/200x200?text=No+Image';
+            if (book.BOOK_IMAGEs && book.BOOK_IMAGEs.length > 0) {
+                 imageUrl = book.BOOK_IMAGEs[0].book_image_url;
+            }
+
+            return {
+                id: book.book_id,
+                title: book.book_title,
+                price: Math.round(salePrice / 1000) * 1000, // Làm tròn giá
+                oldPrice: originalPrice,
+                discount: discountPercent,
+                image: imageUrl,
+                sold: sold,
+                totalStock: totalStock
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: flashSaleData
+        });
+
+    } catch (error) {
+        console.error("Lỗi lấy Flash Sale:", error);
+        res.status(500).json({ success: false, message: "Lỗi Server" });
+    }
+};
+
 module.exports = { 
     getAllBooks, getBookDetail, createBook, updateBook, deleteBook, 
     getGenres, getAuthors, getPublishers,
     createAuthor, updateAuthor, deleteAuthor,
     createGenre, updateGenre, deleteGenre,
-    importStock
+    importStock,
+    getFlashSaleBooks
 };

@@ -53,6 +53,7 @@
             <div class="mt-2 border-t pt-6">
               <span class="font-bold text-gray-700 block mb-3">Số lượng:</span>
               <div class="flex flex-col sm:flex-row gap-4">
+                
                 <div class="flex items-center border border-gray-300 w-max rounded-md h-[44px]">
                     <button @click="quantity > 1 ? quantity-- : null" class="px-4 hover:bg-gray-100 text-gray-600 h-full font-bold">-</button>
                     <input type="number" v-model="quantity" class="w-14 text-center outline-none font-bold text-gray-700 h-full border-l border-r border-gray-100" readonly />
@@ -62,12 +63,20 @@
                 <button 
                     @click="handleAddToCart"
                     :disabled="book.stock_quantity <= 0"
-                    class="flex-1 h-[44px] border-2 border-[#C92127] text-[#C92127] font-bold rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="h-[44px] border-2 border-[#C92127] text-[#C92127] font-bold rounded-lg hover:bg-red-50 transition px-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    Thêm vào giỏ hàng
+                    Thêm vào giỏ
                 </button>
-              </div>
+
+                <button 
+                    @click="handleBuyNow"
+                    :disabled="book.stock_quantity <= 0"
+                    class="h-[44px] bg-[#C92127] text-white font-bold rounded-lg hover:bg-red-700 transition px-8 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                >
+                    Mua Ngay
+                </button>
+                </div>
             </div>
           </div>
         </div>
@@ -98,22 +107,21 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'; // 👉 Thêm useRouter
 import { useCartStore } from '@/stores/cart';
 import axios from 'axios';
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 const route = useRoute();
+const router = useRouter(); // 👉 Khởi tạo Router
 const cartStore = useCartStore();
 
 const quantity = ref(1);
 const book = ref(null);
 const isLoading = ref(false);
 
-// Format tiền tệ
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-// Lấy ảnh hiển thị
 const currentImage = computed(() => {
     if (book.value?.BookImages?.length > 0) {
         return book.value.BookImages[0].book_image_url;
@@ -121,20 +129,15 @@ const currentImage = computed(() => {
     return null;
 });
 
-// Hàm gọi API lấy chi tiết sách
 const fetchBookDetail = async (id) => {
   if (!id) return;
   isLoading.value = true;
-  book.value = null; // Reset trước khi load mới
+  book.value = null;
 
   try {
-    // Gọi API Backend: GET /api/books/:id
     const response = await axios.get(`http://localhost:3000/api/books/${id}`);
-    
     if (response.data.success) {
        book.value = response.data.data;
-    } else {
-       console.error("API trả về lỗi:", response.data.message);
     }
   } catch (error) {
     console.error("Lỗi tải sách:", error);
@@ -148,29 +151,44 @@ onMounted(() => {
   fetchBookDetail(idFromUrl);
 });
 
-// Watch route thay đổi để reload trang khi bấm vào sách gợi ý
 watch(() => route.params.id, (newId) => {
-    quantity.value = 1; // Reset số lượng về 1
+    quantity.value = 1;
     fetchBookDetail(newId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-const handleAddToCart = async () => {
-  if (book.value) {
-    // Chuẩn bị object để gửi sang Store
-    const productToAdd = {
-      id: book.value.book_id, // Quan trọng: Phải là ID thật từ DB
-      title: book.value.book_title,
-      price: book.value.price
+// Hàm chuẩn bị dữ liệu sản phẩm
+const getProductData = () => {
+    if (!book.value) return null;
+    return {
+        id: book.value.book_id,
+        title: book.value.book_title,
+        price: book.value.price,
+        image: currentImage.value // Lấy luôn ảnh để hiện trong giỏ cho đẹp
     };
-    
-    // Gọi action của Store (Hàm này đã có logic gọi API POST)
-    const success = await cartStore.addToCart(productToAdd, quantity.value);
-    
+};
+
+const handleAddToCart = async () => {
+  const product = getProductData();
+  if (product) {
+    const success = await cartStore.addToCart(product, quantity.value);
     if (success) {
-       // Có thể thêm toast notification ở đây
-       console.log("Thêm thành công");
+       // Có thể thêm Toast thông báo "Đã thêm vào giỏ" nếu muốn
+       console.log("Đã thêm vào giỏ hàng");
     }
+  }
+};
+
+// 👉 HÀM XỬ LÝ MUA NGAY
+const handleBuyNow = async () => {
+  const product = getProductData();
+  if (product) {
+    // 1. Thêm vào giỏ hàng trước
+    await cartStore.addToCart(product, quantity.value);
+    
+    // 2. Chuyển hướng ngay lập tức đến trang Thanh toán
+    // (Bỏ qua bước xem giỏ hàng)
+    router.push('/checkout');
   }
 };
 </script>
