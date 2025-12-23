@@ -105,8 +105,6 @@ const handleDelete = async (id) => {
     ElMessage.success('Đã xóa!');
     fetchAuthors();
   } catch (error) { 
-      // API backend mình đã code chặn xóa nếu tác giả đang có sách
-      // nên lỗi này sẽ hiện ra message của backend
       ElMessage.error(error.response?.data?.message || 'Không thể xóa!'); 
   }
 };

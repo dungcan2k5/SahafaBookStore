@@ -86,8 +86,6 @@ const fetchData = async () => {
         // Cộng dồn số lượng tồn kho
         stats.inStock = books.reduce((sum, book) => sum + (Number(book.stock_quantity) || 0), 0);
 
-        // ... (Đoạn lấy đơn hàng giữ nguyên hoặc comment lại nếu chưa có API)
-
     } catch (error) {
         console.error("Lỗi tải Dashboard:", error);
     } finally {
