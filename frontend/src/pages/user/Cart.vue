@@ -16,7 +16,7 @@
         </button>
       </div>
 
-      <div v-if="cartStore.totalItems === 0" class="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center text-center h-[400px]">
+      <div v-if="cartStore.totalItems === 0 && !cartStore.isLoading" class="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center text-center h-[400px]">
         <div class="mb-6 opacity-80">
           <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="9" cy="21" r="1"></circle>
@@ -32,7 +32,12 @@
 
       <div v-else class="flex flex-col lg:flex-row gap-6">
         
-        <div class="flex-1 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="flex-1 bg-white rounded-lg shadow-sm overflow-hidden relative">
+          
+          <div v-if="cartStore.isLoading" class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center">
+             <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500"></div>
+          </div>
+
           <div class="hidden md:grid grid-cols-12 gap-4 p-4 bg-gray-100 font-bold text-gray-700 text-sm border-b">
              <div class="col-span-6">Sản phẩm</div>
              <div class="col-span-2 text-center">Đơn giá</div>
@@ -46,9 +51,20 @@
             class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-gray-100 items-center hover:bg-gray-50 transition"
           >
             <div class="col-span-12 md:col-span-6 flex items-center gap-4">
-               <img :src="item.image" class="w-20 h-24 object-cover border rounded bg-white" alt="Product Image" />
+               <img 
+                 :src="item.image" 
+                 class="w-20 h-24 object-cover border rounded bg-white" 
+                 alt="Product Image" 
+                 @error="$event.target.src='https://placehold.co/400x600?text=Error'"
+               />
                <div>
-                  <h3 class="font-medium text-gray-800 line-clamp-2 mb-1 text-sm md:text-base">{{ item.title }}</h3>
+                  <router-link 
+                    :to="`/book/${item.book_id}`" 
+                    class="font-medium text-gray-800 line-clamp-2 mb-1 text-sm md:text-base hover:text-blue-600 cursor-pointer"
+                  >
+                    {{ item.title }}
+                  </router-link>
+                  
                   <button 
                     @click="cartStore.removeFromCart(item.id)"
                     class="text-sm text-red-500 hover:underline flex items-center gap-1 mt-1"
@@ -99,10 +115,6 @@
                  <span>Tạm tính:</span>
                  <span class="font-bold">{{ formatPrice(cartStore.totalPrice) }}đ</span>
               </div>
-              <div class="flex justify-between mb-4 text-gray-600 text-sm">
-                 <span>Giảm giá:</span>
-                 <span class="font-bold">0đ</span>
-              </div>
               
               <div class="border-t border-dashed my-4"></div>
               
@@ -114,12 +126,12 @@
                  </div>
               </div>
 
-              <router-link 
-                to="/checkout"
+              <button 
+                @click="handleCheckout"
                 class="block w-full bg-[#C92127] text-white text-center font-bold py-3 rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition uppercase transform active:scale-95"
               >
                 Tiến hành thanh toán
-              </router-link>
+              </button>
 
               <router-link to="/" class="block text-center text-blue-600 hover:underline mt-4 text-sm font-medium">
                  ← Tiếp tục mua sắm
@@ -134,12 +146,34 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import { useCartStore } from '@/stores/cart';
+import { useRouter } from 'vue-router';
 
 const cartStore = useCartStore();
+const router = useRouter();
 
-// Hàm format tiền tệ (Ví dụ: 100000 -> 100.000)
 const formatPrice = (value) => {
   return new Intl.NumberFormat('vi-VN').format(value);
+};
+
+// Gọi API lấy giỏ hàng mỗi khi vào trang Cart để đảm bảo dữ liệu mới nhất
+onMounted(() => {
+    cartStore.fetchCart();
+});
+
+const handleCheckout = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert("Vui lòng đăng nhập để thanh toán!");
+        router.push('/login');
+        return;
+    }
+    // Nếu giỏ hàng trống thì không cho thanh toán
+    if (cartStore.items.length === 0) {
+        alert("Giỏ hàng đang trống!");
+        return;
+    }
+    router.push('/checkout');
 };
 </script>
