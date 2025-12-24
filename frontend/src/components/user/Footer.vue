@@ -42,6 +42,13 @@
                 Giới thiệu Sahafa
               </router-link>
             </li>
+            
+            <li>
+              <router-link to="/blog" class="hover:text-blue-600 transition">
+                Tin tức & Sự kiện (Blog)
+              </router-link>
+            </li>
+
             <li>
               <router-link to="/store-system" class="hover:text-blue-600 transition">
                 Hệ thống nhà sách
@@ -104,7 +111,6 @@
 
 <script setup>
 import { ref } from 'vue';
-// Import LoginModal
 import LoginModal from '@/components/user/LoginModal.vue';
 
 const showLoginModal = ref(false);

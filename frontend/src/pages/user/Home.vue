@@ -7,9 +7,9 @@
         <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]">
           <div class="w-full h-full relative">
              <img 
-                :src="bannerImages[currentSlide]" 
-                class="w-full h-full object-cover transition-all duration-500 ease-in-out" 
-                alt="Banner Slide"
+               :src="bannerImages[currentSlide]" 
+               class="w-full h-full object-cover transition-all duration-500 ease-in-out" 
+               alt="Banner Slide"
              />
           </div>
 
@@ -32,18 +32,23 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]">
+          
           <router-link to="/about" class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group block relative">
             <img 
               :src="sideBanner1" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
+              alt="Gioi thieu Sahafa"
             />
           </router-link>
-          <div class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group">
+
+          <router-link to="/blog" class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group block relative">
             <img 
               :src="sideBanner2" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
+              alt="Sahafa Blog"
             />
-          </div>
+          </router-link>
+
         </div>
       </div>
     </div>
@@ -123,8 +128,6 @@ import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
-
-// 👇 IMPORT MỚI: Nhớ đảm bảo file này tồn tại trong thư mục components/user
 import FlashSale from '@/components/user/FlashSale.vue';
 
 // --- IMPORT ẢNH BANNER ---
@@ -132,7 +135,8 @@ import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
-import sideBanner2 from '@/assets/banners/promo1.jpg';
+// ✅ ĐÃ CẬP NHẬT: sideBanner2 chính là promo1.jpg (ảnh Blog)
+import sideBanner2 from '@/assets/banners/promo1.jpg'; 
 
 // --- Helper Format Tiền ---
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
@@ -169,7 +173,6 @@ const newBooks = ref([]);
 
 const fetchAllData = async () => {
   try {
-    // Đã bỏ bookService.getFlashSale() ở đây vì component FlashSale tự gọi API rồi
     const [trend, news] = await Promise.all([
       bookService.getTrending(),
       bookService.getNewArrivals()
