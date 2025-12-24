@@ -29,11 +29,11 @@
           v-for="book in books" 
           :key="book.book_id" 
           class="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group cursor-pointer hover:-translate-y-1"
-          @click="goToDetail(book.book_id)"
+          @click="goToDetail(book.book_slug)" 
         >
-          <div class="relative pt-[140%] bg-gray-100 overflow-hidden">
+        <div class="relative pt-[140%] bg-gray-100 overflow-hidden">
             <img 
-              :src="book.BookImages?.[0]?.book_image_url || 'https://via.placeholder.com/300x450?text=No+Image'" 
+              :src="book.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600?text=No+Image'" 
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
@@ -82,19 +82,21 @@ const books = ref([]);
 const isLoading = ref(false);
 const currentKeyword = ref('');
 
-// Format tiền tệ
 const formatPrice = (val) => new Intl.NumberFormat('vi-VN').format(val);
 
-// Hàm chuyển hướng sang trang chi tiết
-const goToDetail = (bookId) => {
-    router.push(`/books/${bookId}`);
+// Hàm chuyển hướng nhận slug
+const goToDetail = (slug) => {
+    // Fallback: nếu không có slug thì dùng ID hoặc báo lỗi
+    if (!slug) {
+        console.warn("Sách này chưa có Slug, vui lòng kiểm tra DB");
+        return;
+    }
+    router.push(`/books/${slug}`);
 };
 
-// Hàm gọi API tìm kiếm
 const fetchSearchResults = async () => {
   const query = route.query.search;
   
-  // Nếu không có từ khóa thì không làm gì (hoặc có thể load tất cả sách)
   if (!query) return;
 
   currentKeyword.value = query;
@@ -102,7 +104,6 @@ const fetchSearchResults = async () => {
   books.value = [];
 
   try {
-    // Gọi API Backend đã sửa ở Bước 1
     const response = await axios.get('http://localhost:3000/api/books', {
       params: { search: query }
     });
@@ -117,12 +118,10 @@ const fetchSearchResults = async () => {
   }
 };
 
-// Chạy khi vào trang
 onMounted(() => {
   fetchSearchResults();
 });
 
-// Chạy lại khi URL thay đổi (Ví dụ đang tìm "Harry" mà gõ tiếp "Conan")
 watch(() => route.query.search, () => {
   fetchSearchResults();
 });
