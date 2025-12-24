@@ -29,10 +29,10 @@
           <div 
             v-for="book in books" 
             :key="book.id"
-            class="min-w-[170px] md:min-w-[200px] h-auto flex flex-col"
+            @click="goToBookDetail(book.id)" 
+            class="min-w-[170px] md:min-w-[200px] h-auto flex flex-col cursor-pointer"
           >
-             <BookCard :book="book" class="h-full" />
-             
+             <BookCard :book="book" class="h-full pointer-events-none" /> 
              <div v-if="showProgressBar" class="mt-2 px-1">
                 <div class="w-full bg-pink-100 rounded-full h-4 relative overflow-hidden">
                   <div class="bg-[#2563eb] h-full absolute left-0 top-0" :style="{ width: (book.sold / 1200) * 100 + '%' }"></div>
@@ -49,27 +49,28 @@
       </div>
 
       <div class="text-center pb-4 pt-2">
-  <router-link 
-    v-if="seeMoreLink" 
-    :to="seeMoreLink" 
-    class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300 inline-block"
-  >
-    Xem Thêm
-  </router-link>
-  
-  <button 
-    v-else 
-    class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300"
-  >
-    Xem Thêm
-  </button>
-</div>
+        <router-link 
+          v-if="seeMoreLink" 
+          :to="seeMoreLink" 
+          class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300 inline-block"
+        >
+          Xem Thêm
+        </router-link>
+        
+        <button 
+          v-else 
+          class="border-2 border-[#2563eb] text-[#2563eb] px-12 py-2 rounded-lg font-bold text-sm hover:bg-[#2563eb] hover:text-white transition duration-300"
+        >
+          Xem Thêm
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router'; // Import Router
 import BookCard from '@/components/user/BookCard.vue';
 
 const props = defineProps({
@@ -79,8 +80,15 @@ const props = defineProps({
   iconBgClass: String,
   showTimer: { type: Boolean, default: false },
   showProgressBar: { type: Boolean, default: false },
-  seeMoreLink: String // Prop mới từ code của Khai
+  seeMoreLink: String 
 });
+
+const router = useRouter(); // Khởi tạo router
+
+// Hàm chuyển hướng
+const goToBookDetail = (id) => {
+  router.push(`/books/${id}`);
+};
 
 const scrollContainer = ref(null);
 const scroll = (direction) => {
@@ -90,7 +98,7 @@ const scroll = (direction) => {
   }
 };
 
-// Logic đồng hồ
+// Logic đồng hồ (giữ nguyên)
 const hours = ref('02');
 const minutes = ref('00');
 const seconds = ref('00');

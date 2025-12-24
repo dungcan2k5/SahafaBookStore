@@ -1,11 +1,11 @@
 <template>
   <router-link 
-    :to="`/books/${book.id}`" 
+    :to="`/books/${book.slug || book.book_slug || book.id}`" 
     class="bg-white rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-3 border border-gray-100 hover:border-gray-200 cursor-pointer h-full flex flex-col group relative"
   >
     <div class="relative pt-[100%] mb-3 overflow-hidden rounded-md">
       <img 
-        :src="book.image" 
+        :src="book.image || 'https://placehold.co/400x600?text=No+Image'" 
         :alt="book.title" 
         class="absolute top-0 left-0 w-full h-full object-contain p-2 group-hover:scale-105 transition duration-500 ease-in-out" 
       />
@@ -43,10 +43,8 @@ defineProps({
   book: { type: Object, required: true }
 });
 
-// Format tiền (100.000)
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-// Format số lượng (1.2k) - Giúp số không bị quá dài nếu bán nhiều
 const formatNumber = (num) => {
     if (num >= 1000) {
         return (num / 1000).toFixed(1) + 'k';
