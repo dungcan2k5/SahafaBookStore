@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const { 
     User, Book, Author, Genre, Publisher, 
     Cart, BookImage, Category, Post, Voucher, Review,
-    Address
+    Address, Order, OrderItem, Transaction
 } = models;
 
 const seed = async () => {
@@ -325,6 +325,80 @@ const seed = async () => {
             user_id: adminUser.user_id,
             category_id: categoryMap['Reviews']
         }, { transaction: t });
+
+        // =============================================
+        // 6. FAKE ORDERS (REVENUE DATA)
+        // =============================================
+        console.log("💰 Creating Fake Orders & Revenue...");
+        
+        // Tạo đơn hàng rải rác trong 6 tháng qua
+        const now = new Date();
+        const createdBooks = await Book.findAll({ transaction: t }); // Lấy danh sách sách để bán
+        
+        // Hàm random date
+        const randomDate = (start, end) => {
+            return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        };
+
+        for (let i = 0; i < 60; i++) { // Tạo 60 đơn hàng giả
+            const user = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+            const userAddress = await Address.findOne({ where: { user_id: user.user_id }, transaction: t });
+            
+            // Random ngày trong 6 tháng qua
+            const pastDate = new Date();
+            pastDate.setMonth(now.getMonth() - 6);
+            const orderDate = randomDate(pastDate, now);
+
+            // Random 1-5 cuốn sách cho mỗi đơn
+            const numItems = Math.floor(Math.random() * 5) + 1;
+            let totalAmount = 0;
+            const orderItemsData = [];
+
+            for (let j = 0; j < numItems; j++) {
+                const book = createdBooks[Math.floor(Math.random() * createdBooks.length)];
+                const qty = Math.floor(Math.random() * 3) + 1;
+                const price = parseFloat(book.price);
+                const subtotal = qty * price;
+                
+                totalAmount += subtotal;
+                orderItemsData.push({
+                    book_id: book.book_id,
+                    quantity: qty,
+                    unit_price: price,
+                    subtotal: subtotal
+                });
+            }
+
+            // Tạo Order
+            const order = await Order.create({
+                user_id: user.user_id,
+                total_amount: totalAmount,
+                final_amount: totalAmount, // Giả sử chưa tính voucher
+                order_status: 'delivered', // Đã giao hàng -> tính vào doanh thu
+                payment_status: 'paid',
+                shipping_address: userAddress ? userAddress.address_id : null,
+                created_at: orderDate // Override created_at để fake lịch sử
+            }, { transaction: t });
+
+            // Tạo Order Items
+            for (const item of orderItemsData) {
+                await OrderItem.create({
+                    order_id: order.order_id,
+                    ...item
+                }, { transaction: t });
+            }
+
+            // Tạo Transaction (Thanh toán)
+            await Transaction.create({
+                user_id: user.user_id,
+                order_id: order.order_id,
+                payment_method: Math.random() > 0.5 ? 'cod' : 'vnpay',
+                amount: totalAmount,
+                status: 'success',
+                payment_info: { bank: 'NCB', cardType: 'ATM' },
+                created_at: orderDate
+            }, { transaction: t });
+        }
 
         await t.commit();
         console.log("✅ SEEDING COMPLETED SUCCESSFULLY!");

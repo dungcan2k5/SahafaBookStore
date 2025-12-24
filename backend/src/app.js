@@ -15,6 +15,8 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const postRoutes = require('./routes/postRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
@@ -46,6 +48,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/vouchers', voucherRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/stats', statsRoutes);
 
 // API Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

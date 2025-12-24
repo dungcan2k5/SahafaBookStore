@@ -32,6 +32,6 @@ const options = {
   apis: [path.join(__dirname, '../routes/*.js')],
 };
 
-const specs = swaggerJsdoc(options);
+const swaggerSpec = swaggerJsdoc(options);
 
-module.exports = { swaggerUi, specs };
+module.exports = { swaggerUi, swaggerSpec };

@@ -2,28 +2,33 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Đảm bảo thư mục tồn tại
+// Đường dẫn tạm để lưu file vừa upload (chưa gắn vào sách)
 const uploadRoot = process.env.UPLOAD_DIR || path.join(__dirname, '../../../uploads');
-const uploadDir = path.join(uploadRoot, 'images');
+const tempDir = path.join(uploadRoot, 'temp');
 
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
 }
 
 // Cấu hình storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir);
+        cb(null, tempDir);
     },
     filename: (req, file, cb) => {
-        // Tạo tên file: timestamp-random.ext
+        // Tên file: timestamp-originalName (giữ nguyên tên gốc để dễ tìm)
+        // Xóa dấu tiếng Việt và ký tự lạ trong tên file
+        const sanitizedName = file.originalname
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9.-]/g, '_');
+            
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'book-' + uniqueSuffix + ext);
+        cb(null, uniqueSuffix + '-' + sanitizedName);
     }
 });
 
-// Filter file (chỉ cho phép ảnh)
+// Filter file
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -38,8 +43,8 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // Tăng lên 10MB
     fileFilter: fileFilter
 });
 
-module.exports = upload;
+module.exports = { upload, uploadRoot, tempDir };
