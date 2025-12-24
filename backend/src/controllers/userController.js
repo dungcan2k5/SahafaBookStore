@@ -1,10 +1,11 @@
 const { models } = require('../config/database');
-const { User, Address } = models;
-const Joi = require('joi');
-const bcrypt = require('bcrypt'); 
+const { User, Address, Cart } = models; // Import thêm Cart để dùng khi tạo User
+const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 
-// [GET] /api/users/profile - Lấy thông tin profile (đã có trong auth, nhưng tách ra đây để quản lý update)
+// --- USER PROFILE (Thường dùng cho các route /api/users/profile) ---
+
+// [GET] /api/users/profile
 const getProfile = async (req, res) => {
     try {
         const user = await User.findByPk(req.user_id, {
@@ -17,11 +18,22 @@ const getProfile = async (req, res) => {
     }
 };
 
-// [PUT] /api/users/profile - Cập nhật thông tin cá nhân
+// [PUT] /api/users/profile
 const updateProfile = async (req, res) => {
     try {
         const { full_name, phone, avatar_url } = req.body;
         
+        // Kiểm tra trùng số điện thoại (nếu có thay đổi)
+        if (phone) {
+             const exists = await User.findOne({ 
+                 where: { 
+                     phone, 
+                     user_id: { [Op.ne]: req.user_id } // Không tính chính mình
+                 } 
+             });
+             if (exists) return res.status(400).json({ success: false, message: 'Số điện thoại này đã được sử dụng' });
+        }
+
         await User.update(
             { full_name, phone, avatar_url },
             { where: { user_id: req.user_id } }
@@ -33,11 +45,14 @@ const updateProfile = async (req, res) => {
     }
 };
 
-// [GET] /api/users/addresses - Lấy danh sách địa chỉ
+// --- ADDRESS MANAGEMENT ---
+
+// [GET] /api/users/addresses
 const getAddresses = async (req, res) => {
     try {
         const addresses = await Address.findAll({
-            where: { user_id: req.user_id }
+            where: { user_id: req.user_id },
+            order: [['is_default', 'DESC']] // Đưa địa chỉ mặc định lên đầu
         });
         res.json({ success: true, data: addresses });
     } catch (error) {
@@ -45,12 +60,11 @@ const getAddresses = async (req, res) => {
     }
 };
 
-// [POST] /api/users/addresses - Thêm địa chỉ mới
+// [POST] /api/users/addresses
 const addAddress = async (req, res) => {
     try {
         const { address_detail, phone, recipient_name, is_default } = req.body;
 
-        // Validation simple
         if (!address_detail || !recipient_name || !phone) {
             return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ thông tin' });
         }
@@ -60,12 +74,16 @@ const addAddress = async (req, res) => {
             await Address.update({ is_default: false }, { where: { user_id: req.user_id } });
         }
 
+        // Nếu đây là địa chỉ đầu tiên của user, tự động set mặc định
+        const count = await Address.count({ where: { user_id: req.user_id } });
+        const shouldDefault = count === 0 ? true : is_default;
+
         const newAddress = await Address.create({
             user_id: req.user_id,
             address_detail,
             phone,
             recipient_name,
-            is_default: is_default || false
+            is_default: shouldDefault || false
         });
 
         res.status(201).json({ success: true, data: newAddress });
@@ -74,13 +92,12 @@ const addAddress = async (req, res) => {
     }
 };
 
-// [PUT] /api/users/addresses/:id - Cập nhật địa chỉ
+// [PUT] /api/users/addresses/:id
 const updateAddress = async (req, res) => {
     try {
         const { id } = req.params;
         const { address_detail, phone, recipient_name, is_default } = req.body;
 
-        // Check ownership
         const address = await Address.findOne({ where: { address_id: id, user_id: req.user_id } });
         if (!address) return res.status(404).json({ success: false, message: 'Địa chỉ không tồn tại' });
 
@@ -88,7 +105,10 @@ const updateAddress = async (req, res) => {
             await Address.update({ is_default: false }, { where: { user_id: req.user_id } });
         }
 
-        await address.update({ address_detail, phone, recipient_name, is_default });
+        await address.update({ 
+            address_detail, phone, recipient_name, 
+            is_default: is_default !== undefined ? is_default : address.is_default 
+        });
         
         res.json({ success: true, message: 'Cập nhật địa chỉ thành công' });
     } catch (error) {
@@ -96,18 +116,18 @@ const updateAddress = async (req, res) => {
     }
 };
 
-// [DELETE] /api/users/addresses/:id - Xóa địa chỉ
+// [DELETE] /api/users/addresses/:id
 const deleteAddress = async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted = await Address.destroy({ where: { address_detail: id, user_id: req.user_id } }); // Bug in original code? where: { address_id: id... }
-        // Correction: The original code had where: { address_id: id, user_id: req.user_id }
-        // I should keep looking at the original file content from read_file output.
-        // Original: const deleted = await Address.destroy({ where: { address_id: id, user_id: req.user_id } });
+        // SỬA LỖI: Dùng address_id thay vì address_detail
+        const deleted = await Address.destroy({ where: { address_id: id, user_id: req.user_id } });
         
-        // Wait, I am appending new functions, not replacing deleteAddress yet.
-        // I will append at the end.
+        if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy địa chỉ hoặc không có quyền xóa' });
+        
+        res.json({ success: true, message: 'Xóa địa chỉ thành công' });
     } catch (error) {
+        console.error("Delete Address Error:", error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
@@ -164,7 +184,6 @@ const createUser = async (req, res) => {
     try {
         const { full_name, email, password, role, phone } = req.body;
         
-        // Check exist
         const exists = await User.findOne({ where: { email } });
         if (exists) return res.status(400).json({ success: false, message: 'Email đã tồn tại' });
 
@@ -179,13 +198,12 @@ const createUser = async (req, res) => {
             phone
         });
 
-        // Tạo Cart mặc định
-        const { Cart } = models; // Lazy load model if needed or import at top. User imported at top. Cart not yet.
-        // models is available.
-        await models.Cart.create({ user_id: newUser.user_id });
+        // Tạo Cart mặc định cho user mới
+        await Cart.create({ user_id: newUser.user_id });
 
         res.status(201).json({ success: true, data: newUser });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
@@ -199,8 +217,6 @@ const updateUserAdmin = async (req, res) => {
         const user = await User.findByPk(id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-        // Logic bảo vệ Admin: Admin không được sửa role của Admin khác (trừ khi là chính mình? hoặc Super Admin)
-        // User request: "admin này không xoá được admin kia". Sửa thì sao? Thường cũng cấm.
         if (user.role === 'admin' && user.user_id !== req.user_id) {
              return res.status(403).json({ success: false, message: 'Không thể chỉnh sửa Admin khác' });
         }
@@ -225,7 +241,6 @@ const deleteUserAdmin = async (req, res) => {
         const user = await User.findByPk(id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-        // Rule: Admin này không xóa được Admin kia
         if (user.role === 'admin') {
             return res.status(403).json({ success: false, message: 'Không thể xóa tài khoản Admin' });
         }
