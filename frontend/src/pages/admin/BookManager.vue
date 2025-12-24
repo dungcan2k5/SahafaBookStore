@@ -152,10 +152,107 @@
           </el-form-item>
         </div>
 
-        <el-form-item label="Link Ảnh Bìa">
-          <el-input v-model="form.image_url" placeholder="https://..." clearable />
-          <div v-if="form.image_url" class="mt-2">
-            <img :src="form.image_url" class="h-20 rounded border object-cover" onerror="this.style.display='none'" />
+        <el-form-item label="Ảnh bìa sách">
+          <div class="w-full">
+            <el-radio-group v-model="imageSourceType" class="mb-3">
+              <el-radio-button label="url">
+                <el-icon class="mr-1"><Link /></el-icon> Link URL
+              </el-radio-button>
+              <el-radio-button label="upload">
+                <el-icon class="mr-1"><Upload /></el-icon> Tải ảnh lên
+              </el-radio-button>
+              <el-radio-button label="server" @click="fetchServerImages">
+                <el-icon class="mr-1"><Picture /></el-icon> Chọn từ Server
+              </el-radio-button>
+            </el-radio-group>
+
+            <!-- 1. Nhập URL -->
+            <div v-if="imageSourceType === 'url'">
+              <div v-for="(url, index) in form.images" :key="index" class="flex gap-2 mb-2">
+                <el-input v-model="form.images[index]" placeholder="https://..." clearable />
+                <el-button type="danger" :icon="Delete" circle @click="removeImage(index)" />
+              </div>
+              <el-button size="small" @click="form.images.push('')">+ Thêm Link</el-button>
+              
+              <div class="flex gap-2 mt-2 flex-wrap">
+                 <img v-for="url in form.images" :key="url" :src="url" class="h-20 rounded border object-cover" onerror="this.style.display='none'" />
+              </div>
+            </div>
+
+            <!-- 2. Upload Ảnh -->
+            <div v-if="imageSourceType === 'upload'">
+              <el-upload
+                class="upload-demo"
+                drag
+                action="#"
+                :auto-upload="false"
+                :multiple="true" 
+                :show-file-list="false"
+                :on-change="handleFileChange"
+              >
+                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                <div class="el-upload__text">
+                  Kéo thả nhiều ảnh vào đây hoặc <em>nhấn để tải lên</em>
+                </div>
+              </el-upload>
+              <div v-if="previewImages.length > 0" class="mt-2 flex gap-2 flex-wrap">
+                <div v-for="(img, idx) in previewImages" :key="idx" class="relative">
+                   <img :src="img" class="h-24 rounded border object-cover" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Chọn từ Server -->
+            <div v-if="imageSourceType === 'server'">
+              <div v-if="loadingImages" class="text-center py-4">Đang tải ảnh...</div>
+              <div v-else>
+                <!-- Filter Folder -->
+                <div class="mb-2 flex gap-2 overflow-x-auto pb-2">
+                  <el-tag 
+                    effect="dark" 
+                    :type="!currentServerFolder ? 'primary' : 'info'" 
+                    class="cursor-pointer"
+                    @click="currentServerFolder = null"
+                  >
+                    Tất cả
+                  </el-tag>
+                  <el-tag 
+                    v-for="folder in serverFolders" 
+                    :key="folder"
+                    effect="plain" 
+                    :type="currentServerFolder === folder ? 'primary' : 'info'" 
+                    class="cursor-pointer"
+                    @click="currentServerFolder = folder"
+                  >
+                    <el-icon class="mr-1"><Folder /></el-icon> {{ folder }}
+                  </el-tag>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto border p-2 rounded">
+                  <div 
+                    v-for="img in filteredServerImages" 
+                    :key="img.name"
+                    class="cursor-pointer border-2 rounded hover:border-blue-500 relative group"
+                    :class="{'border-blue-600': form.images.includes(img.url), 'border-transparent': !form.images.includes(img.url)}"
+                    @click="toggleServerImage(img.url)"
+                  >
+                    <img :src="img.url" class="w-full h-24 object-cover" />
+                    <!-- Checkmark if selected -->
+                    <div v-if="form.images.includes(img.url)" class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-1">
+                      ✓
+                    </div>
+                    <!-- Tooltip name -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition">
+                       {{ img.name }}
+                    </div>
+                  </div>
+                </div>
+                
+                <div v-if="form.images.length > 0" class="mt-2 text-sm text-gray-600">
+                   Đã chọn: <span class="font-bold">{{ form.images.length }} ảnh</span>
+                </div>
+              </div>
+            </div>
           </div>
         </el-form-item>
       </el-form>
@@ -173,8 +270,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
-import { Reading, Plus, Edit, Delete, Search } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { Reading, Plus, Edit, Delete, Search, Upload, Picture, Link, UploadFilled, Folder } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
 
@@ -188,6 +285,14 @@ const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
 
+// Image handling
+const imageSourceType = ref('url'); // 'url', 'upload', 'server'
+const selectedFiles = ref([]); // Changed to array
+const serverImages = ref([]);
+const loadingImages = ref(false);
+const previewImages = ref([]); // Changed to array
+const currentServerFolder = ref(null); // Filter by folder
+
 // ✅ Search
 const searchText = ref('');
 let debounceTimer = null;
@@ -199,10 +304,21 @@ const form = reactive({
   isbn: '',
   price: 0,
   stock_quantity: 10,
-  image_url: '',
+  images: [], // Changed from image_url to images array
   author_id: null,
   genre_id: null,
   publisher_id: null
+});
+
+// Computed properties for Server Images
+const serverFolders = computed(() => {
+  const folders = new Set(serverImages.value.map(img => img.folder));
+  return Array.from(folders);
+});
+
+const filteredServerImages = computed(() => {
+  if (!currentServerFolder.value) return serverImages.value;
+  return serverImages.value.filter(img => img.folder === currentServerFolder.value);
 });
 
 // --- HELPER: Tạo Slug ---
@@ -235,9 +351,7 @@ const fetchData = async () => {
       api.get('/api/books/publishers')
     ]);
 
-    // Backend chuẩn: { success: true, data: [...] }
     books.value = resBooks.data?.data || [];
-
     authors.value = resAuthors.data?.data || [];
     genres.value = resGenres.data?.data || [];
     publishers.value = resPub.data?.data || [];
@@ -246,6 +360,20 @@ const fetchData = async () => {
     ElMessage.error('Lỗi kết nối Server!');
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchServerImages = async () => {
+  if (serverImages.value.length > 0) return;
+  loadingImages.value = true;
+  try {
+    const res = await api.get('/api/uploads/images');
+    serverImages.value = res.data?.data || [];
+  } catch (error) {
+    console.error("Lỗi tải ảnh server:", error);
+    ElMessage.error('Không tải được danh sách ảnh!');
+  } finally {
+    loadingImages.value = false;
   }
 };
 
@@ -269,10 +397,17 @@ const getImageUrl = (book) => {
 const openDialog = (book = null) => {
   isEdit.value = !!book;
   dialogVisible.value = true;
+  
+  // Reset image state
+  imageSourceType.value = 'url';
+  selectedFiles.value = [];
+  previewImages.value = [];
+  currentServerFolder.value = null;
 
   if (book) {
     Object.assign(form, book);
-    form.image_url = book.BookImages?.[0]?.book_image_url || '';
+    // Convert BookImages array to simple URL array
+    form.images = book.BookImages ? book.BookImages.map(img => img.book_image_url) : [];
   } else {
     form.book_id = null;
     form.book_title = '';
@@ -280,12 +415,31 @@ const openDialog = (book = null) => {
     form.isbn = '';
     form.price = 0;
     form.stock_quantity = 10;
-    form.image_url = '';
+    form.images = [];
 
     form.author_id = authors.value.length > 0 ? authors.value[0].author_id : null;
     form.genre_id = genres.value.length > 0 ? genres.value[0].genre_id : null;
     form.publisher_id = publishers.value.length > 0 ? publishers.value[0].publisher_id : null;
   }
+};
+
+const handleFileChange = (uploadFile, uploadFiles) => {
+  // Element Plus trả về list file
+  selectedFiles.value = uploadFiles.map(f => f.raw);
+  previewImages.value = uploadFiles.map(f => URL.createObjectURL(f.raw));
+};
+
+const toggleServerImage = (url) => {
+  const index = form.images.indexOf(url);
+  if (index > -1) {
+    form.images.splice(index, 1);
+  } else {
+    form.images.push(url);
+  }
+};
+
+const removeImage = (index) => {
+  form.images.splice(index, 1);
 };
 
 const handleSave = async () => {
@@ -294,11 +448,46 @@ const handleSave = async () => {
 
   submitting.value = true;
   try {
+    let payload = { ...form };
+    let isMultipart = false;
+
+    // Xử lý logic upload
+    if (imageSourceType.value === 'upload' && selectedFiles.value.length > 0) {
+      isMultipart = true;
+      const formData = new FormData();
+      
+      // Append các trường text
+      Object.keys(form).forEach(key => {
+        if (key === 'images') return; // Skip images array for now
+        if (form[key] !== null && form[key] !== undefined) {
+          formData.append(key, form[key]);
+        }
+      });
+      
+      // Append files
+      selectedFiles.value.forEach(file => {
+        formData.append('images', file);
+      });
+      
+      // Append existing images (if any) to keep them?
+      // Backend expects 'images' field for URLs as well?
+      // Note: multer handles 'images' files. Body parser handles 'images' text.
+      // If we mix, we need to be careful.
+      // My backend logic checks req.files AND req.body.images separately.
+      if (form.images.length > 0) {
+          form.images.forEach(url => formData.append('images', url));
+      }
+
+      payload = formData;
+    } 
+    
+    const config = isMultipart ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+
     if (isEdit.value) {
-      await api.put(`/api/books/${form.book_id}`, form);
+      await api.put(`/api/books/${form.book_id}`, payload, config);
       ElMessage.success('Cập nhật thành công!');
     } else {
-      await api.post('/api/books', form);
+      await api.post('/api/books', payload, config);
       ElMessage.success('Thêm mới thành công!');
     }
     dialogVisible.value = false;

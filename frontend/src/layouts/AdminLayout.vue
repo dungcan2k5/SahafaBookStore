@@ -51,6 +51,11 @@
           <span>Quản lý Bài viết (Posts)</span>
         </el-menu-item>
         
+        <el-menu-item index="/admin/users"> 
+          <el-icon><User /></el-icon>
+          <span>Quản lý Người dùng</span>
+        </el-menu-item>
+        
         <el-menu-item index="/">
           <el-icon><HomeFilled /></el-icon>
           <span>Về trang bán hàng</span>
@@ -90,7 +95,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 //Import thêm icon Money
 import { 
-  DataLine, Reading, ShoppingCart, Document, HomeFilled, Fold, Money 
+  DataLine, Reading, ShoppingCart, Document, HomeFilled, Fold, Money, User 
 } from '@element-plus/icons-vue';
 
 const route = useRoute();
