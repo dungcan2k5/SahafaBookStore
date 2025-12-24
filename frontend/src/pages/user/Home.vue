@@ -87,21 +87,7 @@
 
     <CategoryNav />
     
-    <BookListSection 
-      v-if="flashSaleBooks.length"
-      title="FLASH SALE"
-      headerClass="bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-md rounded-t-lg border-none" 
-      iconBgClass="bg-white text-red-600"
-      :books="flashSaleBooks"
-      :showTimer="true"
-      :showProgressBar="true"
-      seeMoreLink="/flash-sale"
-    >
-       <template #icon>
-         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-       </template>
-    </BookListSection>
-
+    <FlashSale /> 
     <ProductCategory />
 
     <GiftCardSection />
@@ -138,14 +124,15 @@ import ProductCategory from '@/components/user/ProductCategory.vue';
 import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
+// 👇 IMPORT MỚI: Nhớ đảm bảo file này tồn tại trong thư mục components/user
+import FlashSale from '@/components/user/FlashSale.vue';
+
 // --- IMPORT ẢNH BANNER ---
 import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
 import sideBanner2 from '@/assets/banners/promo1.jpg';
-
-// (Đã xóa các import ảnh promo1...promo4 vì không dùng nữa)
 
 // --- Helper Format Tiền ---
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
@@ -155,36 +142,11 @@ const currentSlide = ref(0);
 const bannerImages = [banner1, banner2, banner3];
 
 // --- DỮ LIỆU GIẢ CHO BEST SELLER ---
-// Placeholder để chờ có API thật thì thay vào
 const bestSellers = ref([
-    { 
-        title: 'Cây Cam Ngọt Của Tôi', 
-        price: 85000, 
-        originalPrice: 108000, 
-        sold: 5.2,
-        image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' 
-    },
-    { 
-        title: 'Nhà Giả Kim (Tái Bản)', 
-        price: 63000, 
-        originalPrice: 79000, 
-        sold: 12.5,
-        image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_bia_cung.jpg' 
-    },
-    { 
-        title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', 
-        price: 72000, 
-        originalPrice: 90000, 
-        sold: 8.9,
-        image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tuoi-tre-dang-gia-bao-nhieu-u.jpg' 
-    },
-    { 
-        title: 'Đắc Nhân Tâm (Khổ Nhỏ)', 
-        price: 55000, 
-        originalPrice: 86000, 
-        sold: 21.1,
-        image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086851928.jpg' 
-    }
+    { title: 'Cây Cam Ngọt Của Tôi', price: 85000, originalPrice: 108000, sold: 5.2, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },
+    { title: 'Nhà Giả Kim (Tái Bản)', price: 63000, originalPrice: 79000, sold: 12.5, image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_bia_cung.jpg' },
+    { title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', price: 72000, originalPrice: 90000, sold: 8.9, image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tuoi-tre-dang-gia-bao-nhieu-u.jpg' },
+    { title: 'Đắc Nhân Tâm (Khổ Nhỏ)', price: 55000, originalPrice: 86000, sold: 21.1, image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086851928.jpg' }
 ]);
 
 let slideInterval;
@@ -202,19 +164,17 @@ const startAutoSlide = () => {
 };
 
 // Data Fetching Logic
-const flashSaleBooks = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 
 const fetchAllData = async () => {
   try {
-    const [flash, trend, news] = await Promise.all([
-      bookService.getFlashSale(),
+    // Đã bỏ bookService.getFlashSale() ở đây vì component FlashSale tự gọi API rồi
+    const [trend, news] = await Promise.all([
       bookService.getTrending(),
       bookService.getNewArrivals()
     ]);
 
-    flashSaleBooks.value = flash;
     trendingBooks.value = trend;
     newBooks.value = news;
     

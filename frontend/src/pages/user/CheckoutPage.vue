@@ -156,7 +156,7 @@
                alt="QR Code Payment"
              >
              <div class="absolute bottom-3 right-3 bg-white rounded-full p-1 shadow-md border">
-                <img src="https://img.mservice.io/momo_app_v2/img/MBBank.png" class="w-6 h-6 object-contain">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Logo_MB_new.png" class="w-6 h-6 object-contain">
              </div>
           </div>
 
