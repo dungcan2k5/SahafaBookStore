@@ -78,16 +78,6 @@
                   {{ message }}
               </p>
             </div>
-            <div class="flex items-center gap-4 mt-4 md:ml-32">
-              <button ``
-                type="button" 
-                @click="handleUpdate" 
-                class="bg-[#C92127] text-white px-8 py-2 rounded hover:bg-red-700 transition shadow-md font-bold disabled:opacity-50"
-                :disabled="isLoading"
-              >
-                {{ isLoading ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
-              </button>
-            </div>
             
             <p v-if="message" class="md:ml-32 text-sm font-bold" :class="isError ? 'text-red-600' : 'text-green-600'">
                 {{ message }}

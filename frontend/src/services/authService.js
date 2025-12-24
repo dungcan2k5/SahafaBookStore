@@ -33,5 +33,16 @@ export const authService = {
         const res = await axios.put(`${API_URL}/me`, data, { headers: getAuthHeader() });
         // Update lại user trong localStorage nếu cần
         return res.data;
-    }
+    },
+    async forgotPassword(email) {
+        // Gọi route POST /forgot-password bên backend
+        const res = await axios.post(`${API_URL}/forgot-password`, { email });
+        return res.data;
+    },
+
+    async generatePassword(email) {
+        // Gọi route POST /generate-password bên backend
+        const res = await axios.post(`${API_URL}/generate-password`, { email });
+        return res.data;
+    },
 };

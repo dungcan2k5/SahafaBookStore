@@ -179,22 +179,103 @@ const changePassword = async (req, res) => {
     }
 };
 
-// [POST] /api/auth/forgot-password (Giữ nguyên logic cũ của bạn)
+// [POST] /api/auth/forgot-password - Reset mật khẩu
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ where: { email } });
-        if (!user) return res.status(404).json({ success: false, message: 'Email không tồn tại' });
 
-        const newPassword = Math.random().toString(36).slice(-8) + "Aa1@"; // Random đơn giản
+        // Validate email
+        if (!email || !email.trim()) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+        }
+
+        // Kiểm tra email tồn tại
+        const user = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Email không tồn tại trong hệ thống' });
+        }
+
+        // Tạo mật khẩu mới: 12 ký tự gồm chữ hoa, thường, số
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let newPassword = '';
+        
+        // Đảm bảo có chữ hoa, thường, số
+        newPassword += 'Aa1@';
+        for (let i = 0; i < 8; i++) {
+            newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // Shuffle password
+        newPassword = newPassword.split('').sort(() => 0.5 - Math.random()).join('');
+
+        // Hash và lưu
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
         await user.save();
 
-        res.json({ success: true, message: 'Mật khẩu mới', newPassword });
+        console.log(`✅ Reset password for user: ${email}, New password: ${newPassword}`);
+
+        res.json({ 
+            success: true, 
+            message: 'Mật khẩu mới đã được gửi',
+            newPassword 
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        console.error('Forgot Password Error:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
     }
 };
 
-module.exports = { register, login, getProfile, updateProfile, forgotPassword, changePassword };
+// [POST] /api/auth/generate-password - Tạo mật khẩu mới cho user
+const generatePassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Validate email
+        if (!email || !email.trim()) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+        }
+
+        // Kiểm tra email tồn tại
+        const user = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Email không tồn tại trong hệ thống' });
+        }
+
+        // Tạo mật khẩu mới: 12 ký tự gồm chữ hoa, thường, số, ký tự đặc biệt
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let newPassword = '';
+        
+        // Đảm bảo có chữ hoa, thường, số, ký tự đặc biệt
+        newPassword += 'Aa1@';
+        for (let i = 0; i < 8; i++) {
+            newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // Shuffle password
+        newPassword = newPassword.split('').sort(() => 0.5 - Math.random()).join('');
+
+        // Hash và lưu
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        console.log(`✅ Generate new password for user: ${email}, New password: ${newPassword}`);
+
+        res.json({ 
+            success: true, 
+            message: 'Mật khẩu mới đã được tạo',
+            newPassword,
+            user: {
+                id: user.user_id,
+                full_name: user.full_name,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        console.error('Generate Password Error:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
+    }
+};
+
+module.exports = { register, login, getProfile, updateProfile, forgotPassword, changePassword, generatePassword };
