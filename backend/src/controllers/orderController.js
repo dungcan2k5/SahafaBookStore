@@ -174,13 +174,34 @@ const createOrder = async (req, res) => {
 // [GET] /api/orders/my-orders
 const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.findAll({
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    const limitInt = parseInt(limit);
+
+    const { count, rows } = await Order.findAndCountAll({
       where: { user_id: req.user_id },
       order: [['created_at', 'DESC']],
-      include: [{ model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] }]
+      include: [
+        { model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] },
+        { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
+      ],
+      limit: limitInt,
+      offset: offset,
+      distinct: true
     });
-    res.status(200).json({ success: true, data: orders });
+
+    res.status(200).json({ 
+        success: true, 
+        data: rows,
+        meta: {
+            total: count,
+            page: parseInt(page),
+            limit: limitInt,
+            totalPages: Math.ceil(count / limitInt)
+        }
+    });
   } catch (error) {
+    console.error("getMyOrders error:", error);
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };

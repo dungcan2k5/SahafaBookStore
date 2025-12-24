@@ -24,7 +24,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="orders" style="width: 100%" v-loading="loading" stripe border height="500">
+      <el-table :data="orders" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column prop="order_id" label="Mã Đơn" width="90" align="center">
           <template #default="scope">
             <span class="font-bold text-gray-600">#{{ scope.row.order_id }}</span>

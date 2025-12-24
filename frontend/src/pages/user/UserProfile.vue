@@ -2,6 +2,7 @@
   <div class="container mx-auto py-10 px-4 md:px-12">
     <div v-if="authStore.user" class="flex flex-col md:flex-row gap-8">
       
+      <!-- Sidebar -->
       <div class="w-full md:w-1/4">
         <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
           <div class="flex items-center gap-4 mb-6">
@@ -16,52 +17,72 @@
             </div>
           </div>
           <ul class="flex flex-col gap-2 text-sm">
-            <li class="font-bold text-[#C92127] cursor-pointer bg-red-50 p-2 rounded">Hồ sơ cá nhân</li>
-            <li @click="scrollToAddress" class="text-gray-600 cursor-pointer hover:text-[#C92127] p-2">Sổ địa chỉ</li>
-            <li class="text-gray-600 cursor-pointer hover:text-[#C92127] p-2">Đơn hàng của tôi</li>
+            <li 
+              @click="currentTab = 'profile'"
+              :class="['cursor-pointer p-2 rounded transition', currentTab === 'profile' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
+            >
+              Hồ sơ cá nhân
+            </li>
+            <li 
+              @click="currentTab = 'address'"
+              :class="['cursor-pointer p-2 rounded transition', currentTab === 'address' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
+            >
+              Sổ địa chỉ
+            </li>
+            <li 
+              @click="currentTab = 'orders'"
+              :class="['cursor-pointer p-2 rounded transition', currentTab === 'orders' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
+            >
+              Đơn hàng của tôi
+            </li>
           </ul>
         </div>
       </div>
 
-      <div class="w-full md:w-3/4 bg-white rounded-lg shadow-sm p-8 border border-gray-100">
-          <h1 class="text-2xl font-light text-gray-800 mb-6 border-b pb-4">Hồ Sơ Của Tôi</h1>
+      <!-- Main Content -->
+      <div class="w-full md:w-3/4 bg-white rounded-lg shadow-sm p-8 border border-gray-100 min-h-[500px]">
           
-          <div class="flex flex-col gap-6 mb-10">
-            <div class="flex flex-col md:flex-row md:items-center gap-2">
-              <label class="w-32 text-gray-600 md:text-right font-medium">Họ tên</label>
-              <input v-model="user.full_name" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500">
-            </div>
+          <!-- TAB: PROFILE -->
+          <div v-if="currentTab === 'profile'">
+            <h1 class="text-2xl font-light text-gray-800 mb-6 border-b pb-4">Hồ Sơ Của Tôi</h1>
+            <div class="flex flex-col gap-6 mb-10">
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <label class="w-32 text-gray-600 md:text-right font-medium">Họ tên</label>
+                <input v-model="user.full_name" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500">
+              </div>
 
-            <div class="flex flex-col md:flex-row md:items-center gap-2">
-              <label class="w-32 text-gray-600 md:text-right font-medium">Số điện thoại</label>
-              <input v-model="user.phone" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500" placeholder="Nhập số điện thoại">
-            </div>
-            
-            <div class="flex items-center gap-4 mt-4 md:ml-32">
-              <button 
-                type="button" 
-                @click="handleUpdate" 
-                class="bg-[#C92127] text-white px-8 py-2 rounded hover:bg-red-700 transition shadow-md font-bold disabled:opacity-50"
-                :disabled="isLoading"
-              >
-                {{ isLoading ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
-              </button>
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <label class="w-32 text-gray-600 md:text-right font-medium">Số điện thoại</label>
+                <input v-model="user.phone" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500" placeholder="Nhập số điện thoại">
+              </div>
               
-              <button 
-                type="button" 
-                @click="showPasswordModal = true" 
-                class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition shadow-md font-bold"
-              >
-                Đổi mật khẩu
-              </button>
+              <div class="flex items-center gap-4 mt-4 md:ml-32">
+                <button 
+                  type="button" 
+                  @click="handleUpdate" 
+                  class="bg-[#C92127] text-white px-8 py-2 rounded hover:bg-red-700 transition shadow-md font-bold disabled:opacity-50"
+                  :disabled="isLoading"
+                >
+                  {{ isLoading ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
+                </button>
+                
+                <button 
+                  type="button" 
+                  @click="showPasswordModal = true" 
+                  class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition shadow-md font-bold"
+                >
+                  Đổi mật khẩu
+                </button>
+              </div>
+              <p v-if="message" class="md:ml-32 text-sm font-bold" :class="isError ? 'text-red-600' : 'text-green-600'">
+                  {{ message }}
+              </p>
             </div>
-            <p v-if="message" class="md:ml-32 text-sm font-bold" :class="isError ? 'text-red-600' : 'text-green-600'">
-                {{ message }}
-            </p>
           </div>
 
-          <div id="address-section">
-             <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <!-- TAB: ADDRESS -->
+          <div v-if="currentTab === 'address'">
+             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 class="text-xl font-light text-gray-800">Sổ Địa Chỉ</h2>
                 <button @click="openAddressModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center gap-1">
                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
@@ -90,6 +111,81 @@
                          <button @click="deleteAddress(addr.address_id)" class="text-red-600 hover:underline text-sm">Xóa</button>
                       </div>
                    </div>
+                </div>
+             </div>
+          </div>
+
+          <!-- TAB: ORDERS (NEW) -->
+          <div v-if="currentTab === 'orders'">
+             <h2 class="text-xl font-light text-gray-800 mb-6 border-b pb-4">Lịch Sử Đơn Hàng</h2>
+
+             <div v-if="orderLoading" class="py-10 text-center text-gray-500">Đang tải đơn hàng...</div>
+             <div v-else-if="orders.length === 0" class="py-10 text-center text-gray-500 border border-dashed rounded bg-gray-50">
+                Bạn chưa có đơn hàng nào.
+             </div>
+
+             <div v-else class="space-y-6">
+                <div v-for="order in orders" :key="order.order_id" class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                    <!-- Order Header -->
+                    <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-b">
+                        <div class="flex items-center gap-4">
+                            <span class="font-bold text-gray-700">#{{ order.order_id }}</span>
+                            <span class="text-sm text-gray-500">{{ new Date(order.created_at).toLocaleString('vi-VN') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                           <span class="text-sm uppercase font-bold px-2 py-1 rounded" 
+                                 :class="{
+                                    'bg-yellow-100 text-yellow-700': order.order_status === 'pending',
+                                    'bg-blue-100 text-blue-700': order.order_status === 'processing',
+                                    'bg-indigo-100 text-indigo-700': order.order_status === 'shipped',
+                                    'bg-green-100 text-green-700': order.order_status === 'delivered',
+                                    'bg-red-100 text-red-700': order.order_status === 'cancelled'
+                                 }">
+                                {{ formatStatus(order.order_status) }}
+                           </span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="p-4">
+                        <div v-for="item in order.OrderItems" :key="item.id" class="flex justify-between items-center py-2 border-b last:border-0">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800">{{ item.Book?.book_title }}</div>
+                                <div class="text-xs text-gray-500">x{{ item.quantity }}</div>
+                            </div>
+                            <div class="font-medium text-gray-900">{{ formatCurrency(item.unit_price) }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Order Footer -->
+                    <div class="px-4 py-3 bg-gray-50 border-t flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                           Thanh toán: <span class="font-bold uppercase">{{ order.payment_method || 'COD' }}</span>
+                           <span v-if="order.payment_status === 'paid'" class="text-green-600 ml-1 font-bold">(Đã TT)</span>
+                        </div>
+                        <div class="text-lg font-bold text-[#C92127]">
+                            Tổng tiền: {{ formatCurrency(order.final_amount) }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex justify-center gap-2 mt-6">
+                    <button 
+                      @click="changePage(orderPage - 1)" 
+                      :disabled="orderPage <= 1"
+                      class="px-3 py-1 rounded border hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      &laquo; Trước
+                    </button>
+                    <span class="px-3 py-1 font-bold text-gray-700">Trang {{ orderPage }} / {{ Math.ceil(orderTotal / orderLimit) || 1 }}</span>
+                    <button 
+                      @click="changePage(orderPage + 1)" 
+                      :disabled="orderPage >= Math.ceil(orderTotal / orderLimit)"
+                      class="px-3 py-1 rounded border hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      Sau &raquo;
+                    </button>
                 </div>
              </div>
           </div>
@@ -160,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/services/api';
 
@@ -171,6 +267,16 @@ const isError = ref(false);
 
 const user = ref({ full_name: '', phone: '' });
 const addresses = ref([]); // Danh sách địa chỉ
+
+// Tabs: 'profile', 'address', 'orders'
+const currentTab = ref('profile');
+
+// Orders State
+const orders = ref([]);
+const orderLoading = ref(false);
+const orderPage = ref(1);
+const orderLimit = ref(5);
+const orderTotal = ref(0);
 
 // Modal State
 const showModal = ref(false);
@@ -199,9 +305,57 @@ onMounted(() => {
             ...authStore.user,
             full_name: authStore.user.full_name || authStore.user.name || ''
         };
-        fetchAddresses(); // Lấy danh sách địa chỉ
+        fetchAddresses();
     }
 });
+
+// Fetch orders when tab changes to 'orders'
+watch(currentTab, (newTab) => {
+    if (newTab === 'orders' && orders.value.length === 0) {
+        fetchOrders();
+    }
+});
+
+// --- ORDERS LOGIC ---
+const fetchOrders = async () => {
+    orderLoading.value = true;
+    try {
+        const res = await api.get('/api/orders/my-orders', {
+            params: {
+                page: orderPage.value,
+                limit: orderLimit.value
+            }
+        });
+        orders.value = res.data.data || [];
+        if (res.data.meta) {
+            orderTotal.value = res.data.meta.total;
+        }
+    } catch (e) {
+        console.error("Lỗi tải đơn hàng:", e);
+    } finally {
+        orderLoading.value = false;
+    }
+};
+
+const changePage = (page) => {
+    if (page < 1 || page > Math.ceil(orderTotal.value / orderLimit.value)) return;
+    orderPage.value = page;
+    fetchOrders();
+};
+
+const formatStatus = (status) => {
+  const map = {
+    pending: 'Chờ xử lý',
+    processing: 'Đang chuẩn bị',
+    shipped: 'Đang giao',
+    delivered: 'Hoàn thành',
+    cancelled: 'Đã hủy',
+  };
+  return map[status] || status;
+};
+
+const formatCurrency = (val) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
 // --- CHANGE PASSWORD LOGIC ---
 const handleChangePassword = async () => {
@@ -307,10 +461,6 @@ const deleteAddress = async (id) => {
       await api.delete(`/api/addresses/${id}`);
       fetchAddresses();
    } catch (e) { alert("Lỗi khi xóa"); }
-};
-
-const scrollToAddress = () => {
-   document.getElementById('address-section')?.scrollIntoView({ behavior: 'smooth' });
 };
 </script>
 
