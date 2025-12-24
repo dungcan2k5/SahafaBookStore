@@ -1,10 +1,9 @@
 const db = require('../config/database');
 
 // 👇 KIỂM TRA QUAN TRỌNG:
-// Nếu db.models không tồn tại, nghĩa là file models.js hoặc database.js bị lỗi export
 if (!db.models) {
     console.error("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy Models! Kiểm tra lại file database.js và models.js");
-    process.exit(1); // Dừng app để báo lỗi ngay
+    process.exit(1);
 }
 
 const { Book, Author, Genre, BookImage } = db.models;
@@ -22,7 +21,6 @@ const getAllBooks = async (req, res) => {
 
         const books = await Book.findAll({
             where: whereClause,
-            // Sắp xếp ID tăng dần (cũ nhất lên trước)
             order: [['book_id', 'ASC']], 
             include: [
                 { model: Author, attributes: ['author_name'] },
@@ -59,8 +57,15 @@ const createBook = async (req, res) => {
     try {
         const newBook = await Book.create(req.body);
         
-        // Nếu có ảnh, tạo luôn bản ghi ảnh
-        if (req.body.image_url) {
+        // Logic xử lý ảnh: Ưu tiên File Upload -> Sau đó đến URL String
+        if (req.file) {
+            const imageUrl = `/uploads/images/${req.file.filename}`;
+            await BookImage.create({
+                book_id: newBook.book_id,
+                book_image_url: imageUrl
+            });
+        } 
+        else if (req.body.image_url) {
             await BookImage.create({
                 book_id: newBook.book_id,
                 book_image_url: req.body.image_url
@@ -74,28 +79,42 @@ const createBook = async (req, res) => {
     }
 };
 
-// [PUT] /api/books/:id - Cập nhật sách
+// [PUT] /api/books/:id - Cập nhật sách (ĐÃ XỬ LÝ CONFLICT)
 const updateBook = async (req, res) => {
     try {
         const { id } = req.params;
+        
         // Sequelize update trả về mảng [số_dòng_được_update]
         const [updatedCount] = await Book.update(req.body, { where: { book_id: id } });
         
-        // Cập nhật ảnh (kể cả khi thông tin sách không đổi nhưng muốn đổi ảnh)
-        if (req.body.image_url) {
+        // --- XỬ LÝ ẢNH (Logic gộp từ Dev và Local) ---
+        let newImageUrl = null;
+
+        // 1. Nếu có file upload mới -> Lấy đường dẫn file
+        if (req.file) {
+            newImageUrl = `/uploads/images/${req.file.filename}`;
+        } 
+        // 2. Nếu không upload file, nhưng có gửi link ảnh mới
+        else if (req.body.image_url) {
+            newImageUrl = req.body.image_url;
+        }
+
+        // Nếu xác định được ảnh mới thì cập nhật vào bảng BookImage
+        if (newImageUrl) {
             const img = await BookImage.findOne({ where: { book_id: id } });
             if (img) {
-                await img.update({ book_image_url: req.body.image_url });
+                await img.update({ book_image_url: newImageUrl });
             } else {
-                await BookImage.create({ book_id: id, book_image_url: req.body.image_url });
+                await BookImage.create({ book_id: id, book_image_url: newImageUrl });
             }
         }
 
-        if (updatedCount > 0 || req.body.image_url) {
+        // Nếu thông tin sách thay đổi HOẶC có ảnh mới -> Báo thành công
+        if (updatedCount > 0 || newImageUrl) {
             return res.status(200).json({ success: true, message: 'Cập nhật thành công' });
         }
         
-        // Nếu không tìm thấy sách để update
+        // Nếu không tìm thấy sách để update (Do ID sai)
         const exists = await Book.findByPk(id);
         if (!exists) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
 
@@ -112,7 +131,7 @@ const deleteBook = async (req, res) => {
     try {
         const { id } = req.params;
         
-        // 1. Xóa ảnh trước (Tránh lỗi khóa ngoại nếu DB setup chặt)
+        // 1. Xóa ảnh trước
         await BookImage.destroy({ where: { book_id: id } });
         
         // 2. Xóa sách
@@ -124,7 +143,6 @@ const deleteBook = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Sách không tồn tại' });
     } catch (error) {
         console.error("Delete Book Error:", error);
-        // Lỗi thường gặp: Sách đang nằm trong Order hoặc Cart -> Không xóa được do khóa ngoại
         res.status(500).json({ success: false, message: 'Không thể xóa sách (Có thể sách đang có trong đơn hàng)' });
     }
 };
@@ -227,7 +245,6 @@ const getFlashSaleBooks = async (req, res) => {
             limit: 10,
             order: [['book_id', 'DESC']], 
             include: [
-                // Sequelize thường trả về alias là BookImages (số nhiều)
                 { model: BookImage, attributes: ['book_image_url'] }
             ]
         });
@@ -240,7 +257,7 @@ const getFlashSaleBooks = async (req, res) => {
             const totalStock = book.stock_quantity > 0 ? book.stock_quantity : 50;
             const sold = Math.floor(Math.random() * (totalStock - 1));
 
-            // SỬA LỖI Ở ĐÂY: Dùng BookImages thay vì BOOK_IMAGEs
+            // SỬA LỖI Ở ĐÂY: Dùng BookImages thay vì BOOK_IMAGEs cho khớp với model mới
             let imageUrl = 'https://placehold.co/400x600?text=No+Image';
             if (book.BookImages && book.BookImages.length > 0) {
                  imageUrl = book.BookImages[0].book_image_url;

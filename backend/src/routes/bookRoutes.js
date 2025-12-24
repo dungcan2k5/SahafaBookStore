@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
+const upload = require('../middleware/uploadMiddleware');
 
 // --- CÁC ROUTE LẤY DỮ LIỆU (GET) ---
 
@@ -18,8 +19,8 @@ router.get('/:id', bookController.getBookDetail);
 
 // --- CÁC ROUTE ADMIN (THÊM / SỬA / XÓA) ---
 
-router.post('/', bookController.createBook);
-router.put('/:id', bookController.updateBook);
+router.post('/', upload.single('image'), bookController.createBook);
+router.put('/:id', upload.single('image'), bookController.updateBook);
 router.delete('/:id', bookController.deleteBook);
 
 // --- ROUTE TÁC GIẢ ---
