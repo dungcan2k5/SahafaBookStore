@@ -5,23 +5,19 @@ const API_URL = 'http://localhost:3000/api';
 
 export const bookService = {
 
-  // --- HÀM QUAN TRỌNG NHẤT ĐỂ LẤY SÁCH ---
+  // --- LẤY TẤT CẢ SÁCH (Dùng cho Top Bán Chạy, Danh sách sách...) ---
   async getAllBooks() {
     try {
-      // Thêm ?limit=100 để lấy nhiều sách về lọc Top Seller cho chuẩn
+      // Limit 100 để lấy nhiều sách lọc Top seller
       const res = await axios.get(`${API_URL}/books?limit=100`);
       
-      // LOGIC MỚI: Kiểm tra xem dữ liệu nằm ở đâu
-      // Nếu API trả về dạng { data: [...] } thì lấy phần data bên trong
+      // Xử lý response đa dạng
       if (res.data && res.data.data && Array.isArray(res.data.data)) {
         return res.data.data; 
       }
-      
-      // Dự phòng: Nếu API trả về thẳng mảng [...]
       if (Array.isArray(res.data)) {
         return res.data;
       }
-
       return []; 
     } catch (error) {
       console.error("Lỗi gọi API getAllBooks:", error);
@@ -29,7 +25,22 @@ export const bookService = {
     }
   },
 
-  // --- CÁC HÀM KHÁC GIỮ NGUYÊN HOẶC MOCK DATA ---
+  // --- LẤY CHI TIẾT SÁCH (Sửa để hỗ trợ cả ID và SLUG) ---
+  // Tham số 'idOrSlug' có thể là số (22) hoặc chuỗi (harry-potter)
+  async getBookById(idOrSlug) {
+    try {
+      const res = await axios.get(`${API_URL}/books/${idOrSlug}`);
+      if (res.data && res.data.success) {
+         return res.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Lỗi gọi API getBookById:", error);
+      return null;
+    }
+  },
+
+  // --- CÁC HÀM KHÁC (GIỮ NGUYÊN) ---
   async getFlashSale() {
     await new Promise(r => setTimeout(r, 500)); 
     return [
@@ -57,14 +68,10 @@ export const bookService = {
   },
 
   async getNewArrivals() {
-    return []; // Tạm thời để rỗng hoặc thêm mock data tùy ý
+    return []; 
   },
 
   async getSuggestions() {
     return [];
-  },
-
-  async getBookById(id) {
-    return {};
   }
 };

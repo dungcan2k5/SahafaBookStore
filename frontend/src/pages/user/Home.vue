@@ -36,7 +36,7 @@
         <div 
           v-for="(book, index) in bestSellers" 
           :key="index" 
-          @click="goToBookDetail(book.id)" 
+          @click="goToBookDetail(book.slug)" 
           class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
         >
           <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
@@ -102,8 +102,13 @@ const router = useRouter();
 const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
 // Hàm chuyển trang chi tiết
-const goToBookDetail = (id) => {
-  router.push(`/books/${id}`);
+const goToBookDetail = (slug) => {
+  // Nếu slug bị null hoặc undefined thì fallback về trang chủ hoặc báo lỗi
+  if (!slug) {
+     console.error("Sách này chưa có Slug!");
+     return;
+  }
+  router.push(`/books/${slug}`);
 };
 
 const currentSlide = ref(0);
@@ -159,9 +164,11 @@ const fetchAllData = async () => {
           return {
             id: book.book_id,
             title: book.book_title,
+            
+            slug: book.book_slug, // 👈 THÊM DÒNG QUAN TRỌNG NÀY (để lấy slug từ DB)
+            
             price: book.price,
-            // ❌ Bỏ dòng fake giá: originalPrice: book.price * 1.2,
-            originalPrice: null, // DB không có thì để null
+            originalPrice: null, 
             sold: book.total_sold || 0,
             image: imageUrl
           };

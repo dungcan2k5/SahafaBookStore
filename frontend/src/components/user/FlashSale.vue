@@ -35,12 +35,12 @@
           v-else
           v-for="book in flashSaleBooks" 
           :key="book.id"
-          @click="goToBookDetail(book.id)"
+          @click="goToBookDetail(book.slug || book.id)"
           class="bg-white rounded-xl p-3 min-w-[170px] max-w-[170px] md:min-w-[210px] md:max-w-[210px] flex flex-col justify-between hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer snap-start"
         >
-          <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
+        <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
             <img 
-              :src="book.image || 'https://via.placeholder.com/200x300?text=No+Image'" 
+              :src="book.image || 'https://placehold.co/400x600?text=No+Image'" 
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
@@ -123,8 +123,10 @@ const fetchFlashSaleBooks = async () => {
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-const goToBookDetail = (id) => {
-  router.push(`/books/${id}`);
+// ✅ HÀM ĐÃ SỬA: Nhận slug hoặc id
+const goToBookDetail = (slugOrId) => {
+  if (!slugOrId) return;
+  router.push(`/books/${slugOrId}`);
 };
 
 onMounted(() => {
@@ -138,23 +140,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 👇 ĐÃ SỬA: Style thanh cuộn màu trắng mờ (để nổi trên nền đỏ) */
-.custom-scrollbar::-webkit-scrollbar {
-    height: 8px; /* Độ dày thanh cuộn */
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1); /* Nền rãnh hơi tối nhẹ */
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.5); /* Thanh cuộn màu trắng bán trong suốt */
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.9); /* Sáng rõ khi di chuột vào */
-}
+.custom-scrollbar::-webkit-scrollbar { height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); border-radius: 4px; cursor: pointer; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.9); }
 </style>

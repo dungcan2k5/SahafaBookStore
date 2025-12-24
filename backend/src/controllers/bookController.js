@@ -88,13 +88,25 @@ const getAllBooks = async (req, res) => {
     }
 };
 
-// [GET] /api/books/:id - Chi tiết sách
+// [GET] /api/books/:idOrSlug
 const getBookDetail = async (req, res) => {
     try {
-        const { id } = req.params;
-        const book = await Book.findByPk(id, { 
-            include: [Author, Genre, BookImage, Publisher] 
-        });
+        const { id } = req.params; // Tham số này có thể là ID (22) hoặc Slug (nha-gia-kim)
+        let book;
+
+        // KIỂM TRA: Nếu là số (ID) thì tìm theo Primary Key
+        if (/^\d+$/.test(id)) {
+            book = await Book.findByPk(id, { 
+                include: [Author, Genre, BookImage, Publisher] 
+            });
+        } 
+        // NGƯỢC LẠI: Nếu là chữ (Slug) thì tìm theo cột book_slug
+        else {
+            book = await Book.findOne({ 
+                where: { book_slug: id },
+                include: [Author, Genre, BookImage, Publisher] 
+            });
+        }
         
         if (!book) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
         
@@ -317,14 +329,12 @@ const getFlashSaleBooks = async (req, res) => {
         });
 
         const flashSaleData = books.map(book => {
-            // Logic tạo dữ liệu giả lập cho Flash Sale
             const originalPrice = parseFloat(book.price);
             const discountPercent = Math.floor(Math.random() * 41) + 10; 
             const salePrice = originalPrice * (1 - discountPercent / 100);
             
             let imageUrl = 'https://placehold.co/400x600?text=No+Image';
-            // Kiểm tra alias BookImages hoặc book_images tùy thuộc vào models của bạn
-            // Ở đây mình dùng logic check cả 2 trường hợp cho chắc
+            // Kiểm tra alias BookImages hoặc book_images
             const images = book.BookImages || book.book_images;
             if (images && images.length > 0) {
                  imageUrl = images[0].book_image_url;
@@ -332,6 +342,10 @@ const getFlashSaleBooks = async (req, res) => {
 
             return {
                 id: book.book_id,
+                
+                // 👇 THÊM DÒNG NÀY ĐỂ FRONTEND CÓ SLUG MÀ DÙNG
+                slug: book.book_slug, 
+                
                 title: book.book_title,
                 price: Math.round(salePrice / 1000) * 1000, 
                 oldPrice: originalPrice,
