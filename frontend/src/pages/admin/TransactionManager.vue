@@ -28,7 +28,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="filteredTransactions" style="width: 100%" v-loading="loading" stripe border>
+      <el-table :data="transactions" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column label="Mã GD" width="110" align="center">
           <template #default="scope">
             <span class="font-mono text-gray-600">#{{ getTxId(scope.row) }}</span>
@@ -111,12 +111,25 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- Pagination -->
+      <div class="mt-4 flex justify-end">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Money, Refresh, Check, Search, MagicStick, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -125,6 +138,12 @@ const transactions = ref([]);
 const loading = ref(false);
 const creating = ref(false);
 const searchText = ref('');
+let debounceTimer = null;
+
+// Pagination
+const currentPage = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
 
 // helpers
 const formatCurrency = (val) =>
@@ -135,26 +154,21 @@ const formatDate = (dateString) => (dateString ? new Date(dateString).toLocaleSt
 // robust transaction id getter
 const getTxId = (tx) => tx.transaction_id ?? tx.payment_id ?? tx.id ?? '...';
 
-// filter
-const filteredTransactions = computed(() => {
-  const q = (searchText.value || '').trim().toLowerCase();
-  if (!q) return transactions.value;
-
-  return transactions.value.filter((t) => {
-    const txId = String(getTxId(t)).toLowerCase();
-    const orderId = String(t.order_id ?? '').toLowerCase();
-    const name = String(t.User?.full_name ?? '').toLowerCase();
-    const email = String(t.User?.email ?? '').toLowerCase();
-    return txId.includes(q) || orderId.includes(q) || name.includes(q) || email.includes(q);
-  });
-});
-
 // api
 const fetchTransactions = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/payment/transactions');
+    const res = await api.get('/api/payment/transactions', {
+      params: {
+        page: currentPage.value,
+        limit: pageSize.value,
+        search: searchText.value?.trim() || undefined
+      }
+    });
     transactions.value = res.data.data || [];
+    if (res.data.meta) {
+      total.value = res.data.meta.total;
+    }
   } catch (e) {
     console.error(e);
     ElMessage.error('Không thể tải lịch sử giao dịch');
@@ -162,6 +176,26 @@ const fetchTransactions = async () => {
     loading.value = false;
   }
 };
+
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  currentPage.value = 1;
+  fetchTransactions();
+};
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
+  fetchTransactions();
+};
+
+// Search Watcher
+watch(searchText, () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    currentPage.value = 1;
+    fetchTransactions();
+  }, 400);
+});
 
 const handleApprove = async (row) => {
   const id = getTxId(row);
@@ -200,7 +234,7 @@ const createFakeTransaction = async () => {
   try {
     await api.post('/api/payment/transactions/fake');
     ElMessage.success('Đã tạo giao dịch test! Bấm "Làm mới" để xem.');
-    // ❗ theo đúng ý bạn: không auto fetch, để nút "Làm mới" mới hiện ra
+    fetchTransactions(); // Auto refresh after create
   } catch (e) {
     console.error(e);
     ElMessage.error(e.response?.data?.message || 'Lỗi tạo GD test!');

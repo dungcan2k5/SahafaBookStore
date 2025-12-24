@@ -17,6 +17,8 @@ const voucherRoutes = require('./routes/voucherRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 // ✅ THÊM DÒNG NÀY: Import Address Routes
 const addressRoutes = require('./routes/addressRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
@@ -50,6 +52,8 @@ app.use('/api/vouchers', voucherRoutes);
 app.use('/api/payment', paymentRoutes);
 // ✅ THÊM DÒNG NÀY: Đăng ký route
 app.use('/api/addresses', addressRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/stats', statsRoutes);
 
 // API Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

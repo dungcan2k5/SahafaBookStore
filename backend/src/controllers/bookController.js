@@ -1,78 +1,116 @@
-const db = require('../config/database');
+// Dòng cũ (Sai): tạm thời command lại để tránh lỗi không tìm thấy Models
+// const db = require('../models/models'); // Đảm bảo đường dẫn trỏ đúng file models/index.js hoặc models.js của bạn
+
+// ✅ DÒNG MỚI (ĐÚNG): Phải gọi vào file config database nơi đã khởi tạo models
+const { models } = require('../config/database'); 
 
 // 👇 KIỂM TRA QUAN TRỌNG:
-if (!db.models) {
-    console.error("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy Models! Kiểm tra lại file database.js và models.js");
-    process.exit(1);
+if (!models || !models.Book) {
+    console.error("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy Models! Kiểm tra lại file database.js");
+    // Không exit process để tránh sập server dev, nhưng sẽ báo lỗi đỏ
 }
 
-const { Book, Author, Genre, BookImage } = db.models;
+// Destructuring các Model ra để dùng bên dưới
+const { Book, Author, Genre, BookImage, Publisher } = models; 
 const { Op } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
+const { uploadRoot } = require('../middleware/uploadMiddleware');
 
-// [GET] /api/books - Lấy danh sách sách
+// [GET] /api/books - Lấy danh sách sách (Fix lỗi Search Author)
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category, sort, order, limit    } = req.query; 
+        const { search, category, page = 1, limit = 10 } = req.query; 
         
+        const offset = (page - 1) * limit;
+        const limitInt = parseInt(limit);
+
         let whereClause = {};
         
-        // Cấu hình include để lấy dữ liệu liên quan
-        let includeClause = [
-            { model: Author, attributes: ['author_name'] }, // Bỏ alias 'as: Author' để tránh lỗi nếu chưa config
-            { model: BookImage, attributes: ['book_image_url'] },
-            // 👇 SỬA: Lấy thông tin Thể loại (Genre) thay vì Category
-            { 
-                model: Genre, 
-                attributes: ['genre_name', 'genre_slug'] 
-            } 
-        ];
-
         // 1. Logic tìm kiếm (Search)
         if (search) {
              whereClause = {
                 [Op.or]: [
-                    // Tìm theo tên sách
                     { book_title: { [Op.like]: `%${search}%` } },
-                    // Tìm theo tên tác giả (Query trên bảng liên kết Author)
+                    // Cú pháp $ModelAlias.column$ để search bảng liên kết
                     { '$Author.author_name$': { [Op.like]: `%${search}%` } }
                 ]
             };
         }
 
-        // 2. Logic lọc theo Danh mục (Thực chất là tìm theo Genre Slug)
+        // 2. Logic lọc theo Danh mục
         if (category) {
-            // Khi frontend gọi /api/books?category=van-hoc -> Backend tìm genre_slug = 'van-hoc'
-            whereClause['$Genre.genre_slug$'] = category;
+            whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` }; // Sửa lại cho linh hoạt hơn hoặc dùng genre_slug nếu DB có
         }
 
-        const books = await Book.findAll({
+        const { count, rows } = await Book.findAndCountAll({
             where: whereClause,
             // 👇 LOGIC QUAN TRỌNG: Cho phép sắp xếp theo cột (ví dụ: total_sold)
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
             // 👇 GIỚI HẠN SỐ LƯỢNG: Chỉ lấy số lượng cần thiết (ví dụ: 4)
             limit: limit ? parseInt(limit) : undefined,
             include: [
-                { model: Author, attributes: ['author_name'] },
-                { model: Genre, attributes: ['genre_name'] },
-                { model: BookImage, attributes: ['book_image_url'] }
-            ]
+                { 
+                    model: Author, 
+                    attributes: ['author_name'],
+                    as: 'Author' // Đảm bảo Alias khớp với query '$Author...'
+                },
+                { 
+                    model: Genre, 
+                    attributes: ['genre_name'],
+                    as: 'Genre'
+                },
+                { 
+                    model: BookImage, 
+                    attributes: ['book_image_url'],
+                    as: 'BookImages' // Kiểm tra xem trong models define alias là gì (thường là BookImages hoặc book_images)
+                }
+            ],
+            limit: limitInt,
+            offset: offset,
+            distinct: true, // Để đếm đúng sách (không đếm trùng do nhiều ảnh)
+            
+            // 🔥 QUAN TRỌNG: Dòng này sửa lỗi SQLITE_ERROR: no such column: Author.author_name
+            // Nó buộc Sequelize không tạo subquery cắt trang trước khi join bảng
+            subQuery: false 
         });
 
 
-        res.status(200).json({ success: true, data: books });
+        res.status(200).json({ 
+            success: true, 
+            data: rows,
+            meta: {
+                total: count,
+                page: parseInt(page),
+                limit: limitInt,
+                totalPages: Math.ceil(count / limitInt)
+            }
+        });
     } catch (error) {
         console.error("Get All Books Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
     }
 };
 
-// [GET] /api/books/:id - Chi tiết sách
+// [GET] /api/books/:idOrSlug
 const getBookDetail = async (req, res) => {
     try {
-        const { id } = req.params;
-        const book = await Book.findByPk(id, { 
-            include: [Author, Genre, BookImage] 
-        });
+        const { id } = req.params; // Tham số này có thể là ID (22) hoặc Slug (nha-gia-kim)
+        let book;
+
+        // KIỂM TRA: Nếu là số (ID) thì tìm theo Primary Key
+        if (/^\d+$/.test(id)) {
+            book = await Book.findByPk(id, { 
+                include: [Author, Genre, BookImage, Publisher] 
+            });
+        } 
+        // NGƯỢC LẠI: Nếu là chữ (Slug) thì tìm theo cột book_slug
+        else {
+            book = await Book.findOne({ 
+                where: { book_slug: id },
+                include: [Author, Genre, BookImage, Publisher] 
+            });
+        }
         
         if (!book) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
         
@@ -87,20 +125,37 @@ const getBookDetail = async (req, res) => {
 const createBook = async (req, res) => {
     try {
         const newBook = await Book.create(req.body);
-        
-        // Logic xử lý ảnh: Ưu tiên File Upload -> Sau đó đến URL String
-        if (req.file) {
-            const imageUrl = `/uploads/images/${req.file.filename}`;
-            await BookImage.create({
-                book_id: newBook.book_id,
-                book_image_url: imageUrl
-            });
+        const bookDir = path.join(uploadRoot, 'books', String(newBook.book_id));
+
+        // 1. Xử lý ảnh Upload (req.files)
+        if (req.files && req.files.length > 0) {
+            if (!fs.existsSync(bookDir)) {
+                fs.mkdirSync(bookDir, { recursive: true });
+            }
+
+            for (const file of req.files) {
+                const oldPath = file.path;
+                const newPath = path.join(bookDir, file.filename);
+                
+                fs.renameSync(oldPath, newPath);
+
+                const imageUrl = `/uploads/books/${newBook.book_id}/${file.filename}`;
+                await BookImage.create({
+                    book_id: newBook.book_id,
+                    book_image_url: imageUrl
+                });
+            }
         } 
-        else if (req.body.image_url) {
-            await BookImage.create({
-                book_id: newBook.book_id,
-                book_image_url: req.body.image_url
-            });
+        
+        // 2. Xử lý ảnh từ URL
+        if (req.body.images) {
+            const images = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+            for (const url of images) {
+                await BookImage.create({
+                    book_id: newBook.book_id,
+                    book_image_url: url
+                });
+            }
         }
         
         res.status(201).json({ success: true, data: newBook });
@@ -110,49 +165,57 @@ const createBook = async (req, res) => {
     }
 };
 
-// [PUT] /api/books/:id - Cập nhật sách (ĐÃ XỬ LÝ CONFLICT)
+// [PUT] /api/books/:id - Cập nhật
 const updateBook = async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Sequelize update trả về mảng [số_dòng_được_update]
-        const [updatedCount] = await Book.update(req.body, { where: { book_id: id } });
-        
-        // --- XỬ LÝ ẢNH (Logic gộp từ Dev và Local) ---
-        let newImageUrl = null;
+        // Update thông tin cơ bản
+        await Book.update(req.body, { where: { book_id: id } });
 
-        // 1. Nếu có file upload mới -> Lấy đường dẫn file
-        if (req.file) {
-            newImageUrl = `/uploads/images/${req.file.filename}`;
-        } 
-        // 2. Nếu không upload file, nhưng có gửi link ảnh mới
-        else if (req.body.image_url) {
-            newImageUrl = req.body.image_url;
-        }
+        // Xử lý ảnh nếu có
+        if (req.body.images || (req.files && req.files.length > 0)) {
+            const bookDir = path.join(uploadRoot, 'books', String(id));
 
-        // Nếu xác định được ảnh mới thì cập nhật vào bảng BookImage
-        if (newImageUrl) {
-            const img = await BookImage.findOne({ where: { book_id: id } });
-            if (img) {
-                await img.update({ book_image_url: newImageUrl });
-            } else {
-                await BookImage.create({ book_id: id, book_image_url: newImageUrl });
+            let finalImages = [];
+            if (req.body.images) {
+                finalImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+            }
+
+            if (req.files && req.files.length > 0) {
+                if (!fs.existsSync(bookDir)) {
+                    fs.mkdirSync(bookDir, { recursive: true });
+                }
+                for (const file of req.files) {
+                    const oldPath = file.path;
+                    const newPath = path.join(bookDir, file.filename);
+                    fs.renameSync(oldPath, newPath);
+                    const imageUrl = `/uploads/books/${id}/${file.filename}`;
+                    finalImages.push(imageUrl);
+                }
+            }
+
+            // Đồng bộ DB: Xóa ảnh cũ không còn, thêm ảnh mới
+            const currentImages = await BookImage.findAll({ where: { book_id: id } });
+            const currentUrls = currentImages.map(img => img.book_image_url);
+
+            const imagesToDelete = currentImages.filter(img => !finalImages.includes(img.book_image_url));
+            for (const img of imagesToDelete) {
+                await img.destroy();
+            }
+
+            const imagesToAdd = finalImages.filter(url => !currentUrls.includes(url));
+            for (const url of imagesToAdd) {
+                await BookImage.create({
+                    book_id: id,
+                    book_image_url: url
+                });
             }
         }
-
-        // Nếu thông tin sách thay đổi HOẶC có ảnh mới -> Báo thành công
-        if (updatedCount > 0 || newImageUrl) {
-            return res.status(200).json({ success: true, message: 'Cập nhật thành công' });
-        }
         
-        // Nếu không tìm thấy sách để update (Do ID sai)
-        const exists = await Book.findByPk(id);
-        if (!exists) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
-
-        return res.status(200).json({ success: true, message: 'Không có thay đổi nào' });
-
+        res.status(200).json({ success: true, message: 'Cập nhật thành công' });
     } catch (error) {
-        console.error("Update Book Error:", error);
+        console.error("Lỗi update sách:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -161,25 +224,17 @@ const updateBook = async (req, res) => {
 const deleteBook = async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // 1. Xóa ảnh trước
         await BookImage.destroy({ where: { book_id: id } });
-        
-        // 2. Xóa sách
         const deleted = await Book.destroy({ where: { book_id: id } });
 
-        if (deleted) {
-            return res.status(200).json({ success: true, message: 'Đã xóa sách' });
-        }
+        if (deleted) return res.status(200).json({ success: true, message: 'Đã xóa sách' });
         return res.status(404).json({ success: false, message: 'Sách không tồn tại' });
     } catch (error) {
-        console.error("Delete Book Error:", error);
-        res.status(500).json({ success: false, message: 'Không thể xóa sách (Có thể sách đang có trong đơn hàng)' });
+        res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };
 
-// --- CÁC HÀM PHỤ ---
-
+// --- CÁC HÀM GET PHỤ ---
 const getGenres = async (req, res) => {
     try {
         const genres = await Genre.findAll();
@@ -194,13 +249,12 @@ const getAuthors = async (req, res) => {
 };
 const getPublishers = async (req, res) => {
     try {
-        const pub = await db.models.Publisher.findAll();
+        const pub = await Publisher.findAll();
         res.status(200).json({ success: true, data: pub });
     } catch (e) { res.status(500).json({ error: e.message }) }
 };
 
-// --- QUẢN LÝ TÁC GIẢ & THỂ LOẠI ---
-
+// --- QUẢN LÝ TÁC GIẢ ---
 const createAuthor = async (req, res) => {
     try {
         const newAuthor = await Author.create(req.body);
@@ -226,6 +280,7 @@ const deleteAuthor = async (req, res) => {
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 };
 
+// --- QUẢN LÝ THỂ LOẠI ---
 const createGenre = async (req, res) => {
     try {
         const newGenre = await Genre.create(req.body);
@@ -251,11 +306,10 @@ const deleteGenre = async (req, res) => {
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 };
 
+// --- NHẬP KHO ---
 const importStock = async (req, res) => {
     try {
         const { book_id, quantity } = req.body;
-        if (!book_id || !quantity || quantity <= 0) return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ!' });
-
         const book = await Book.findByPk(book_id);
         if (!book) return res.status(404).json({ success: false, message: 'Sách không tồn tại' });
 
@@ -269,45 +323,44 @@ const importStock = async (req, res) => {
     }
 };
 
-// [GET] /api/books/flash-sale - Lấy sách Flash Sale
+// [GET] /api/books/flash-sale
 const getFlashSaleBooks = async (req, res) => {
     try {
         const books = await Book.findAll({
             limit: 10,
             order: [['book_id', 'DESC']], 
-            include: [
-                { model: BookImage, attributes: ['book_image_url'] }
-            ]
+            include: [{ model: BookImage, attributes: ['book_image_url'] }]
         });
 
         const flashSaleData = books.map(book => {
             const originalPrice = parseFloat(book.price);
-            const discountPercent = Math.floor(Math.random() * (50 - 10 + 1)) + 10; 
+            const discountPercent = Math.floor(Math.random() * 41) + 10; 
             const salePrice = originalPrice * (1 - discountPercent / 100);
             
-            const totalStock = book.stock_quantity > 0 ? book.stock_quantity : 50;
-            const sold = Math.floor(Math.random() * (totalStock - 1));
-
-            // SỬA LỖI Ở ĐÂY: Dùng BookImages thay vì BOOK_IMAGEs cho khớp với model mới
             let imageUrl = 'https://placehold.co/400x600?text=No+Image';
-            if (book.BookImages && book.BookImages.length > 0) {
-                 imageUrl = book.BookImages[0].book_image_url;
+            // Kiểm tra alias BookImages hoặc book_images
+            const images = book.BookImages || book.book_images;
+            if (images && images.length > 0) {
+                 imageUrl = images[0].book_image_url;
             }
 
             return {
                 id: book.book_id,
+                
+                // 👇 THÊM DÒNG NÀY ĐỂ FRONTEND CÓ SLUG MÀ DÙNG
+                slug: book.book_slug, 
+                
                 title: book.book_title,
                 price: Math.round(salePrice / 1000) * 1000, 
                 oldPrice: originalPrice,
                 discount: discountPercent,
                 image: imageUrl,
-                sold: sold,
-                totalStock: totalStock
+                sold: Math.floor(Math.random() * 50),
+                totalStock: book.stock_quantity || 50
             };
         });
 
         res.status(200).json({ success: true, data: flashSaleData });
-
     } catch (error) {
         console.error("Flash Sale Error:", error);
         res.status(500).json({ success: false, message: "Lỗi Server" });

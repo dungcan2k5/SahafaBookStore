@@ -16,12 +16,24 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
           
           <div class="md:col-span-5 lg:col-span-4">
-            <div class="border rounded-lg overflow-hidden relative group p-2 mb-4">
+            <div class="border rounded-lg overflow-hidden relative group p-2 mb-4 bg-white">
               <img 
-                :src="currentImage || 'https://placehold.co/400x600?text=No+Image'" 
-                class="w-full h-auto object-contain max-h-[400px]" 
+                :src="selectedImage || 'https://placehold.co/400x600?text=No+Image'" 
+                class="w-full h-auto object-contain max-h-[400px] mx-auto transition-opacity duration-300" 
                 :alt="book.book_title" 
               />
+            </div>
+
+            <div v-if="book.BookImages?.length > 0" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div 
+                    v-for="(img, index) in book.BookImages" 
+                    :key="index"
+                    @click="selectedImage = img.book_image_url"
+                    class="w-20 h-20 flex-shrink-0 border-2 rounded-md cursor-pointer overflow-hidden transition-all hover:opacity-100"
+                    :class="selectedImage === img.book_image_url ? 'border-[#C92127] opacity-100' : 'border-transparent opacity-60 hover:border-gray-300'"
+                >
+                    <img :src="img.book_image_url" class="w-full h-full object-cover" :alt="`Ảnh ${index + 1}`">
+                </div>
             </div>
           </div>
 
@@ -106,38 +118,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // 👉 Thêm useRouter
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
-import axios from 'axios';
+import { bookService } from '@/services/bookService'; // ✅ Dùng service thay vì axios trực tiếp
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 const route = useRoute();
-const router = useRouter(); // 👉 Khởi tạo Router
+const router = useRouter();
 const cartStore = useCartStore();
 
 const quantity = ref(1);
 const book = ref(null);
 const isLoading = ref(false);
+const selectedImage = ref(null);
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-const currentImage = computed(() => {
-    if (book.value?.BookImages?.length > 0) {
-        return book.value.BookImages[0].book_image_url;
-    }
-    return null;
-});
-
-const fetchBookDetail = async (id) => {
-  if (!id) return;
+const fetchBookDetail = async (slug) => { // ✅ Nhận vào slug thay vì id
+  if (!slug) return;
   isLoading.value = true;
   book.value = null;
+  selectedImage.value = null;
 
   try {
-    const response = await axios.get(`http://localhost:3000/api/books/${id}`);
-    if (response.data.success) {
-       book.value = response.data.data;
+    // Gọi API qua service (Service đã hỗ trợ gọi theo slug)
+    const data = await bookService.getBookById(slug);
+    
+    if (data) {
+       book.value = data;
+       // Xử lý ảnh
+       if (book.value.BookImages && book.value.BookImages.length > 0) {
+           selectedImage.value = book.value.BookImages[0].book_image_url;
+       } else if (book.value.image) {
+           selectedImage.value = book.value.image;
+       }
     }
   } catch (error) {
     console.error("Lỗi tải sách:", error);
@@ -147,24 +162,26 @@ const fetchBookDetail = async (id) => {
 };
 
 onMounted(() => {
-  const idFromUrl = route.params.id;
-  fetchBookDetail(idFromUrl);
+  // 🔥 Lấy slug từ URL (do router đã đổi thành :slug)
+  const slugFromUrl = route.params.slug;
+  fetchBookDetail(slugFromUrl);
 });
 
-watch(() => route.params.id, (newId) => {
+// Watch slug thay đổi (khi click sách khác ở phần gợi ý)
+watch(() => route.params.slug, (newSlug) => {
     quantity.value = 1;
-    fetchBookDetail(newId);
+    fetchBookDetail(newSlug);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// Hàm chuẩn bị dữ liệu sản phẩm
+// Hàm chuẩn bị dữ liệu sản phẩm cho giỏ hàng
 const getProductData = () => {
     if (!book.value) return null;
     return {
         id: book.value.book_id,
         title: book.value.book_title,
         price: book.value.price,
-        image: currentImage.value // Lấy luôn ảnh để hiện trong giỏ cho đẹp
+        image: selectedImage.value || null 
     };
 };
 
@@ -173,22 +190,17 @@ const handleAddToCart = async () => {
   if (product) {
     const success = await cartStore.addToCart(product, quantity.value);
     if (success) {
-       // Có thể thêm Toast thông báo "Đã thêm vào giỏ" nếu muốn
        console.log("Đã thêm vào giỏ hàng");
     }
   }
 };
 
-// 👉 HÀM XỬ LÝ MUA NGAY
 const handleBuyNow = async () => {
   const product = getProductData();
   if (product) {
-    // 1. Thêm vào giỏ hàng trước
     await cartStore.addToCart(product, quantity.value);
-    
-    // 2. Chuyển hướng ngay lập tức đến trang Thanh toán
-    // (Bỏ qua bước xem giỏ hàng)
     router.push('/checkout');
   }
 };
 </script>
+

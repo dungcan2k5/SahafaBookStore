@@ -32,9 +32,12 @@ const routes = [
   { path: '/checkout', name: 'Checkout', component: CheckoutPage },
   { path: '/trending', name: 'Trending', component: TrendingPage },
   { path: '/suggestions', name: 'Suggestions', component: SuggestionsPage },
-   // trang danh sách sách với tìm kiếm và lọc
+   
   { path: '/books', name: 'BooksListing', component: BooksListing },
-  { path: '/books/:id', name: 'BookDetail', component: BookDetail },
+  
+  // 🔥 SỬA QUAN TRỌNG: Đổi :id thành :slug
+  { path: '/books/:slug', name: 'BookDetail', component: BookDetail },
+  
   { path: '/gift-card', name: 'GiftCard', component: GiftCardPage },
   { path: '/vouchers', name: 'VoucherPage', component: VoucherPage },
   { path: '/attendance', name: 'Attendance', component: AttendancePage },
@@ -44,32 +47,21 @@ const routes = [
   { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage },
   { path: '/manga', name: 'Manga', component: MangaPage },
   
-  // Trang chính sách
   { path: '/policy/:slug', name: 'policy', component: Term },
-
-
-   
-  
-
-  // Trang danh mục
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
   
-  // Các trang Lazy Load (About, Store, Blog...)
   { path: '/about', name: 'About', component: () => import('@/pages/user/About.vue') },
   { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
   { path: '/user/profile', name: 'UserProfile', component: () => import('@/pages/user/UserProfile.vue')},
 
   // --- BLOG & NEWS ROUTES ---
   { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
-  // Route cũ của bạn
   { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
-  // Route MỚI cho nút "Xem bài viết" từ Admin (Tái sử dụng PostDetail.vue)
   { 
     path: '/news/:slug', 
     name: 'news-detail', 
     component: () => import('@/pages/user/PostDetail.vue') 
   },
-
 
   // ================== ADMIN ROUTES (PRIVATE) ==================
   {
@@ -77,54 +69,24 @@ const routes = [
     component: AdminLayout,
     meta: { requiresAuth: true, role: ['admin', 'employee'] },
     children: [
-      {
-        path: 'dashboard',
-        name: 'AdminDashboard',
-        component: () => import('@/pages/admin/DashboardPage.vue') 
-      },
-      { 
-        path: 'authors', 
-        name: 'AdminAuthors',
-        component: () => import('@/pages/admin/AuthorManager.vue') 
-      },
-      { 
-        path: 'books', 
-        name: 'AdminBooks',
-        component: () => import('@/pages/admin/BookManager.vue') 
-      },
-      { 
-        path: 'categories', 
-        name: 'AdminCategories',
-        component: () => import('@/pages/admin/CategoryManager.vue')
-      },
-      { 
-        path: 'inventory', 
-        name: 'AdminInventory',
-        component: () => import('@/pages/admin/InventoryManager.vue') 
-      },
-      { 
-        path: 'orders', 
-        name: 'AdminOrders',
-        component: () => import('@/pages/admin/OrderManager.vue') 
-      },
-      { 
-        path: 'vouchers', 
-        name: 'AdminVouchers',
-        component: () => import('@/pages/admin/VoucherManager.vue') 
-      },
-      {
-        path: 'payments',
-        name: 'admin-payments',
-        component: () => import('@/pages/admin/TransactionManager.vue'),
-        meta: { title: 'Quản lý Thanh toán' }
-      },
-      { 
-        path: 'posts',
-        name: 'AdminPosts',
-        component: () => import('@/pages/admin/PostManager.vue'),
-        meta: { title: 'Quản lý Bài viết' }
-      }
+      { path: 'dashboard', name: 'AdminDashboard', component: () => import('@/pages/admin/DashboardPage.vue') },
+      { path: 'authors', name: 'AdminAuthors', component: () => import('@/pages/admin/AuthorManager.vue') },
+      { path: 'books', name: 'AdminBooks', component: () => import('@/pages/admin/BookManager.vue') },
+      { path: 'categories', name: 'AdminCategories', component: () => import('@/pages/admin/CategoryManager.vue') },
+      { path: 'inventory', name: 'AdminInventory', component: () => import('@/pages/admin/InventoryManager.vue') },
+      { path: 'orders', name: 'AdminOrders', component: () => import('@/pages/admin/OrderManager.vue') },
+      { path: 'vouchers', name: 'AdminVouchers', component: () => import('@/pages/admin/VoucherManager.vue') },
+      { path: 'payments', name: 'admin-payments', component: () => import('@/pages/admin/TransactionManager.vue'), meta: { title: 'Quản lý Thanh toán' } },
+      { path: 'posts', name: 'AdminPosts', component: () => import('@/pages/admin/PostManager.vue'), meta: { title: 'Quản lý Bài viết' } },
+      { path: 'users', name: 'AdminUsers', component: () => import('@/pages/admin/UserManager.vue'), meta: { title: 'Quản lý Người dùng' } }
     ]
+  },
+
+  // ================== 404 NOT FOUND ==================
+  { 
+    path: '/:pathMatch(.*)*', 
+    name: 'NotFound', 
+    component: () => import('@/pages/NotFound.vue') 
   }
 ]
 
@@ -141,13 +103,8 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const user = authStore.user;
 
-  // Check quyền truy cập Admin
   if (to.meta.requiresAuth) {
-    if (!user) {
-      // Chưa đăng nhập thì về trang chủ (hoặc mở modal login)
-      return next({ path: '/' }); 
-    }
-    // Check role (admin/employee)
+    if (!user) return next({ path: '/' }); 
     if (to.meta.role && !to.meta.role.includes(user.role)) {
       alert('Bạn không có quyền truy cập trang này!');
       return next({ path: '/' });

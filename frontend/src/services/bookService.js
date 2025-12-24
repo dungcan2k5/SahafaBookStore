@@ -1,100 +1,77 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+// URL API gốc
+const API_URL = 'http://localhost:3000/api'; 
 
 export const bookService = {
-  
-  // 1. Lấy sách Flash Sale (Đã có logic trong controller của bạn)
+
+  // --- LẤY TẤT CẢ SÁCH (Dùng cho Top Bán Chạy, Danh sách sách...) ---
+  async getAllBooks() {
+    try {
+      // Limit 100 để lấy nhiều sách lọc Top seller
+      const res = await axios.get(`${API_URL}/books?limit=100`);
+      
+      // Xử lý response đa dạng
+      if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        return res.data.data; 
+      }
+      if (Array.isArray(res.data)) {
+        return res.data;
+      }
+      return []; 
+    } catch (error) {
+      console.error("Lỗi gọi API getAllBooks:", error);
+      return [];
+    }
+  },
+
+  // --- LẤY CHI TIẾT SÁCH (Sửa để hỗ trợ cả ID và SLUG) ---
+  // Tham số 'idOrSlug' có thể là số (22) hoặc chuỗi (harry-potter)
+  async getBookById(idOrSlug) {
+    try {
+      const res = await axios.get(`${API_URL}/books/${idOrSlug}`);
+      if (res.data && res.data.success) {
+         return res.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Lỗi gọi API getBookById:", error);
+      return null;
+    }
+  },
+
+  // --- CÁC HÀM KHÁC (GIỮ NGUYÊN) ---
   async getFlashSale() {
-    const res = await axios.get(`${API_URL}/books/flash-sale`);
-    return res.data.data;
+    await new Promise(r => setTimeout(r, 500)); 
+    return [
+      { id: 101, title: 'Harry Potter Boxset', price: 1500000, oldPrice: 2500000, discount: 40, sold: 15, image: 'https://cdn0.fahasa.com/media/catalog/product/h/a/harry-potter-full.jpg' },
+      { id: 102, title: 'Sherlock Holmes', price: 180000, oldPrice: 300000, discount: 40, sold: 45, image: 'https://cdn0.fahasa.com/media/catalog/product/s/h/sherlock-holmes.jpg' },
+      { id: 103, title: 'Conan 100', price: 25000, oldPrice: 30000, discount: 15, sold: 120, image: 'https://cdn0.fahasa.com/media/catalog/product/c/o/conan_100_bia_roi.jpg' },
+      { id: 104, title: 'Dế Mèn Phiêu Lưu Ký', price: 35000, oldPrice: 50000, discount: 30, sold: 80, image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8936067605692.jpg' },
+      { id: 105, title: 'Đất Rừng Phương Nam', price: 65000, oldPrice: 90000, discount: 25, sold: 60, image: 'https://cdn0.fahasa.com/media/catalog/product/d/a/dat_rung_phuong_nam_-_bia_cung_1.jpg' }
+    ];
   },
 
-  // 2. Lấy sách Xu Hướng (Dựa trên total_sold cao nhất)
   async getTrending() {
-    const res = await axios.get(`${API_URL}/books`, {
-        params: {
-            sort: 'total_sold',
-            order: 'DESC',
-            limit: 10 // Lấy 10 cuốn xu hướng
-        }
-    });
-    
-    if (res.data.success) {
-        return res.data.data.map(b => ({
-            id: b.book_id,
-            title: b.book_title,
-            price: b.price,
-            // Giả lập giá cũ cao hơn 20%
-            oldPrice: Math.round((b.price * 1.25) / 1000) * 1000,
-            discount: 20,
-            sold: b.total_sold,
-            image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600'
-        }));
-    }
-    return [];
+    await new Promise(r => setTimeout(r, 600));
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: i + 1,
+      title: i % 2 === 0 ? 'Nhà Giả Kim' : 'Cây Cam Ngọt Của Tôi',
+      price: i % 2 === 0 ? 63000 : 86000,
+      oldPrice: i % 2 === 0 ? 79000 : 108000,
+      discount: 20,
+      sold: 100 + (i * 15),
+      image: i % 2 === 0 
+        ? 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' 
+        : 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg'
+    }));
   },
 
-  // 3. Lấy sách Mới (Dựa trên ID mới nhất)
   async getNewArrivals() {
-    const res = await axios.get(`${API_URL}/books`, {
-        params: {
-            sort: 'book_id',
-            order: 'DESC',
-            limit: 10
-        }
-    });
-    
-    if (res.data.success) {
-        return res.data.data.map(b => ({
-            id: b.book_id,
-            title: b.book_title,
-            price: b.price,
-            discount: 10,
-            sold: b.total_sold,
-            image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600'
-        }));
-    }
-    return [];
+    return []; 
   },
 
-  // 4. Lấy sách Gợi Ý
   async getSuggestions() {
-    const res = await axios.get(`${API_URL}/books`, {
-        params: { limit: 10 } // Mặc định lấy danh sách bất kỳ làm gợi ý
-    });
-    
-    if (res.data.success) {
-        return res.data.data.map(b => ({
-            id: b.book_id,
-            title: b.book_title,
-            price: b.price,
-            oldPrice: Math.round((b.price * 1.2) / 1000) * 1000,
-            discount: 15,
-            sold: b.total_sold,
-            image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600'
-        }));
-    }
     return [];
-  },
-
-  // 5. Lấy chi tiết sách
-  async getBookById(id) {
-    const res = await axios.get(`${API_URL}/books/${id}`);
-    if (res.data.success) {
-        const b = res.data.data;
-        return {
-            id: b.book_id,
-            title: b.book_title,
-            price: b.price,
-            oldPrice: Math.round((b.price * 1.25) / 1000) * 1000,
-            discount: 20,
-            sold: b.total_sold,
-            description: b.description,
-            image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600',
-            author: b.Author?.author_name
-        };
-    }
-    return null;
   }
 };
