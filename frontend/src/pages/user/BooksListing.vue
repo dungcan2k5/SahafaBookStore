@@ -37,8 +37,11 @@
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
-            <div class="absolute top-0 right-0 bg-[#C92127] text-white text-xs font-bold px-2 py-1 rounded-bl-lg">
-               Sách thật
+            <div 
+              v-if="book.discount && book.discount > 0" 
+              class="absolute top-0 right-0 bg-[#C92127] text-white text-xs font-bold px-2 py-1 rounded-bl-lg shadow-sm"
+            >
+              -{{ book.discount }}%
             </div>
           </div>
 
