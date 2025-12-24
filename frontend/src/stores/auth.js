@@ -63,6 +63,12 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('token');
         window.location.href = '/'; // Về trang chủ
     };
+    const setUser = (userData) => {
+        user.value = userData; // Cập nhật state
+        localStorage.setItem('user', JSON.stringify(userData)); // Cập nhật LocalStorage
+    };
+    // ---------------------------------------
 
-    return { user, token, isLoading, error, login, register, logout };
+    // 3. Return (Nhớ phải return setUser ra ngoài mới dùng được)
+    return { user, token, isLoading, error, login, register, logout,setUser };
 });

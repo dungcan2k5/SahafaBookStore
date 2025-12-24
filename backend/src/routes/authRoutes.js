@@ -91,32 +91,30 @@ router.post('/login', authController.login);
  *                   type: string
  *       401:
  *         description: Chưa đăng nhập
+ *
+ *   put:
+ *     summary: Cập nhật thông tin người dùng
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               avatar_url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
  */
 router.get('/me', verifyToken, authController.getProfile);
-/**
- * @swagger
- * /api/auth/me:
- * put:
- * summary: Cập nhật thông tin người dùng
- * tags: [Auth]
- * security:
- * - bearerAuth: []
- * requestBody:
- * required: true
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * full_name:
- * type: string
- * phone:
- * type: string
- * avatar_url:
- * type: string
- * responses:
- * 200:
- * description: Cập nhật thành công
- */
 router.put('/me', verifyToken, authController.updateProfile);
+
 module.exports = router;

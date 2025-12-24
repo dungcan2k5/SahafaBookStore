@@ -142,55 +142,58 @@ const login = async (req, res) => {
 // [GET] /api/auth/me (Lấy thông tin profile)
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findByPk(req.user_id, {
-            attributes: { exclude: ['password'] } // Không trả về pass
-        });
-        res.json({ success: true, data: user });
+        const user = await User.findByPk(req.user_id, { attributes: { exclude: ['password'] } });
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+        res.json({ success: true, data: { ...user.toJSON(), name: user.full_name } });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };
 
-// [PUT] /api/auth/me (Cập nhật thông tin profile)
 const updateProfile = async (req, res) => {
     try {
         const { full_name, phone, avatar_url } = req.body;
-        const userId = req.user_id; // Lấy từ middleware verifyToken
-
-        // Validate cơ bản (Có thể dùng Joi nếu muốn chặt chẽ hơn)
-        if (!full_name) {
-            return res.status(400).json({ success: false, message: 'Tên hiển thị không được để trống' });
-        }
+        const userId = req.user_id;
 
         const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
-        }
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
         // Cập nhật thông tin
-        user.full_name = full_name;
-        user.phone = phone || user.phone;
-        user.avatar_url = avatar_url || user.avatar_url;
+        if (full_name && full_name.trim() !== '') user.full_name = full_name;
+        if (phone !== undefined) user.phone = phone;
+        if (avatar_url !== undefined) user.avatar_url = avatar_url;
 
-        await user.save();
+        await user.save(); // <--- Lỗi xảy ra ở dòng này nếu trùng phone
 
         res.json({ 
             success: true, 
-            message: 'Cập nhật thông tin thành công',
+            message: 'Cập nhật thành công',
             data: {
-                user_id: user.user_id,
+                id: user.user_id,
                 full_name: user.full_name,
+                name: user.full_name,
                 email: user.email,
                 phone: user.phone,
                 role: user.role,
                 avatar_url: user.avatar_url
             }
         });
-
     } catch (error) {
-        console.error("Update Profile Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        console.error("Update Error:", error);
+
+        // --- BẮT LỖI TRÙNG SỐ ĐIỆN THOẠI Ở ĐÂY ---
+        if (error.name === 'SequelizeUniqueConstraintError') {
+             // Kiểm tra xem trường nào bị trùng
+             const field = error.errors[0]?.path;
+             if (field === 'phone') {
+                 return res.status(400).json({ success: false, message: 'Số điện thoại này đã được sử dụng bởi người khác' });
+             }
+             if (field === 'email') {
+                 return res.status(400).json({ success: false, message: 'Email này đã được sử dụng' });
+             }
+        }
+        
+        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
     }
 };
-
 module.exports = { register, login, getProfile, updateProfile };
