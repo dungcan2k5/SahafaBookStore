@@ -12,7 +12,7 @@ const { Op } = require('sequelize');
 // [GET] /api/books - Lấy danh sách sách
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category } = req.query; 
+        const { search, category, sort, order, limit    } = req.query; 
         
         let whereClause = {};
         
@@ -47,13 +47,17 @@ const getAllBooks = async (req, res) => {
 
         const books = await Book.findAll({
             where: whereClause,
-            order: [['book_id', 'ASC']], 
+            // 👇 LOGIC QUAN TRỌNG: Cho phép sắp xếp theo cột (ví dụ: total_sold)
+            order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
+            // 👇 GIỚI HẠN SỐ LƯỢNG: Chỉ lấy số lượng cần thiết (ví dụ: 4)
+            limit: limit ? parseInt(limit) : undefined,
             include: [
                 { model: Author, attributes: ['author_name'] },
                 { model: Genre, attributes: ['genre_name'] },
                 { model: BookImage, attributes: ['book_image_url'] }
             ]
         });
+
 
         res.status(200).json({ success: true, data: books });
     } catch (error) {

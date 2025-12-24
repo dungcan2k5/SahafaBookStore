@@ -104,6 +104,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 const days = [
   { label: 'Thứ 2', category: 'Văn Học' },
@@ -115,36 +116,34 @@ const days = [
   { label: 'Chủ Nhật', category: 'Ngoại Văn' },
 ];
 
-const activeDay = ref(0);
 const products = ref([]);
+const loading = ref(true);
 
-const generateBooks = () => {
-  const list = [];
-  for (let i = 1; i <= 10; i++) {
-    list.push({
-      id: i,
-      title: `Sách Flash Sale ${days[activeDay.value].category} - Quyển số ${i}`,
-      price: 50000 + Math.floor(Math.random() * 200000),
-      oldPrice: 300000,
-      discount: 40 + Math.floor(Math.random() * 10),
-      image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg',
-      sold: 10 + Math.floor(Math.random() * 100),
-      soldPercentage: 30 + Math.floor(Math.random() * 60)
-    });
+const fetchFlashSale = async () => {
+  try {
+    loading.value = true;
+    const data = await bookService.getFlashSale();
+    // Map lại field nếu cần (ví dụ: soldPercentage)
+    products.value = data.map(b => ({
+      ...b,
+      soldPercentage: Math.round((b.sold / b.totalStock) * 100) || 0
+    }));
+  } catch (error) {
+    console.error("Lỗi:", error);
+  } finally {
+    loading.value = false;
   }
-  products.value = list;
 };
 
-watch(activeDay, () => {
-  generateBooks();
-});
+// watch(activeDay, () => {
+//   generateBooks();
+// });
 
 const countdown = ref({ h: '02', m: '45', s: '12' });
 let timer = null;
 
 onMounted(() => {
-  generateBooks();
-  
+  fetchFlashSale();
   let totalSeconds = 9999;
   timer = setInterval(() => {
     totalSeconds--;
@@ -158,7 +157,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+   fetchFlashSale();
   if (timer) clearInterval(timer);
+  
 });
 </script>
 
