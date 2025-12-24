@@ -86,29 +86,29 @@ const createOrder = async (req, res) => {
       voucher_id: voucher ? voucher.voucher_id : null,
       payment_status: 'unpaid',
       order_status: 'pending'
-      // ⚠️ Không set payment_method vào Order vì DB bạn đang thiếu cột đó (đã từng lỗi SQLITE)
     }, { transaction: t });
 
-    // ✅ 6) Tạo Transaction PENDING nếu là “chuyển khoản” (normalize để không lệch chuỗi)
+    // ✅ 6) [ĐÃ SỬA] Tạo Transaction cho cả BANK và COD
     const pm = normalizePaymentMethod(payment_method);
 
-    const isBankTransfer =
-      pm === 'bank_transfer' ||
-      pm === 'bank-transfer' ||
-      pm === 'transfer' ||
-      pm === 'sepay' ||
-      pm === 'bank' ||
-      pm === 'qr' ||
-      pm === 'vnpay_bank' ||
-      pm === 'online';
+    // Các từ khóa nhận diện chuyển khoản
+    const isBankTransfer = [
+      'bank_transfer', 'bank-transfer', 'transfer', 'sepay', 
+      'bank', 'qr', 'vnpay_bank', 'online'
+    ].includes(pm);
 
-    if (isBankTransfer) {
+    // Các từ khóa nhận diện tiền mặt (COD)
+    const isCOD = ['cod', 'cash', 'tien_mat', 'thanh_toan_khi_nhan_hang'].includes(pm);
+
+    // Logic: Dù là Bank hay COD thì đều TẠO GIAO DỊCH (Trạng thái Pending) để Admin quản lý
+    if (isBankTransfer || isCOD) {
       await Transaction.create({
         order_id: newOrder.order_id,
         user_id: user_id,
         amount: finalAmount,
-        payment_method: 'bank_transfer',
-        status: 'pending'
+        // Lưu rõ phương thức là 'COD' hoặc 'bank_transfer'
+        payment_method: isCOD ? 'COD' : 'bank_transfer', 
+        status: 'pending' 
       }, { transaction: t });
     }
 
@@ -186,8 +186,6 @@ const getMyOrders = async (req, res) => {
 };
 
 // [GET] /api/orders/admin
-// src/controllers/orderController.js
-
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
@@ -196,9 +194,7 @@ const getAllOrders = async (req, res) => {
         { model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] },
         { model: models.User, attributes: ['full_name', 'email', 'phone'] },
         { model: Address, attributes: ['address_detail', 'recipient_name', 'phone'] },
-        
-        // --- THÊM DÒNG NÀY ---
-        // Để lấy danh sách các giao dịch gắn với đơn hàng này
+        // Lấy kèm Transaction để hiển thị mã GD
         { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
       ]
     });
