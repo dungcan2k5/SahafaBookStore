@@ -9,60 +9,29 @@ if (!db.models) {
 const { Book, Author, Genre, BookImage } = db.models;
 const { Op } = require('sequelize');
 
-// [GET] /api/books - Lấy danh sách sách
+// [GET] /api/books
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category, sort, order, limit    } = req.query; 
-        
-        let whereClause = {};
-        
-        // Cấu hình include để lấy dữ liệu liên quan
-        let includeClause = [
-            { model: Author, attributes: ['author_name'] }, // Bỏ alias 'as: Author' để tránh lỗi nếu chưa config
-            { model: BookImage, attributes: ['book_image_url'] },
-            // 👇 SỬA: Lấy thông tin Thể loại (Genre) thay vì Category
-            { 
-                model: Genre, 
-                attributes: ['genre_name', 'genre_slug'] 
-            } 
-        ];
-
-        // 1. Logic tìm kiếm (Search)
-        if (search) {
-             whereClause = {
-                [Op.or]: [
-                    // Tìm theo tên sách
-                    { book_title: { [Op.like]: `%${search}%` } },
-                    // Tìm theo tên tác giả (Query trên bảng liên kết Author)
-                    { '$Author.author_name$': { [Op.like]: `%${search}%` } }
-                ]
-            };
-        }
-
-        // 2. Logic lọc theo Danh mục (Thực chất là tìm theo Genre Slug)
-        if (category) {
-            // Khi frontend gọi /api/books?category=van-hoc -> Backend tìm genre_slug = 'van-hoc'
-            whereClause['$Genre.genre_slug$'] = category;
-        }
+        const { sort, order, limit } = req.query; 
 
         const books = await Book.findAll({
-            where: whereClause,
-            // 👇 LOGIC QUAN TRỌNG: Cho phép sắp xếp theo cột (ví dụ: total_sold)
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
-            // 👇 GIỚI HẠN SỐ LƯỢNG: Chỉ lấy số lượng cần thiết (ví dụ: 4)
             limit: limit ? parseInt(limit) : undefined,
-            include: [
-                { model: Author, attributes: ['author_name'] },
-                { model: Genre, attributes: ['genre_name'] },
-                { model: BookImage, attributes: ['book_image_url'] }
-            ]
+            include: [{ model: BookImage, attributes: ['book_image_url'] }]
         });
 
+        // Trả về đúng tên biến mà các file .vue đang dùng
+        const data = books.map(b => ({
+            id: b.book_id,
+            title: b.book_title,
+            price: b.price,
+            image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600',
+            sold: b.total_sold || 0
+        }));
 
-        res.status(200).json({ success: true, data: books });
+        res.status(200).json({ success: true, data });
     } catch (error) {
-        console.error("Get All Books Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        res.status(500).json({ success: false });
     }
 };
 
@@ -276,7 +245,7 @@ const getFlashSaleBooks = async (req, res) => {
             limit: 10,
             order: [['book_id', 'DESC']], 
             include: [
-                { model: BookImage, attributes: ['book_image_url'] }
+                { model: BookImages, attributes: ['book_image_url'] }
             ]
         });
 

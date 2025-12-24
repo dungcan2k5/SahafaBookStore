@@ -60,37 +60,34 @@
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div 
-          v-for="(book, index) in bestSellers" 
-          :key="index" 
-          @click="$router.push(`/books/${book.id}`)" 
-          class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
-        >
-          <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
-            <img 
-              :src="book.image" 
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-              alt="Book Cover"
-            />
-            <div class="absolute top-2 left-2 w-8 h-8 flex items-center justify-center bg-yellow-400 text-white font-bold rounded-full shadow-md z-10 border-2 border-white">
-                #{{ index + 1 }}
-            </div>
-          </div>
+  <div 
+    v-for="(book, index) in bestSellers" 
+    :key="index" 
+    @click="$router.push(`/books/${book.id}`)" 
+    class="..."
+  >
+    <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
+      <img 
+        :src="book.image" 
+        class="..." 
+        alt="Book Cover"
+      />
+    </div>
 
-          <div class="flex-1 flex flex-col">
-              <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
-                {{ book.title }}
-              </h4>
-              <div class="mt-auto flex items-end justify-between">
-                  <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
-                  <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.originalPrice) }}</div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
-                  Đã bán {{ book.sold }}k
-              </div>
-          </div>
+    <div class="flex-1 flex flex-col">
+        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
+          {{ book.title }}
+        </h4>
+        <div class="mt-auto flex items-end justify-between">
+            <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
+            <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.oldPrice) }}</div>
         </div>
-      </div>
+        <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
+            Đã bán {{ book.sold }}
+        </div>
+    </div>
+  </div>
+</div>
     </div>
 
     <CategoryNav />
@@ -125,101 +122,64 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
+// Xóa các dòng import axios dư thừa, chỉ dùng bookService
+import { bookService } from '@/services/bookService'; 
+
+// Import Components
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import FlashSale from '@/components/user/FlashSale.vue';
 
-// --- IMPORT ẢNH BANNER ---
+// Import Assets (Banner)
 import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
-// ✅ ĐÃ CẬP NHẬT: sideBanner2 chính là promo1.jpg (ảnh Blog)
 import sideBanner2 from '@/assets/banners/promo1.jpg'; 
 
 // --- Helper Format Tiền ---
-const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+const formatCurrency = (val) => {
+  if (!val || isNaN(val)) return "0 ₫";
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+};
 
-// Banner Slider Logic
+// Slider Logic
 const currentSlide = ref(0);
 const bannerImages = [banner1, banner2, banner3];
-
-// --- BEST SELLER ---
-const bestSellers = ref([]); // Khởi tạo mảng rỗng
-
-// 👇HÀM KẾT NỐI DỮ LIỆU THẬT
-const fetchBestSellers = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/api/books', {
-      params: {
-        sort: 'total_sold', // Sắp xếp theo số lượng bán 
-        order: 'DESC',      // Cao nhất lên đầu
-        limit: 4            // Chỉ lấy đúng 4 quyển theo yêu cầu
-      }
-    });
-
-    if (response.data.success) {
-      // Chuyển đổi dữ liệu từ API sang format của giao diện
-      bestSellers.value = response.data.data.map(b => ({
-        id: b.book_id,
-        title: b.book_title,
-        price: b.price,
-        // Giả lập giá gốc cao hơn 20% vì database chưa có cột old_price
-        originalPrice: Math.round((b.price * 1.2) / 1000) * 1000, 
-        sold: (b.total_sold / 1000).toFixed(1), // Hiển thị đơn vị 'k'
-        image: b.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600'
-      }));
-    }
-  } catch (error) {
-    console.error("Lỗi khi tải Best Sellers:", error);
-  }
-};
-
 let slideInterval;
 
-const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % bannerImages.length;
-};
+const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
+const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
 
-const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length;
-};
-
-const startAutoSlide = () => {
-  slideInterval = setInterval(nextSlide, 3000);
-};
-
-// Data Fetching Logic
+// --- Data Fetching Logic ---
+const bestSellers = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 
-const fetchAllData = async () => {
+const fetchAllHomeData = async () => {
   try {
-    const [trend, news] = await Promise.all([
+    // Gọi song song 3 API
+    const [best, trend, news] = await Promise.all([
+      bookService.getBestSellers(4),
       bookService.getTrending(),
       bookService.getNewArrivals()
     ]);
 
-    trendingBooks.value = trend;
-    newBooks.value = news;
+    // Gán dữ liệu (Vì Backend của bạn đã trả về id, title, image...)
+    bestSellers.value = best || [];
+    trendingBooks.value = trend || [];
+    newBooks.value = news || [];
     
+    console.log("Dữ liệu về:", bestSellers.value); // Để kiểm tra trong F12 Console
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
+    console.error("Lỗi:", error);
   }
 };
 
 onMounted(() => {
-  startAutoSlide();
-  fetchAllData();
-  fetchBestSellers();
-});
-
-onUnmounted(() => {
-  if (slideInterval) clearInterval(slideInterval);
+  fetchAllHomeData();
 });
 </script>

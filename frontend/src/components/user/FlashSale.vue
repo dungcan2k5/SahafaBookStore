@@ -80,12 +80,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
+// Import bookService thay vì api trực tiếp để code sạch hơn
+import { bookService } from '../../services/bookService'; 
 
 const router = useRouter();
 
-// --- Logic Đồng hồ ---
+// --- Logic Đồng hồ (Giữ nguyên) ---
 const hours = ref('02');
 const minutes = ref('45');
 const seconds = ref('00');
@@ -96,23 +97,23 @@ const startTimer = () => {
   timerInterval = setInterval(() => {
     timeInSecs--;
     if (timeInSecs < 0) { clearInterval(timerInterval); return; }
-    
     hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
     minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
     seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
   }, 1000);
 };
 
-// --- Logic API ---
+// --- Logic API ĐÃ SỬA ---
 const flashSaleBooks = ref([]); 
 const isLoading = ref(false);
 
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get('http://localhost:3000/api/books/flash-sale');
-        if (response.data.success) {
-            flashSaleBooks.value = response.data.data;
+        // Dùng service để lấy dữ liệu đã được Backend chuẩn hóa
+        const data = await bookService.getFlashSale();
+        if (data) {
+            flashSaleBooks.value = data;
         }
     } catch (error) {
         console.error("Lỗi Flash Sale:", error);
@@ -122,10 +123,7 @@ const fetchFlashSaleBooks = async () => {
 };
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
-
-const goToBookDetail = (id) => {
-  router.push(`/books/${id}`);
-};
+const goToBookDetail = (id) => router.push(`/books/${id}`);
 
 onMounted(() => {
   startTimer();
