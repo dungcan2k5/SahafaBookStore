@@ -19,12 +19,12 @@ import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
 import MangaPage from '@/pages/event/MangaPage.vue'
 import Term from '@/pages/user/Term.vue'
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
-import UserProfile from '@/pages/user/UserProfile.vue'
+
 // --- ADMIN LAYOUT ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
-import Login from '../pages/user/Login.vue'
+
 const routes = [
-  // ================== USER ROUTES ==================
+  // ================== USER ROUTES (PUBLIC) ==================
   { path: '/', name: 'Home', component: Home },
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
   { path: '/cart', name: 'Cart', component: Cart },
@@ -40,14 +40,30 @@ const routes = [
   { path: '/second-hand', name: 'SecondHand', component: SecondHandPage },
   { path: '/foreign-books', name: 'ForeignBooks', component: ForeignBooksPage },
   { path: '/manga', name: 'Manga', component: MangaPage },
+  
+  // Trang chính sách
   { path: '/policy/:slug', name: 'policy', component: Term },
+  
+  // Trang danh mục
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
+  
+  // Các trang Lazy Load (About, Store, Blog...)
   { path: '/about', name: 'About', component: () => import('@/pages/user/About.vue') },
   { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
-  { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
-  { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
   { path: '/user/profile', name: 'UserProfile', component: () => import('@/pages/user/UserProfile.vue')},
-  // ================== ADMIN ROUTES ==================
+
+  // --- BLOG & NEWS ROUTES ---
+  { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
+  // Route cũ của bạn
+  { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
+  // Route MỚI cho nút "Xem bài viết" từ Admin (Tái sử dụng PostDetail.vue)
+  { 
+    path: '/news/:slug', 
+    name: 'news-detail', 
+    component: () => import('@/pages/user/PostDetail.vue') 
+  },
+
+  // ================== ADMIN ROUTES (PRIVATE) ==================
   {
     path: '/admin',
     component: AdminLayout,
@@ -99,7 +115,7 @@ const routes = [
         name: 'AdminPosts',
         component: () => import('@/pages/admin/PostManager.vue'),
         meta: { title: 'Quản lý Bài viết' }
-      },
+      }
     ]
   }
 ]
@@ -117,10 +133,13 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const user = authStore.user;
 
+  // Check quyền truy cập Admin
   if (to.meta.requiresAuth) {
     if (!user) {
+      // Chưa đăng nhập thì về trang chủ (hoặc mở modal login)
       return next({ path: '/' }); 
     }
+    // Check role (admin/employee)
     if (to.meta.role && !to.meta.role.includes(user.role)) {
       alert('Bạn không có quyền truy cập trang này!');
       return next({ path: '/' });

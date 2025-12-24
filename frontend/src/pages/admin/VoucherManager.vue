@@ -4,13 +4,31 @@
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <el-icon class="text-pink-600"><Ticket /></el-icon> Quản lý Mã Giảm Giá
       </h2>
-      <el-button type="primary" @click="openDialog()">
-        <el-icon class="mr-1"><Plus /></el-icon> Tạo Voucher Mới
-      </el-button>
+
+      <div class="flex items-center gap-2">
+        <el-input
+          v-model="searchText"
+          placeholder="Tìm theo mã Voucher..."
+          clearable
+          style="width: 250px"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+
+        <el-button @click="fetchVouchers" :loading="loading" icon="Refresh">
+          Làm mới
+        </el-button>
+
+        <el-button type="primary" @click="openDialog()">
+          <el-icon class="mr-1"><Plus /></el-icon> Tạo Voucher Mới
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="vouchers" style="width: 100%" v-loading="loading" stripe border>
+      <el-table :data="filteredVouchers" style="width: 100%" v-loading="loading" stripe border>
         
         <el-table-column label="Mã Voucher" width="180">
             <template #default="scope">
@@ -116,8 +134,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { Ticket, Plus, Edit, Delete, Calendar, Right } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, computed } from 'vue'; // Nhớ import computed
+import { Ticket, Plus, Edit, Delete, Calendar, Right, Search, Refresh } from '@element-plus/icons-vue'; // Nhớ import Search, Refresh
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
 
@@ -127,11 +145,12 @@ const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
 const dateRange = ref([]); 
+const searchText = ref(''); // Biến lưu từ khóa tìm kiếm
 
 const form = reactive({
     voucher_id: null,
     code: '',
-    discount_type: 'fixed', // MẶC ĐỊNH LÀ FIXED (GIẢM TIỀN MẶT)
+    discount_type: 'fixed', 
     value: 0,
     min_order_value: 0,
     usage_limit: 100,
@@ -159,16 +178,25 @@ const getStatusInfo = (voucher) => {
     return { text: 'Đang diễn ra', type: 'success' };
 };
 
+// --- LOGIC TÌM KIẾM ---
+const filteredVouchers = computed(() => {
+  const query = searchText.value.trim().toUpperCase(); // Chuyển về chữ hoa để so sánh
+  if (!query) return vouchers.value;
+
+  return vouchers.value.filter(v => 
+    v.code.includes(query) // Tìm theo Mã Voucher (Ví dụ: SALE50K)
+  );
+});
+
 // --- API ACTIONS ---
 const fetchVouchers = async () => {
   loading.value = true;
   try {
-    // Gọi API Admin (Phải đảm bảo backend đã có route này)
     const res = await api.get('/api/vouchers/admin');
     vouchers.value = res.data.data || [];
   } catch (error) { 
       console.error(error);
-      ElMessage.error('Lỗi tải danh sách voucher (Kiểm tra lại Backend Route /admin)!'); 
+      ElMessage.error('Lỗi tải danh sách voucher!'); 
   } finally { loading.value = false; }
 };
 
@@ -182,14 +210,12 @@ const openDialog = (item = null) => {
         dateRange.value = [new Date(item.start_at), new Date(item.end_at)];
     }
   } else {
-    // Reset form
     form.voucher_id = null;
     form.code = '';
-    form.discount_type = 'fixed'; // Luôn là fixed
+    form.discount_type = 'fixed'; 
     form.value = 10000;
     form.min_order_value = 50000;
     form.usage_limit = 100;
-    // Mặc định 7 ngày tới
     const now = new Date();
     const nextWeek = new Date();
     nextWeek.setDate(now.getDate() + 7);
@@ -205,7 +231,7 @@ const handleSave = async () => {
   
   form.start_at = dateRange.value[0];
   form.end_at = dateRange.value[1];
-  form.discount_type = 'fixed'; // Đảm bảo luôn gửi lên là fixed
+  form.discount_type = 'fixed'; 
 
   try {
     if (isEdit.value) {

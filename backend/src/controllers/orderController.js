@@ -1,490 +1,296 @@
-// const { models, sequelize } = require('../config/database');
-// const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher } = models;
-// const { BaseOrderPrice, VoucherDecorator, ShippingFeeDecorator } = require('../patterns/PricingDecorators');
-
-// // [POST] /api/orders - Tạo đơn hàng từ giỏ hàng
-// const createOrder = async (req, res) => {
-//     const t = await sequelize.transaction(); // <--- Bắt đầu giao dịch (Transaction)
-
-//     try {
-//         const { address_id, payment_method, voucher_code } = req.body;
-//         const user_id = req.user_id;
-
-//         // 1. Lấy giỏ hàng
-//         const cart = await Cart.findOne({
-//             where: { user_id },
-//             include: [{ model: CartItem, include: [Book] }]
-//         });
-
-//         if (!cart || cart.CartItems.length === 0) {
-//             await t.rollback();
-//             return res.status(400).json({ success: false, message: 'Giỏ hàng trống!' });
-//         }
-
-//         // 2. Check kho hàng (Validation logic)
-//         for (const item of cart.CartItems) {
-//             if (item.Book.stock_quantity < item.quantity) {
-//                 await t.rollback();
-//                 return res.status(400).json({ 
-//                     success: false, 
-//                     message: `Sách "${item.Book.book_title}" không đủ hàng (Còn: ${item.Book.stock_quantity})` 
-//                 });
-//             }
-//         }
-
-//         // 3. Áp dụng Decorator Pattern để tính giá
-//         // B1: Giá gốc
-//         let priceCalculator = new BaseOrderPrice(cart.CartItems);
-        
-//         // B2: Áp dụng Voucher (nếu có)
-//         let voucher = null;
-//         if (voucher_code) {
-//             voucher = await Voucher.findOne({ where: { code: voucher_code } });
-//             // Cần check hạn sử dụng voucher ở đây nếu kỹ
-//             if (voucher) {
-//                 priceCalculator = new VoucherDecorator(priceCalculator, voucher);
-//             }
-//         }
-
-//         // B3: Áp dụng Ship (Ví dụ mặc định 30k)
-//         priceCalculator = new ShippingFeeDecorator(priceCalculator, 30000);
-
-//         // Tính toán
-//         const finalAmount = await priceCalculator.calculate();
-        
-//         // Lấy totalAmount gốc để lưu DB (cho đẹp report)
-//         const baseCalc = new BaseOrderPrice(cart.CartItems);
-//         const totalAmount = await baseCalc.calculate();
-
-
-//         // 4. Tạo Order
-//         const newOrder = await Order.create({
-//             user_id,
-//             shipping_address: address_id, 
-//             total_amount: totalAmount,
-//             final_amount: finalAmount, 
-//             voucher_id: voucher ? voucher.voucher_id : null,
-//             payment_status: 'unpaid',
-//             order_status: 'pending'
-//         }, { transaction: t });
-
-//         // 5. Tạo OrderItem & Trừ kho
-//         for (const item of cart.CartItems) {
-//             await OrderItem.create({
-//                 order_id: newOrder.order_id,
-//                 book_id: item.book_id,
-//                 quantity: item.quantity,
-//                 unit_price: item.Book.price,
-//                 subtotal: item.quantity * item.Book.price
-//             }, { transaction: t });
-
-//             // Trừ stock sách
-//             await Book.decrement('stock_quantity', { 
-//                 by: item.quantity, 
-//                 where: { book_id: item.book_id },
-//                 transaction: t 
-//             });
-            
-//             // Tăng số lượng đã bán (total_sold)
-//              await Book.increment('total_sold', { 
-//                 by: item.quantity, 
-//                 where: { book_id: item.book_id },
-//                 transaction: t 
-//             });
-//         }
-
-//         // 6. Xóa sạch giỏ hàng
-//         await CartItem.destroy({
-//             where: { cart_id: cart.cart_id },
-//             transaction: t
-//         });
-
-//         // 7. Chốt đơn thành công
-//         await t.commit(); 
-
-//         // --- Payment Factory Usage ---
-//         let paymentInfo = null;
-//         try {
-//             const { PaymentFactory } = require('../patterns/PaymentFactory');
-//             // Lấy Factory tương ứng dựa trên payment_method client gửi lên
-//             const factory = PaymentFactory.getFactory(payment_method, models, sequelize);
-
-//             if (factory) {
-//                 const processor = factory.createProcessor();
-//                 paymentInfo = processor.generatePaymentInfo(newOrder);
-//             }
-//         } catch (err) {
-//             console.error("Payment Factory Error:", err);
-//         }
-//         // -----------------------------
-        
-//         res.status(201).json({ 
-//             success: true, 
-//             message: 'Đặt hàng thành công!', 
-//             order_id: newOrder.order_id,
-//             final_amount: finalAmount,
-//             payment_info: paymentInfo
-//         });
-
-//     } catch (error) {
-//         await t.rollback(); // Có lỗi bất kỳ đâu -> Hủy toàn bộ thao tác nãy giờ
-//         console.error("Order Error:", error);
-//         res.status(500).json({ success: false, message: 'Lỗi server khi tạo đơn hàng' });
-//     }
-// };
-
-// // [GET] /api/orders/my-orders - Lấy lịch sử đơn hàng của mình
-// const getMyOrders = async (req, res) => {
-//     try {
-//         const orders = await Order.findAll({
-//             where: { user_id: req.user_id },
-//             order: [['created_at', 'DESC']], // Mới nhất lên đầu
-//             include: [
-//                 { 
-//                     model: OrderItem,
-//                     include: [{ model: Book, attributes: ['book_title'] }] 
-//                 }
-//             ]
-//         });
-//         res.status(200).json({ success: true, data: orders });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: 'Lỗi server' });
-//     }
-// };
-
-// // [GET] /api/orders/admin - Lấy danh sách toàn bộ đơn hàng (Admin/Employee)
-// const getAllOrders = async (req, res) => {
-//     try {
-//         // Có thể thêm filter theo status, date... sau này
-//         const orders = await Order.findAll({
-//             order: [['created_at', 'DESC']],
-//             include: [
-//                 { 
-//                     model: OrderItem,
-//                     include: [{ model: Book, attributes: ['book_title'] }] 
-//                 },
-//                 {
-//                     model: models.User,
-//                     attributes: ['full_name', 'email', 'phone']
-//                 },
-//                 {
-//                     model: Address,
-//                     attributes: ['address_detail', 'recipient_name', 'phone']
-//                 }
-//             ]
-//         });
-//         res.status(200).json({ success: true, data: orders });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ success: false, message: 'Lỗi server' });
-//     }
-// };
-
-// // [PUT] /api/orders/admin/:id - Cập nhật trạng thái đơn hàng
-// const updateOrderStatus = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { order_status, payment_status } = req.body;
-
-//         const order = await Order.findByPk(id);
-//         if (!order) {
-//             return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
-//         }
-
-//         const updateData = {};
-//         if (order_status) updateData.order_status = order_status;
-//         if (payment_status) updateData.payment_status = payment_status;
-
-//         await order.update(updateData);
-
-//         res.status(200).json({ success: true, message: 'Cập nhật trạng thái đơn hàng thành công' });
-//     } catch (error) {
-//         res.status(500).json({ success: false, message: 'Lỗi server' });
-//     }
-// };
-
-// module.exports = { createOrder, getMyOrders, getAllOrders, updateOrderStatus };
-
-
-
-
-
 const { models, sequelize } = require('../config/database');
-const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher, User } = models;
+const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher, User, Transaction } = models;
 const { BaseOrderPrice, VoucherDecorator, ShippingFeeDecorator } = require('../patterns/PricingDecorators');
 
+// helper: normalize payment method để khỏi lệch chuỗi
+const normalizePaymentMethod = (m) => String(m || '').trim().toLowerCase();
 
 // [POST] /api/orders - Tạo đơn hàng từ giỏ hàng
 const createOrder = async (req, res) => {
-    const t = await sequelize.transaction(); // <--- Bắt đầu giao dịch
+  const t = await sequelize.transaction();
 
-    try {
-        const { 
-            payment_method, 
-            voucher_code,
-            // Nhận thêm các trường này từ Frontend
-            address_id, 
-            recipient_name, 
-            phone, 
-            address_detail 
-        } = req.body;
-        
-        const user_id = req.user_id;
-        let finalAddressId = address_id;
+  try {
+    const {
+      payment_method,
+      voucher_code,
+      address_id,
+      recipient_name,
+      phone,
+      address_detail
+    } = req.body;
 
-        // --- 1. XỬ LÝ ĐỊA CHỈ (Logic Mới) ---
-        // Nếu Frontend không gửi ID (hoặc gửi null), ta sẽ tạo địa chỉ mới
-        if (!finalAddressId) {
-            // Validate dữ liệu
-            if (!recipient_name || !phone || !address_detail) {
-                await t.rollback();
-                return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin địa chỉ giao hàng' });
-            }
+    const user_id = req.user_id;
+    let finalAddressId = address_id;
 
-            // Tạo bản ghi Address mới
-            const newAddress = await Address.create({
-                user_id,
-                recipient_name,
-                phone,
-                address_detail,
-                is_default: false // Địa chỉ này tạm thời không set mặc định
-            }, { transaction: t });
-
-            finalAddressId = newAddress.address_id; // Lấy ID vừa tạo ra để dùng
-        }
-        // -------------------------------------
-
-        // 2. Lấy giỏ hàng
-        const cart = await Cart.findOne({
-            where: { user_id },
-            include: [{ model: CartItem, include: [Book] }]
-        });
-
-        if (!cart || cart.CartItems.length === 0) {
-            await t.rollback();
-            return res.status(400).json({ success: false, message: 'Giỏ hàng trống!' });
-        }
-
-        // 3. Check kho hàng
-        for (const item of cart.CartItems) {
-            if (item.Book.stock_quantity < item.quantity) {
-                await t.rollback();
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Sách "${item.Book.book_title}" không đủ hàng (Còn: ${item.Book.stock_quantity})` 
-                });
-            }
-        }
-
-        // 4. Tính toán giá (Decorator Pattern)
-        let priceCalculator = new BaseOrderPrice(cart.CartItems);
-        
-        // Áp dụng Voucher
-        let voucher = null;
-        if (voucher_code) {
-            voucher = await Voucher.findOne({ where: { code: voucher_code } });
-            if (voucher) {
-                // TODO: Nên check thêm hạn sử dụng voucher tại đây
-                priceCalculator = new VoucherDecorator(priceCalculator, voucher);
-            }
-        }
-
-        // Áp dụng Ship (30k)
-        priceCalculator = new ShippingFeeDecorator(priceCalculator, 30000);
-        const finalAmount = await priceCalculator.calculate();
-        
-        // Tính giá gốc để lưu
-        const baseCalc = new BaseOrderPrice(cart.CartItems);
-        const totalAmount = await baseCalc.calculate();
-
-        // 5. Tạo Order (Dùng finalAddressId đã xử lý ở trên)
-        const newOrder = await Order.create({
-            user_id,
-            shipping_address: finalAddressId, // <--- ID chuẩn (dù cũ hay mới)
-            total_amount: totalAmount,
-            final_amount: finalAmount, 
-            voucher_id: voucher ? voucher.voucher_id : null,
-            payment_status: 'unpaid',
-            order_status: 'pending'
-        }, { transaction: t });
-
-        // 6. Tạo OrderItem & Trừ kho
-        for (const item of cart.CartItems) {
-            await OrderItem.create({
-                order_id: newOrder.order_id,
-                book_id: item.book_id,
-                quantity: item.quantity,
-                unit_price: item.Book.price,
-                subtotal: item.quantity * item.Book.price
-            }, { transaction: t });
-
-            await Book.decrement('stock_quantity', { 
-                by: item.quantity, 
-                where: { book_id: item.book_id },
-                transaction: t 
-            });
-             await Book.increment('total_sold', { 
-                by: item.quantity, 
-                where: { book_id: item.book_id },
-                transaction: t 
-            });
-        }
-
-        // 7. Xóa giỏ hàng
-        await CartItem.destroy({
-            where: { cart_id: cart.cart_id },
-            transaction: t
-        });
-
-        // 8. Chốt đơn (Commit Transaction)
-        await t.commit(); 
-
-        // --- 9. Payment Factory ---
-        let paymentInfo = null;
-        try {
-            const { PaymentFactory } = require('../patterns/PaymentFactory');
-            const factory = PaymentFactory.getFactory(payment_method, models, sequelize);
-
-            if (factory) {
-                const processor = factory.createProcessor();
-                paymentInfo = processor.generatePaymentInfo(newOrder);
-            }
-        } catch (err) {
-            console.error("Payment Factory Error:", err);
-            // Không rollback ở đây vì đơn hàng đã tạo thành công rồi, chỉ lỗi bước lấy QR thôi
-        }
-        
-        res.status(201).json({ 
-            success: true, 
-            message: 'Đặt hàng thành công!', 
-            order_id: newOrder.order_id,
-            final_amount: finalAmount,
-            payment_info: paymentInfo
-        });
-
-    } catch (error) {
+    // 1) Địa chỉ
+    if (!finalAddressId) {
+      if (!recipient_name || !phone || !address_detail) {
         await t.rollback();
-        console.error("Order Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server khi tạo đơn hàng' });
+        return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin địa chỉ giao hàng' });
+      }
+
+      const newAddress = await Address.create({
+        user_id,
+        recipient_name,
+        phone,
+        address_detail,
+        is_default: false
+      }, { transaction: t });
+
+      finalAddressId = newAddress.address_id;
     }
+
+    // 2) Giỏ hàng
+    const cart = await Cart.findOne({
+      where: { user_id },
+      include: [{ model: CartItem, include: [Book] }]
+    });
+
+    if (!cart || !cart.CartItems || cart.CartItems.length === 0) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Giỏ hàng trống!' });
+    }
+
+    // 3) Check kho
+    for (const item of cart.CartItems) {
+      if (item.Book.stock_quantity < item.quantity) {
+        await t.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `Sách "${item.Book.book_title}" không đủ hàng (Còn: ${item.Book.stock_quantity})`
+        });
+      }
+    }
+
+    // 4) Tính giá
+    let priceCalculator = new BaseOrderPrice(cart.CartItems);
+
+    let voucher = null;
+    if (voucher_code) {
+      voucher = await Voucher.findOne({ where: { code: voucher_code } });
+      if (voucher) priceCalculator = new VoucherDecorator(priceCalculator, voucher);
+    }
+
+    priceCalculator = new ShippingFeeDecorator(priceCalculator, 30000);
+    const finalAmount = await priceCalculator.calculate();
+
+    const baseCalc = new BaseOrderPrice(cart.CartItems);
+    const totalAmount = await baseCalc.calculate();
+
+    // 5) Tạo Order
+    const newOrder = await Order.create({
+      user_id,
+      shipping_address: finalAddressId,
+      total_amount: totalAmount,
+      final_amount: finalAmount,
+      voucher_id: voucher ? voucher.voucher_id : null,
+      payment_status: 'unpaid',
+      order_status: 'pending'
+      // ⚠️ Không set payment_method vào Order vì DB bạn đang thiếu cột đó (đã từng lỗi SQLITE)
+    }, { transaction: t });
+
+    // ✅ 6) Tạo Transaction PENDING nếu là “chuyển khoản” (normalize để không lệch chuỗi)
+    const pm = normalizePaymentMethod(payment_method);
+
+    const isBankTransfer =
+      pm === 'bank_transfer' ||
+      pm === 'bank-transfer' ||
+      pm === 'transfer' ||
+      pm === 'sepay' ||
+      pm === 'bank' ||
+      pm === 'qr' ||
+      pm === 'vnpay_bank' ||
+      pm === 'online';
+
+    if (isBankTransfer) {
+      await Transaction.create({
+        order_id: newOrder.order_id,
+        user_id: user_id,
+        amount: finalAmount,
+        payment_method: 'bank_transfer',
+        status: 'pending'
+      }, { transaction: t });
+    }
+
+    // 7) Tạo OrderItem & trừ kho
+    for (const item of cart.CartItems) {
+      await OrderItem.create({
+        order_id: newOrder.order_id,
+        book_id: item.book_id,
+        quantity: item.quantity,
+        unit_price: item.Book.price,
+        subtotal: item.quantity * item.Book.price
+      }, { transaction: t });
+
+      await Book.decrement('stock_quantity', {
+        by: item.quantity,
+        where: { book_id: item.book_id },
+        transaction: t
+      });
+
+      await Book.increment('total_sold', {
+        by: item.quantity,
+        where: { book_id: item.book_id },
+        transaction: t
+      });
+    }
+
+    // 8) Xóa giỏ
+    await CartItem.destroy({
+      where: { cart_id: cart.cart_id },
+      transaction: t
+    });
+
+    await t.commit();
+
+    // 9) Payment factory info (nếu có)
+    let paymentInfo = null;
+    try {
+      const { PaymentFactory } = require('../patterns/PaymentFactory');
+      const factory = PaymentFactory.getFactory(payment_method, models, sequelize);
+      if (factory) {
+        const processor = factory.createProcessor();
+        paymentInfo = processor.generatePaymentInfo(newOrder);
+      }
+    } catch (err) {
+      console.error("Payment Factory Error:", err);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Đặt hàng thành công!',
+      order_id: newOrder.order_id,
+      final_amount: finalAmount,
+      payment_info: paymentInfo
+    });
+
+  } catch (error) {
+    await t.rollback();
+    console.error("Order Error:", error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi tạo đơn hàng' });
+  }
 };
 
-// [GET] /api/orders/my-orders - Lấy lịch sử đơn hàng
+// [GET] /api/orders/my-orders
 const getMyOrders = async (req, res) => {
-    try {
-        const orders = await Order.findAll({
-            where: { user_id: req.user_id },
-            order: [['created_at', 'DESC']],
-            include: [
-                { 
-                    model: OrderItem,
-                    include: [{ model: Book, attributes: ['book_title'] }] 
-                }
-            ]
-        });
-        res.status(200).json({ success: true, data: orders });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Lỗi server' });
-    }
+  try {
+    const orders = await Order.findAll({
+      where: { user_id: req.user_id },
+      order: [['created_at', 'DESC']],
+      include: [{ model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] }]
+    });
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
 };
 
-// [GET] /api/orders/admin - Lấy toàn bộ đơn (Admin)
+// [GET] /api/orders/admin
+// src/controllers/orderController.js
+
 const getAllOrders = async (req, res) => {
-    try {
-        const orders = await Order.findAll({
-            order: [['order_id', 'ASC']],
-            include: [
-                { 
-                    model: OrderItem,
-                    include: [{ model: Book, attributes: ['book_title'] }] 
-                },
-                {
-                    model: models.User,
-                    attributes: ['full_name', 'email', 'phone']
-                },
-                {
-                    model: Address,
-                    attributes: ['address_detail', 'recipient_name', 'phone']
-                }
-            ]
-        });
-        res.status(200).json({ success: true, data: orders });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
-    }
+  try {
+    const orders = await Order.findAll({
+      order: [['order_id', 'ASC']],
+      include: [
+        { model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] },
+        { model: models.User, attributes: ['full_name', 'email', 'phone'] },
+        { model: Address, attributes: ['address_detail', 'recipient_name', 'phone'] },
+        
+        // --- THÊM DÒNG NÀY ---
+        // Để lấy danh sách các giao dịch gắn với đơn hàng này
+        { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
+      ]
+    });
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
 };
 
-// [PUT] /api/orders/admin/:id - Cập nhật trạng thái
+// [PUT] /api/orders/admin/:id
 const updateOrderStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { order_status, payment_status } = req.body;
+  try {
+    const { id } = req.params;
+    const { order_status, payment_status } = req.body;
 
-        const order = await Order.findByPk(id);
-        if (!order) {
-            return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
-        }
+    const order = await Order.findByPk(id);
+    if (!order) return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
 
-        const updateData = {};
-        if (order_status) updateData.order_status = order_status;
-        if (payment_status) updateData.payment_status = payment_status;
+    const updateData = {};
+    if (order_status) updateData.order_status = order_status;
+    if (payment_status) updateData.payment_status = payment_status;
 
-        await order.update(updateData);
+    await order.update(updateData);
 
-        res.status(200).json({ success: true, message: 'Cập nhật trạng thái đơn hàng thành công' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Lỗi server' });
-    }
+    res.status(200).json({ success: true, message: 'Cập nhật trạng thái đơn hàng thành công' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
 };
 
-// [POST] ADMIN ONLY - Tạo đơn hàng giả để test
+// [POST] /api/orders/admin/fake
 const createFakeOrder = async (req, res) => {
-    try {
-        // 1. Tìm User Admin (ID 1) hoặc lấy User bất kỳ đầu tiên
-        let user = await User.findByPk(1);
-        if (!user) {
-            user = await User.findOne(); // Lấy đại user đầu tiên tìm thấy
-        }
-        
-        if (!user) {
-             return res.status(400).json({ success: false, message: 'Chưa có User nào trong DB để gán đơn hàng!' });
-        }
+  try {
+    let user = await User.findByPk(1);
+    if (!user) user = await User.findOne();
+    if (!user) return res.status(400).json({ success: false, message: 'Chưa có User nào trong DB để gán đơn hàng!' });
 
-        // 2. TẠO ĐỊA CHỈ GIẢ (Fix lỗi Foreign Key)
-        // Kiểm tra xem user này có địa chỉ nào chưa, nếu chưa thì tạo mới
-        let fakeAddress = await models.Address.findOne({ where: { user_id: user.user_id } });
-        
-        if (!fakeAddress) {
-            fakeAddress = await models.Address.create({
-                user_id: user.user_id,
-                recipient_name: 'Khách Test Admin',
-                phone: '0999999999',
-                address_detail: 'Số 1 Đường Test, Hà Nội',
-                is_default: true
-            });
-        }
-
-        // 3. TẠO ĐƠN HÀNG (Giờ đã có address_id xịn rồi)
-        const newOrder = await Order.create({
-            user_id: user.user_id, 
-            total_amount: 500000,
-            final_amount: 530000,
-            shipping_address: fakeAddress.address_id, // <--- Dùng ID thật vừa tìm/tạo được
-            payment_method: 'COD',
-            payment_status: 'unpaid',
-            order_status: 'pending'
-        });
-
-        res.status(201).json({ success: true, message: 'Đã tạo đơn giả thành công!', data: newOrder });
-
-    } catch (error) {
-        console.error("Lỗi tạo đơn giả:", error); // In lỗi ra Terminal backend để dễ sửa
-        res.status(500).json({ success: false, message: 'Lỗi Server: ' + error.message });
+    let fakeAddress = await models.Address.findOne({ where: { user_id: user.user_id } });
+    if (!fakeAddress) {
+      fakeAddress = await models.Address.create({
+        user_id: user.user_id,
+        recipient_name: 'Khách Test Admin',
+        phone: '0999999999',
+        address_detail: 'Số 1 Đường Test, Hà Nội',
+        is_default: true
+      });
     }
+
+    const newOrder = await Order.create({
+      user_id: user.user_id,
+      total_amount: 500000,
+      final_amount: 530000,
+      shipping_address: fakeAddress.address_id,
+      payment_status: 'unpaid',
+      order_status: 'pending'
+    });
+
+    res.status(201).json({ success: true, message: 'Đã tạo đơn giả thành công!', data: newOrder });
+  } catch (error) {
+    console.error("Lỗi tạo đơn giả:", error);
+    res.status(500).json({ success: false, message: 'Lỗi Server: ' + error.message });
+  }
 };
 
-module.exports = { 
-    createOrder, getMyOrders, getAllOrders, updateOrderStatus,
-    createFakeOrder
+// [DELETE] /api/orders/admin/:id (xóa cứng)
+const deleteOrderAdmin = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findByPk(id);
+    if (!order) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
+    }
+
+    await OrderItem.destroy({ where: { order_id: id }, transaction: t });
+    await Transaction.destroy({ where: { order_id: id }, transaction: t });
+    await Order.destroy({ where: { order_id: id }, transaction: t });
+
+    await t.commit();
+    return res.status(200).json({ success: true, message: 'Đã xóa đơn hàng (xóa cứng)' });
+  } catch (error) {
+    await t.rollback();
+    console.error('Delete order error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi xóa đơn hàng' });
+  }
+};
+
+module.exports = {
+  createOrder, getMyOrders, getAllOrders, updateOrderStatus,
+  createFakeOrder,
+  deleteOrderAdmin
 };

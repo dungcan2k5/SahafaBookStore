@@ -5,16 +5,18 @@ require('dotenv').config();
 const { connectDB } = require('./config/database');
 
 // Import Routes
-const bookRoutes = require('./routes/bookRoutes'); // <--- Thêm dòng này
-const authRoutes = require('./routes/authRoutes'); // <--- Thêm
-const cartRoutes = require('./routes/cartRoutes'); // <--- Thêm
+const bookRoutes = require('./routes/bookRoutes');
+const authRoutes = require('./routes/authRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const postRoutes = require('./routes/postRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
-const paymentRoutes = require('./routes/paymentRoutes'); // <--- Thêm Payment Routes
-const { swaggerUi, specs } = require('./config/swagger');
+const paymentRoutes = require('./routes/paymentRoutes');
+
+// Swagger
+const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,15 +39,15 @@ app.use('/api/users', userRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/vouchers', voucherRoutes);
-app.use('/api/payment', paymentRoutes); // <--- Đăng ký URL
+app.use('/api/payment', paymentRoutes);
 
-// Route cho API Docs
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
+// API Docs
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Sahafa Backend is ready!' });
+  res.json({ message: 'Sahafa Backend is ready!' });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

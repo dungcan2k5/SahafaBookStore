@@ -4,13 +4,31 @@
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <el-icon class="text-indigo-600"><DocumentCopy /></el-icon> Quản lý Bài Viết (Posts)
       </h2>
-      <el-button type="primary" @click="openDialog()">
-        <el-icon class="mr-1"><Plus /></el-icon> Viết bài mới
-      </el-button>
+      
+      <div class="flex items-center gap-2">
+        <el-input
+          v-model="searchText"
+          placeholder="Tìm theo tiêu đề, slug..."
+          clearable
+          style="width: 250px"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+
+        <el-button @click="fetchPosts" :loading="loading" icon="Refresh">
+          Làm mới
+        </el-button>
+
+        <el-button type="primary" @click="openDialog()">
+          <el-icon class="mr-1"><Plus /></el-icon> Viết bài mới
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="posts" style="width: 100%" v-loading="loading" stripe border>
+      <el-table :data="filteredPosts" style="width: 100%" v-loading="loading" stripe border>
         
         <el-table-column label="Ảnh bìa" width="120" align="center">
             <template #default="scope">
@@ -26,9 +44,11 @@
 
         <el-table-column label="Thông tin bài viết" min-width="250">
             <template #default="scope">
-                <div class="font-bold text-gray-800 text-base mb-1">{{ scope.row.title }}</div>
+                <div class="font-bold text-gray-800 text-base mb-1 hover:text-blue-600 cursor-pointer" @click="viewPost(scope.row)">
+                    {{ scope.row.title }}
+                </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <el-tag size="small" type="info">Slug: {{ scope.row.post_slug }}</el-tag>
+                    <el-tag size="small" type="info">/{{ scope.row.post_slug }}</el-tag>
                     <el-tag v-if="scope.row.Category" size="small" effect="plain">{{ scope.row.Category.category_name }}</el-tag>
                 </div>
             </template>
@@ -42,9 +62,14 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="Hành động" width="120" align="center" fixed="right">
+        <el-table-column label="Hành động" width="160" align="center" fixed="right">
           <template #default="scope">
+            <el-tooltip content="Xem bài viết trên web" placement="top">
+                <el-button type="success" :icon="View" circle size="small" plain @click="viewPost(scope.row)" />
+            </el-tooltip>
+            
             <el-button type="primary" :icon="Edit" circle size="small" @click="openDialog(scope.row)" />
+            
             <el-popconfirm title="Xóa bài viết này?" @confirm="handleDelete(scope.row.post_id)">
               <template #reference>
                 <el-button type="danger" :icon="Delete" circle size="small" />
@@ -110,29 +135,50 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { DocumentCopy, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, computed } from 'vue'; // Import computed
+import { DocumentCopy, Plus, Edit, Delete, Search, View, Refresh } from '@element-plus/icons-vue'; // Import icon Search, View
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
+import { useRouter } from 'vue-router'; // Import router
 
+const router = useRouter();
 const posts = ref([]);
 const loading = ref(false);
 const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
+const searchText = ref(''); // Biến tìm kiếm
 
-// Dữ liệu Form khớp hoàn toàn với postController.js
 const form = reactive({
     post_id: null,
     title: '',
-    post_slug: '',       // Backend dùng post_slug
-    thumbnail_url: '',   // Backend dùng thumbnail_url
+    post_slug: '',      
+    thumbnail_url: '',  
     content: '',
     category_id: null,
     status: 'published'
 });
 
-// Hàm tạo slug tự động
+// --- TÌM KIẾM ---
+const filteredPosts = computed(() => {
+    const q = searchText.value.trim().toLowerCase();
+    if (!q) return posts.value;
+    
+    return posts.value.filter(p => {
+        const title = (p.title || '').toLowerCase();
+        const slug = (p.post_slug || '').toLowerCase();
+        return title.includes(q) || slug.includes(q);
+    });
+});
+
+// --- HÀM XEM BÀI VIẾT ---
+const viewPost = (post) => {
+    // Giả sử đường dẫn public của bạn là /news/:slug
+    // Dùng window.open để mở tab mới
+    const url = `/news/${post.post_slug}`;
+    window.open(url, '_blank');
+};
+
 const generateSlug = () => {
     if (isEdit.value) return; 
     let str = form.title.toLowerCase();
@@ -148,7 +194,7 @@ const generateSlug = () => {
     form.post_slug = str;
 };
 
-// --- API ACTIONS (Gọi đúng endpoint /api/posts) ---
+// --- API ACTIONS ---
 const fetchPosts = async () => {
     loading.value = true;
     try {
