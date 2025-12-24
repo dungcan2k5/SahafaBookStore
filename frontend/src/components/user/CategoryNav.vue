@@ -2,23 +2,19 @@
   <div class="container mx-auto mt-6 px-4">
     <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
       
-      <div class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-9 gap-y-6 gap-x-2 md:gap-4 justify-items-center">
+      <div class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-8 gap-y-6 gap-x-2 md:gap-4 justify-items-center">
         
         <div 
-          v-for="(item, index) in categories" 
+          v-for="(item, index) in fixedItems" 
           :key="index" 
           @click="goTo(item.path)"
           class="flex flex-col items-center justify-start cursor-pointer group hover:-translate-y-1 transition-transform duration-300 gap-2 w-full"
         >
           <div 
             class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl transition-colors p-3 shadow-sm"
-            :class="item.bgClass"
+            :class="item.bgClass || 'bg-gray-50 group-hover:bg-gray-100'"
           >
-            <component 
-              :is="item.icon" 
-              class="w-full h-full" 
-              :class="item.iconClass" 
-            />
+            <img :src="item.icon" class="w-full h-full object-contain" :alt="item.name"/>
           </div>
           
           <span class="text-[11px] md:text-[13px] text-center text-gray-600 font-medium group-hover:text-blue-600 transition-colors leading-tight px-1 h-8 flex items-start justify-center">
@@ -33,91 +29,22 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
-
-// Import các icon từ thư viện @element-plus/icons-vue
-import { 
-  Calendar,       // Thay cho CalendarDays
-  Present,        // Thay cho Gift
-  Ticket,         // Thay cho TicketPercent
-  CircleCheck,    // Thay cho CheckCircle2
-  EditPen,        // Thay cho PenTool
-  Lightning,      // Thay cho Zap
-  Star,           // Thay cho Sparkles
-  Shop,           // Thay cho Store
-  Compass,        // Thay cho Globe2 (Ngoại văn)
-  Notebook        // Thay cho BookOpen (Manga)
-} from '@element-plus/icons-vue';
 
 const router = useRouter();
+
+// DANH SÁCH EVENT CỐ ĐỊNH (Không lấy từ DB)
+const fixedItems = [
+  { name: '12.12', icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png', bgClass: 'bg-red-50', path: '/event-1212' },
+  { name: 'Gift Card', icon: 'https://cdn-icons-png.flaticon.com/512/3210/3210036.png', bgClass: 'bg-green-50', path: '/gift-card' },
+  { name: 'Mã Giảm Giá', icon: 'https://cdn-icons-png.flaticon.com/512/879/879757.png', bgClass: 'bg-orange-50', path: '/vouchers' },
+  { name: 'Điểm Danh', icon: 'https://cdn-icons-png.flaticon.com/512/7518/7518748.png', bgClass: 'bg-blue-50', path: '/attendance' },
+  { name: 'Flash Sale', icon: 'https://cdn-icons-png.flaticon.com/512/3266/3266208.png', bgClass: 'bg-yellow-50', path: '/flash-sale' },
+  { name: 'Sách Mới', icon: 'https://cdn-icons-png.flaticon.com/512/1156/1156949.png', bgClass: 'bg-pink-50', path: '/new-arrivals' },
+  { name: 'Sách Cũ', icon: 'https://cdn-icons-png.flaticon.com/512/2331/2331941.png', bgClass: 'bg-teal-50', path: '/second-hand' },
+  { name: 'Ngoại Văn', icon: 'https://cdn-icons-png.flaticon.com/512/2436/2436636.png', bgClass: 'bg-indigo-50', path: '/foreign-books' },
+];
 
 const goTo = (path) => {
   if (path) router.push(path);
 };
-
-const categories = ref([
-  { 
-    name: '12.12', 
-    icon: Calendar, 
-    bgClass: 'bg-red-50 group-hover:bg-red-100', 
-    iconClass: 'text-red-500',
-    path: '/event-1212'
-  },
-  { 
-    name: 'Gift Card', 
-    icon: Present, 
-    bgClass: 'bg-green-50 group-hover:bg-green-100',
-    iconClass: 'text-green-600',
-    path: '/gift-card' 
-  },
-  { 
-    name: 'Mã Giảm Giá', 
-    icon: Ticket, 
-    bgClass: 'bg-orange-50 group-hover:bg-orange-100', 
-    iconClass: 'text-orange-500',
-    path: '/vouchers'
-  },
-  { 
-    name: 'Điểm Danh', 
-    icon: CircleCheck, 
-    bgClass: 'bg-blue-50 group-hover:bg-blue-100', 
-    iconClass: 'text-blue-500',
-    path: '/attendance'
-  },
-  { 
-    name: 'Flash Sale', 
-    icon: Lightning, 
-    bgClass: 'bg-yellow-50 group-hover:bg-yellow-100', 
-    iconClass: 'text-yellow-500',
-    path: '/flash-sale'
-  },
-  { 
-    name: 'Sản Phẩm Mới', 
-    icon: Star, 
-    bgClass: 'bg-pink-50 group-hover:bg-pink-100', 
-    iconClass: 'text-pink-500',
-    path: '/new-arrivals'
-  },
-  { 
-    name: 'Phiên Chợ Cũ', 
-    icon: Shop, 
-    bgClass: 'bg-teal-50 group-hover:bg-teal-100', 
-    iconClass: 'text-teal-600',
-    path: '/second-hand'
-  },
-  { 
-  name: 'Ngoại Văn', 
-  icon: Compass, 
-  bgClass: 'bg-indigo-50 group-hover:bg-indigo-100', 
-  iconClass: 'text-indigo-500',
-  path: '/foreign-books'
-  },
-  { 
-    name: 'Manga', 
-    icon: Notebook, 
-    bgClass: 'bg-rose-50 group-hover:bg-rose-100', 
-    iconClass: 'text-rose-500',
-    path: '/manga' 
-  },
-]);
 </script>
