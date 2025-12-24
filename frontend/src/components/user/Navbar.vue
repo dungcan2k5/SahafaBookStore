@@ -1,21 +1,21 @@
 <template>
   <div class="sticky top-0 z-50">
-    <header class="bg-blue-600 text-white py-3 lg:py-4 shadow-md">
+    <header class="bg-blue-600 text-white py-2 shadow-md">
       <div class="container mx-auto flex flex-wrap lg:flex-nowrap items-center justify-between px-4 lg:px-12 gap-3 lg:gap-8">
         
         <div class="flex items-center gap-2 lg:gap-4 shrink-0">
-          <router-link to="/" class="text-2xl lg:text-4xl font-extrabold tracking-tighter flex items-center italic">
+          <router-link to="/" class="text-xl lg:text-2xl font-extrabold tracking-tighter flex items-center italic">
             Sahafa<span class="text-yellow-400">.com</span>
           </router-link>
 
           <div class="relative group z-50">
-            <div class="flex items-center justify-center cursor-pointer hover:bg-blue-700 w-10 h-10 lg:w-12 lg:h-12 rounded-lg transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 lg:h-4 lg:w-4 absolute bottom-2 right-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            <div class="flex items-center justify-center cursor-pointer hover:bg-blue-700 w-8 h-8 lg:w-9 lg:h-9 rounded-lg transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 lg:h-3 lg:w-3 absolute bottom-2 right-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </div>
 
             <div class="absolute top-full left-0 pt-4 w-[300px] lg:w-[800px] hidden group-hover:block animate-fade-in">
-                 <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
+                  <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
                     <div class="w-1/3 bg-gray-50 border-r border-gray-200 py-2">
                       <ul class="flex flex-col text-sm">
                         <li 
@@ -54,61 +54,93 @@
           </div>
         </div>
 
-        <div class="flex-1 bg-white rounded-lg flex items-center p-1 shadow-md w-full order-3 lg:order-2 mt-3 lg:mt-0">
-          <input type="text" placeholder="Tìm kiếm sách, văn phòng phẩm..." class="w-full px-4 lg:px-6 py-2 lg:py-3 text-gray-700 outline-none rounded-md text-sm lg:text-base" />
-          <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-md font-medium transition flex items-center justify-center">
+        <div class="flex-1 bg-white rounded-lg flex items-center p-1 shadow-md w-full order-3 lg:order-2 mt-3 lg:mt-0 relative group/search">
+          
+          <input 
+            v-model="searchQuery" 
+            @input="handleLiveSearch"
+            @focus="showDropdown = true"
+            @keyup.enter="goToSearchPage"
+            type="text" 
+            placeholder="Tìm kiếm sách, văn phòng phẩm..." 
+            class="w-full px-4 lg:px-6 py-1.5 lg:py-2 text-gray-700 outline-none rounded-md text-sm lg:text-base" 
+          />
+          
+          <button 
+            @click="goToSearchPage"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-6 py-1.5 lg:py-2 rounded-md font-medium transition flex items-center justify-center"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </button>
-        </div>
 
-        <div class="flex items-center gap-4 lg:gap-10 text-sm font-medium shrink-0 order-2 lg:order-3">
-          
-          <div class="relative group z-50 py-2">
-            <div class="flex flex-col items-center cursor-pointer hover:opacity-90">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              <span class="text-xs mt-1 font-semibold hidden lg:block">Thông báo</span>
-            </div>
-            
-            <div class="absolute top-full right-[-80px] pt-4 hidden group-hover:block w-[300px]">
-               <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-100 flex flex-col items-center gap-3 relative mt-1 text-center">
-                  <div class="absolute -top-2 right-[88px] w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100 z-10"></div>
-                  
-                  <template v-if="!authStore.user">
-                      <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          <div 
+            v-if="showDropdown && searchQuery.trim()" 
+            class="absolute top-full left-0 w-full bg-white rounded-lg shadow-xl border border-gray-100 mt-2 overflow-hidden z-[60]"
+          >
+             <div v-if="isSearching" class="p-4 text-center text-gray-500 text-sm">
+                <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-blue-600 mr-2"></div>
+                Đang tìm...
+             </div>
+
+             <div v-else-if="searchResults.length > 0">
+                <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
+                   <div 
+                      v-for="book in searchResults" 
+                      :key="book.book_id"
+                      @click="goToDetail(book.book_id)"
+                      class="flex gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none transition"
+                   >
+                      <img 
+                        :src="book.BookImages?.[0]?.book_image_url || 'https://placehold.co/100x150'" 
+                        class="w-12 h-16 object-cover rounded border"
+                      />
+                      <div class="flex-1">
+                         <h4 class="text-sm font-medium text-gray-800 line-clamp-2">{{ book.book_title }}</h4>
+                         <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[#C92127] font-bold text-sm">{{ formatPrice(book.price) }}đ</span>
+                            <span class="text-xs text-gray-400" v-if="book.Author?.author_name">- {{ book.Author?.author_name }}</span>
+                         </div>
                       </div>
-                      <p class="text-sm text-gray-600 mb-2 font-medium">Đăng nhập để xem thông báo</p>
-                      <button @click="openModal('login')" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition text-sm font-bold shadow-sm">
-                          Đăng nhập ngay
-                      </button>
-                  </template>
+                   </div>
+                </div>
+                <div 
+                  @click="goToSearchPage"
+                  class="p-2 text-center text-blue-600 text-sm font-medium hover:bg-blue-50 cursor-pointer border-t"
+                >
+                   Xem tất cả kết quả cho "{{ searchQuery }}"
+                </div>
+             </div>
 
-                  <template v-else>
-                      <img src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png" class="w-16 h-16 opacity-50 mb-2" alt="Empty">
-                      <p class="text-sm text-gray-500 font-medium">Bạn chưa có thông báo nào</p>
-                  </template>
-               </div>
-            </div>
+             <div v-else class="p-4 text-center text-gray-500 text-sm">
+                Không tìm thấy sách nào.
+             </div>
+          </div>
           </div>
 
+        <div class="flex items-center gap-4 lg:gap-8 text-sm font-medium shrink-0 order-2 lg:order-3">
+          <div class="relative group z-50 py-2">
+            <div class="flex flex-col items-center cursor-pointer hover:opacity-90">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-7 lg:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <span class="text-xs mt-1 font-semibold hidden lg:block">Thông báo</span>
+            </div>
+            </div>
+
           <router-link to="/cart" class="flex flex-col items-center cursor-pointer hover:opacity-90 relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-7 lg:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             <span class="text-xs mt-1 font-semibold hidden lg:block">Giỏ hàng</span>
             <span v-if="cartStore.totalItems > 0" class="absolute -top-1 -right-2 bg-yellow-400 text-red-600 text-[10px] font-bold rounded-full h-4 w-4 lg:h-5 lg:w-5 flex items-center justify-center border-2 border-white shadow-sm">{{ cartStore.totalItems }}</span>
           </router-link>
 
           <div class="relative group z-50 py-2">
-            
             <div 
               @click="!authStore.user ? openModal('login') : null" 
               class="flex flex-col items-center cursor-pointer hover:opacity-90"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-8 lg:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 lg:h-7 lg:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               <span class="text-xs mt-1 font-semibold hidden lg:block">
                 {{ authStore.user ? authStore.user.name : 'Tài khoản' }}
               </span>
             </div>
-
             <div class="absolute top-full right-[-10px] pt-4 hidden group-hover:block w-[240px]">
               <div class="bg-white rounded-lg shadow-xl p-4 border border-gray-100 flex flex-col gap-3 relative mt-1">
                  <div class="absolute -top-2 right-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100"></div>
@@ -136,21 +168,12 @@
                            Trang Quản Trị
                         </div>
                       </router-link>
+
                       <router-link 
                         to="/user/profile" 
                         class="w-full block text-center py-2 hover:bg-blue-50 text-blue-600 rounded text-sm font-bold mb-1 transition"
                       >
-                         Hồ sơ cá nhân
-                      </router-link>
-
-                      <router-link 
-                        v-if="['admin', 'employee'].includes(authStore.user.role)" 
-                        to="/admin" 
-                        class="w-full block text-center bg-gray-800 text-white font-bold py-2 rounded-md hover:bg-black transition shadow-sm mb-2"
-                      >
-                        <div class="flex items-center justify-center gap-2">
-                           Trang Quản Trị
-                        </div>
+                          Hồ sơ cá nhân
                       </router-link>
 
                       <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
@@ -178,22 +201,85 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import LoginModal from '@/components/user/LoginModal.vue';
+import axios from 'axios'; // 👉 Import axios để gọi API
 
 const cartStore = useCartStore();
 const authStore = useAuthStore(); 
+const router = useRouter();
 
 const showLoginModal = ref(false);
 const modalTab = ref('login');
+
+// --- LOGIC TÌM KIẾM ---
+const searchQuery = ref('');
+const searchResults = ref([]);
+const isSearching = ref(false);
+const showDropdown = ref(false);
+let debounceTimer = null;
+
+const formatPrice = (val) => new Intl.NumberFormat('vi-VN').format(val);
+
+// Hàm xử lý khi gõ phím (Live Search)
+const handleLiveSearch = () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = [];
+    showDropdown.value = false;
+    return;
+  }
+
+  showDropdown.value = true;
+  isSearching.value = true;
+
+  // Debounce: Chờ 300ms sau khi người dùng ngừng gõ mới gọi API
+  if (debounceTimer) clearTimeout(debounceTimer);
+  
+  debounceTimer = setTimeout(async () => {
+    try {
+      // Gọi API tìm kiếm hiện có
+      const response = await axios.get('http://localhost:3000/api/books', {
+        params: { search: searchQuery.value }
+      });
+      
+      if (response.data.success) {
+        // Chỉ lấy 5 kết quả đầu tiên để hiển thị gọn
+        searchResults.value = response.data.data.slice(0, 5); 
+      }
+    } catch (error) {
+      console.error("Lỗi tìm kiếm:", error);
+    } finally {
+      isSearching.value = false;
+    }
+  }, 300);
+};
+
+// Hàm chuyển đến trang chi tiết khi click vào gợi ý
+const goToDetail = (bookId) => {
+  showDropdown.value = false;
+  searchQuery.value = ''; // Reset ô tìm kiếm
+  router.push(`/books/${bookId}`);
+};
+
+// Hàm chuyển đến trang kết quả tìm kiếm đầy đủ
+const goToSearchPage = () => {
+  showDropdown.value = false;
+  if (searchQuery.value.trim()) {
+    router.push({ 
+      path: '/books', 
+      query: { search: searchQuery.value } 
+    });
+  }
+};
 
 const openModal = (tab) => {
   modalTab.value = tab;
   showLoginModal.value = true;
 };
 
-// DATA MEGA MENU
+// DATA MENU (Giữ nguyên)
 const menuData = [
     { name: 'Văn Học', path: '/category/van-hoc', icon: 'https://cdn-icons-png.flaticon.com/512/3389/3389081.png', subItems: [{ title: 'Thể Loại', links: ['Tiểu Thuyết', 'Truyện Ngắn'] }] },
     { name: 'Kinh Tế', path: '/category/kinh-te', icon: 'https://cdn-icons-png.flaticon.com/512/2666/2666505.png', subItems: [{ title: 'Quản Trị', links: ['Lãnh Đạo', 'Nhân Sự'] }] },
@@ -216,4 +302,18 @@ const activeCategory = ref(menuData[0]);
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Custom Scrollbar cho Dropdown */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
 </style>
+
+<template

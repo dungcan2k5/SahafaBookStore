@@ -22,14 +22,14 @@ const register = async (req, res) => {
                 'string.email': 'Email không hợp lệ',
                 'any.required': 'Vui lòng nhập email'
             }),
-            // Password: Tối thiểu 6 ký tự, phải có cả chữ và số (Regex cơ bản)
+            // Password: Tối thiểu 8 ký tự, chữ hoa, thường, số, ký tự đặc biệt
             password: Joi.string()
-                .min(6)
-                .pattern(new RegExp('^(?=.*[a-z])(?=.*[0-9])')) 
+                .min(8)
+                .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])'))
                 .required()
                 .messages({
-                    'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
-                    'string.pattern.base': 'Mật khẩu phải bao gồm cả chữ và số',
+                    'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
+                    'string.pattern.base': 'Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*)',
                     'any.required': 'Vui lòng nhập mật khẩu'
                 })
         });
@@ -196,4 +196,116 @@ const updateProfile = async (req, res) => {
         res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
     }
 };
-module.exports = { register, login, getProfile, updateProfile };
+
+// [POST] /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+        }
+
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Email không tồn tại trong hệ thống' });
+        }
+
+        // Tạo mật khẩu ngẫu nhiên đảm bảo độ mạnh (8 ký tự, hoa, thường, số, ký tự đặc biệt)
+        const generateStrongPassword = () => {
+            const lower = 'abcdefghijklmnopqrstuvwxyz';
+            const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numbers = '0123456789';
+            const special = '!@#$%^&*';
+            const all = lower + upper + numbers + special;
+            
+            let password = '';
+            // Đảm bảo mỗi loại có ít nhất 1 ký tự
+            password += lower[Math.floor(Math.random() * lower.length)];
+            password += upper[Math.floor(Math.random() * upper.length)];
+            password += numbers[Math.floor(Math.random() * numbers.length)];
+            password += special[Math.floor(Math.random() * special.length)];
+
+            // Điền nốt 4 ký tự ngẫu nhiên còn lại
+            for (let i = 0; i < 4; i++) {
+                password += all[Math.floor(Math.random() * all.length)];
+            }
+            
+            // Xáo trộn chuỗi (Fisher-Yates shuffle đơn giản)
+            return password.split('').sort(() => 0.5 - Math.random()).join('');
+        };
+
+        const newPassword = generateStrongPassword();
+        
+        // Hash mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Lưu vào DB
+        user.password = hashedPassword;
+        await user.save();
+
+        // Trả về mật khẩu mới (TẠM THỜI)
+        res.json({ success: true, message: 'Đặt lại mật khẩu thành công', newPassword });
+
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+// [POST] /api/auth/change-password
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.user_id;
+
+        // Validation cơ bản
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin' });
+        }
+        
+        // Validate mật khẩu mới (Mạnh)
+        const passwordSchema = Joi.string()
+            .min(8)
+            .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])'))
+            .required()
+            .messages({
+                'string.min': 'Mật khẩu mới phải có ít nhất 8 ký tự',
+                'string.pattern.base': 'Mật khẩu mới phải có chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*)',
+                'any.required': 'Vui lòng nhập mật khẩu mới'
+            });
+
+        const { error } = passwordSchema.validate(newPassword);
+        if (error) {
+             return res.status(400).json({ success: false, message: error.details[0].message });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Kiểm tra mật khẩu cũ
+        const validPass = await bcrypt.compare(oldPassword, user.password);
+        if (!validPass) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu cũ không chính xác' });
+        }
+
+        // Hash mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Lưu
+        user.password = hashedPassword;
+        await user.save();
+
+        res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+module.exports = { register, login, getProfile, updateProfile, forgotPassword, changePassword };

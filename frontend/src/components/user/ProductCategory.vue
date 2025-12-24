@@ -32,12 +32,12 @@
   </div>
 </template>
 
-<script setup>
+  <script setup>
 import { ref } from 'vue';
 
 const categories = ref([
   { name: 'Văn Học', image: 'https://cdn-icons-png.flaticon.com/512/3389/3389081.png', bgClass: 'bg-blue-50 group-hover:bg-blue-100', link: '/category/van-hoc' },
-  { name: 'Kinh Tế', image: 'https://cdn-icons-png.flaticon.com/512/2666/2666505.png', bgClass: 'bg-yellow-50 group-hover:bg-yellow-100', link: '/category/kinh-te' },
+  { name: 'Kinh Tế', image: 'https://cdn-icons-png.flaticon.com/512/2666/2666505.png', bgClass: 'bg-yellow-50 group-hover:bg-yellow-100', link: '/category/kinh-te' },  
   { name: 'Tâm Lý Kỹ Năng', image: 'https://cdn-icons-png.flaticon.com/512/3079/3079166.png', bgClass: 'bg-green-50 group-hover:bg-green-100', link: '/category/tam-ly' },
   { name: 'Thiếu Nhi', image: 'https://cdn-icons-png.flaticon.com/512/3468/3468306.png', bgClass: 'bg-pink-50 group-hover:bg-pink-100', link: '/category/thieu-nhi' },
   { name: 'Giáo Khoa', image: 'https://cdn-icons-png.flaticon.com/512/167/167755.png', bgClass: 'bg-teal-50 group-hover:bg-teal-100', link: '/category/giao-khoa' },

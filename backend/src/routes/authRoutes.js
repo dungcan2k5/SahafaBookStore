@@ -1,71 +1,15 @@
+// src/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
+
 const authController = require('../controllers/authController');
-const { verifyToken } = require('../middleware/authMiddleware'); // Import middleware
+const { verifyToken } = require('../middleware/authMiddleware');
 
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: Quản lý xác thực người dùng
- */
-
-/**
- * @swagger
- * /api/auth/register:
- *   post:
- *     summary: Đăng ký người dùng mới
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       201:
- *         description: Đăng ký thành công
- *       400:
- *         description: Lỗi đầu vào
- */
+// Đăng ký / đăng nhập
 router.post('/register', authController.register);
-
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Đăng nhập
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Đăng nhập thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *       401:
- *         description: Sai thông tin đăng nhập
- */
 router.post('/login', authController.login);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/change-password', verifyToken, authController.changePassword);
 
 /**
  * @swagger

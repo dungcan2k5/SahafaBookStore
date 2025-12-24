@@ -4,19 +4,34 @@
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <el-icon class="text-green-600"><User /></el-icon> Quản lý Tác giả
       </h2>
-      <el-button type="primary" @click="openDialog()">
-        <el-icon class="mr-1"><Plus /></el-icon> Thêm Tác giả
-      </el-button>
+
+      <div class="flex items-center gap-3">
+        <!-- Search -->
+        <el-input
+          v-model="searchText"
+          placeholder="Tìm theo tên tác giả..."
+          clearable
+          style="width: 320px"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+
+        <el-button type="primary" @click="openDialog()">
+          <el-icon class="mr-1"><Plus /></el-icon> Thêm Tác giả
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="authors" style="width: 100%" v-loading="loading" stripe border>
+      <el-table :data="filteredAuthors" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column label="#" width="60" align="center">
-           <template #default="scope">{{ scope.$index + 1 }}</template>
+          <template #default="scope">{{ scope.$index + 1 }}</template>
         </el-table-column>
-        
+
         <el-table-column prop="author_name" label="Tên Tác giả" />
-        
+
         <el-table-column prop="author_slug" label="Slug (Đường dẫn)" />
 
         <el-table-column label="Hành động" width="150" align="center">
@@ -52,8 +67,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { User, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { User, Plus, Edit, Delete, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
 
@@ -62,27 +77,54 @@ const loading = ref(false);
 const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
+
+const searchText = ref('');
+
 const form = reactive({ author_id: null, author_name: '', author_slug: '' });
 
 const generateSlug = (val) => {
-    if (!val) return;
-    form.author_slug = val.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+  if (!val) return;
+  form.author_slug = val
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '');
 };
+
+// ✅ Lọc local theo tên tác giả
+const filteredAuthors = computed(() => {
+  const q = (searchText.value || '').trim().toLowerCase();
+  if (!q) return authors.value;
+
+  return authors.value.filter((a) =>
+    (a.author_name || '').toLowerCase().includes(q)
+  );
+});
 
 const fetchAuthors = async () => {
   loading.value = true;
   try {
     const res = await api.get('/api/books/authors');
     authors.value = res.data.data || [];
-  } catch (error) { ElMessage.error('Lỗi tải dữ liệu'); } 
-  finally { loading.value = false; }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('Lỗi tải dữ liệu');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const openDialog = (item = null) => {
   isEdit.value = !!item;
   dialogVisible.value = true;
   if (item) Object.assign(form, item);
-  else { form.author_id = null; form.author_name = ''; form.author_slug = ''; }
+  else {
+    form.author_id = null;
+    form.author_name = '';
+    form.author_slug = '';
+  }
 };
 
 const handleSave = async () => {
@@ -91,21 +133,26 @@ const handleSave = async () => {
   try {
     if (isEdit.value) await api.put(`/api/books/authors/${form.author_id}`, form);
     else await api.post('/api/books/authors', form);
-    
+
     ElMessage.success('Thành công!');
     dialogVisible.value = false;
-    fetchAuthors();
-  } catch (error) { ElMessage.error('Lỗi lưu dữ liệu!'); } 
-  finally { submitting.value = false; }
+    await fetchAuthors();
+  } catch (error) {
+    console.error(error);
+    ElMessage.error(error.response?.data?.message || 'Lỗi lưu dữ liệu!');
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const handleDelete = async (id) => {
   try {
     await api.delete(`/api/books/authors/${id}`);
     ElMessage.success('Đã xóa!');
-    fetchAuthors();
-  } catch (error) { 
-      ElMessage.error(error.response?.data?.message || 'Không thể xóa!'); 
+    await fetchAuthors();
+  } catch (error) {
+    console.error(error);
+    ElMessage.error(error.response?.data?.message || 'Không thể xóa!');
   }
 };
 

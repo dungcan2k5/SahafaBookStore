@@ -1,93 +1,204 @@
 <template>
   <div v-loading="loading" class="min-h-[80vh]">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Top Stats Cards (Theo thời gian) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       
       <el-card shadow="hover" class="rounded-xl border-none shadow-md hover:-translate-y-1 transition-all duration-300">
          <template #header>
             <div class="flex justify-between items-center">
-               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Tổng Doanh thu</span>
-               <el-tag type="success" effect="dark" class="rounded-full">+0%</el-tag>
+               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Doanh thu {{ periodLabel }}</span>
+               <el-tag type="success" effect="dark" class="rounded-full">Paid</el-tag>
             </div>
          </template>
          <div class="flex items-baseline gap-2">
-             <div class="text-3xl font-extrabold text-gray-800">{{ formatCurrency(stats.revenue) }}</div>
+             <div class="text-2xl font-extrabold text-gray-800">{{ formatCurrency(stats.periodRevenue) }}</div>
          </div>
-         <div class="text-xs text-gray-400 mt-2">Tính trên các đơn đã thanh toán</div>
       </el-card>
 
       <el-card shadow="hover" class="rounded-xl border-none shadow-md hover:-translate-y-1 transition-all duration-300">
          <template #header>
             <div class="flex justify-between items-center">
-               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Tổng Đơn hàng</span>
-               <el-tag type="warning" effect="dark" class="rounded-full">Mới</el-tag>
+               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Đơn hàng {{ periodLabel }}</span>
+               <el-icon class="text-orange-500"><List /></el-icon>
             </div>
          </template>
-         <div class="text-3xl font-extrabold text-gray-800">{{ stats.totalOrders }} <span class="text-lg font-normal text-gray-500">Đơn</span></div>
-         <div class="text-xs text-gray-400 mt-2">Đang chờ xử lý: {{ stats.pendingOrders }}</div>
+         <div class="text-3xl font-extrabold text-gray-800">{{ stats.periodOrders }}</div>
+         <div class="text-xs text-gray-400 mt-2">Đơn thành công</div>
+      </el-card>
+
+      <el-card shadow="hover" class="rounded-xl border-none shadow-md hover:-translate-y-1 transition-all duration-300">
+         <template #header>
+            <div class="flex justify-between items-center">
+               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Khách hàng</span>
+               <el-icon class="text-blue-500"><User /></el-icon>
+            </div>
+         </template>
+         <div class="text-3xl font-extrabold text-gray-800">{{ stats.totalUsers }}</div>
+         <div class="text-xs text-gray-400 mt-2">Tổng tài khoản</div>
       </el-card>
 
        <el-card shadow="hover" class="rounded-xl border-none shadow-md hover:-translate-y-1 transition-all duration-300">
          <template #header>
             <div class="flex justify-between items-center">
-               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Sách Tồn kho</span>
-               <el-icon class="text-blue-500"><Box /></el-icon>
+               <span class="text-gray-500 font-medium uppercase text-xs tracking-wider">Kho sách</span>
+               <el-icon class="text-purple-500"><Box /></el-icon>
             </div>
          </template>
-         <div class="text-3xl font-extrabold text-gray-800">{{ stats.inStock }} <span class="text-lg font-normal text-gray-500">Cuốn</span></div>
-         <div class="text-xs text-gray-400 mt-2">Tổng đầu sách: {{ stats.totalBooks }}</div>
+         <div class="text-3xl font-extrabold text-gray-800">{{ stats.totalBooks }} <span class="text-sm font-normal text-gray-500">cuốn</span></div>
+         <div class="text-xs text-gray-400 mt-2">{{ stats.totalTitles }} đầu sách</div>
       </el-card>
     </div>
 
-    <el-card shadow="never" class="rounded-xl border-dashed border-2 border-gray-300 h-[400px] flex flex-col items-center justify-center bg-gray-50">
-        <el-icon :size="60" class="text-gray-300 mb-4"><DataLine /></el-icon>
-        <h3 class="text-xl font-bold text-gray-400">Biểu đồ tăng trưởng</h3>
-        <p class="text-gray-400 text-sm mt-2">Chưa có đủ dữ liệu để vẽ biểu đồ</p>
-        <el-button type="primary" plain class="mt-6" @click="fetchData">Làm mới dữ liệu</el-button>
+    <!-- Chart Section -->
+    <el-card shadow="never" class="rounded-xl border-none shadow-sm p-4 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <el-icon><DataLine /></el-icon> Biểu đồ doanh thu
+            </h3>
+            
+            <el-radio-group v-model="filterPeriod" size="small" @change="fetchData">
+                <el-radio-button label="week">Tuần này</el-radio-button>
+                <el-radio-button label="month">Tháng này</el-radio-button>
+                <el-radio-button label="year">Năm nay</el-radio-button>
+            </el-radio-group>
+        </div>
+
+        <div class="h-[400px] w-full">
+            <Bar v-if="chartData.labels.length > 0" :data="chartData" :options="chartOptions" />
+            <div v-else class="flex flex-col items-center justify-center h-full text-gray-400">
+                <p>Không có dữ liệu hiển thị</p>
+            </div>
+        </div>
     </el-card>
+
+    <!-- Detailed Stats Row -->
+    <h3 class="text-lg font-bold text-gray-700 mb-4 px-2 border-l-4 border-blue-500">Thông tin hệ thống</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-xs uppercase font-bold">Tác giả</div>
+                <div class="text-xl font-bold text-gray-800">{{ stats.totalAuthors }}</div>
+            </div>
+            <el-icon class="text-gray-300 text-2xl"><UserFilled /></el-icon>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-xs uppercase font-bold">Nhà xuất bản</div>
+                <div class="text-xl font-bold text-gray-800">{{ stats.totalPublishers }}</div>
+            </div>
+            <el-icon class="text-gray-300 text-2xl"><OfficeBuilding /></el-icon>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-xs uppercase font-bold">Bài viết</div>
+                <div class="text-xl font-bold text-gray-800">{{ stats.totalPosts }}</div>
+            </div>
+            <el-icon class="text-gray-300 text-2xl"><Document /></el-icon>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-xs uppercase font-bold">Đầu sách</div>
+                <div class="text-xl font-bold text-gray-800">{{ stats.totalTitles }}</div>
+            </div>
+            <el-icon class="text-gray-300 text-2xl"><Reading /></el-icon>
+        </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { Box, DataLine } from '@element-plus/icons-vue';
-import api from '@/services/api'; // Gọi api service
+import { ref, reactive, onMounted, computed } from 'vue';
+import { Box, DataLine, User, List, UserFilled, OfficeBuilding, Document, Reading } from '@element-plus/icons-vue';
+import api from '@/services/api';
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale
+} from 'chart.js';
+import { Bar } from 'vue-chartjs';
 
-// State lưu dữ liệu
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+// State
 const loading = ref(false);
+const filterPeriod = ref('month');
 const stats = reactive({
-    revenue: 0,
-    totalOrders: 0,
-    pendingOrders: 0,
-    inStock: 0,
-    totalBooks: 0
+    periodRevenue: 0,
+    periodOrders: 0,
+    totalUsers: 0,
+    totalBooks: 0,
+    totalTitles: 0,
+    totalAuthors: 0,
+    totalPublishers: 0,
+    totalPosts: 0
 });
 
-// Hàm format tiền tệ
+const periodLabel = computed(() => {
+    if (filterPeriod.value === 'week') return '(Tuần này)';
+    if (filterPeriod.value === 'year') return '(Năm nay)';
+    return '(Tháng này)';
+});
+
+// Chart Configuration
+const chartData = ref({
+    labels: [],
+    datasets: []
+});
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'top',
+        },
+        title: {
+            display: false,
+        }
+    }
+};
+
+// Helpers
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 };
 
-// Hàm lấy dữ liệu từ API thật
+// API Fetch
 const fetchData = async () => {
     loading.value = true;
     try {
-        // 1. SỬA LẠI ĐOẠN LẤY SÁCH
-        console.log("Đang gọi API Books...");
-        const booksRes = await api.get('/api/books');
-        
-        // Log ra xem Backend trả về cái gì
-        console.log("Dữ liệu Books nhận được:", booksRes.data); 
+        const res = await api.get('/api/stats/dashboard', {
+            params: { period: filterPeriod.value }
+        });
 
-        // Xử lý linh hoạt: Nếu data là mảng thì dùng luôn, nếu bọc trong .data thì lấy .data
-        // (Đây là chỗ hay bị sai nhất)
-        const books = Array.isArray(booksRes.data) ? booksRes.data : (booksRes.data.data || []);
-        
-        stats.totalBooks = books.length;
-        // Cộng dồn số lượng tồn kho
-        stats.inStock = books.reduce((sum, book) => sum + (Number(book.stock_quantity) || 0), 0);
+        if (res.data && res.data.success) {
+            const data = res.data.data;
+            
+            // Update Stats
+            Object.assign(stats, data);
 
+            // Update Chart
+            const labels = data.chartData.map(item => item.label);
+            const values = data.chartData.map(item => item.value);
+
+            chartData.value = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Doanh thu (VNĐ)',
+                        backgroundColor: '#409EFF',
+                        data: values
+                    }
+                ]
+            };
+        }
     } catch (error) {
-        console.error("Lỗi tải Dashboard:", error);
+        console.error("Lỗi tải dashboard:", error);
     } finally {
         loading.value = false;
     }
