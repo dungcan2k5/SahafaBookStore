@@ -1,33 +1,53 @@
 const { models } = require('../config/database');
-const { Book, Author, Genre, BookImage } = models; 
+const { Book, Author, Genre, BookImage} = models; 
 const { Op } = require('sequelize');
 
 // [GET] /api/books - Lấy danh sách
 const getAllBooks = async (req, res) => {
     try {
-        const { search, genre, author } = req.query;
-        const whereClause = {};
+        const { search, category } = req.query; 
+        
+        let whereClause = {};
+        
+        // Cấu hình include để lấy dữ liệu liên quan
+        let includeClause = [
+            { model: Author, attributes: ['author_name'] }, // Bỏ alias 'as: Author' để tránh lỗi nếu chưa config
+            { model: BookImage, attributes: ['book_image_url'] },
+            // 👇 SỬA: Lấy thông tin Thể loại (Genre) thay vì Category
+            { 
+                model: Genre, 
+                attributes: ['genre_name', 'genre_slug'] 
+            } 
+        ];
 
-        if (search) whereClause.book_title = { [Op.like]: `%${search}%` };
-        if (genre) whereClause.genre_id = genre;
-        if (author) whereClause.author_id = author;
+        // 1. Logic tìm kiếm (Search)
+        if (search) {
+             whereClause = {
+                [Op.or]: [
+                    // Tìm theo tên sách
+                    { book_title: { [Op.like]: `%${search}%` } },
+                    // Tìm theo tên tác giả (Query trên bảng liên kết Author)
+                    { '$Author.author_name$': { [Op.like]: `%${search}%` } }
+                ]
+            };
+        }
+
+        // 2. Logic lọc theo Danh mục (Thực chất là tìm theo Genre Slug)
+        if (category) {
+            // Khi frontend gọi /api/books?category=van-hoc -> Backend tìm genre_slug = 'van-hoc'
+            whereClause['$Genre.genre_slug$'] = category;
+        }
 
         const books = await Book.findAll({
             where: whereClause,
-            
-            // 👇 SỬA DÒNG NÀY: Đổi 'DESC' thành 'ASC'
-            order: [['book_id', 'ASC']], 
-            
-            include: [
-                { model: Author, attributes: ['author_name'] },
-                { model: Genre, attributes: ['genre_name'] },
-                { model: BookImage, attributes: ['book_image_url'] }
-            ]
+            include: includeClause,
+            order: [['book_id', 'DESC']]    
         });
+
         res.status(200).json({ success: true, data: books });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        console.error("Lỗi lấy sách:", error);
+        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
     }
 };
 
