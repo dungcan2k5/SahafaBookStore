@@ -15,7 +15,7 @@
             </div>
 
             <div class="absolute top-full left-0 pt-4 w-[300px] lg:w-[800px] hidden group-hover:block animate-fade-in">
-                 <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
+                  <div class="bg-white text-gray-800 shadow-2xl rounded-lg border border-gray-200 overflow-hidden flex min-h-[400px]">
                     <div class="w-1/3 bg-gray-50 border-r border-gray-200 py-2">
                       <ul class="flex flex-col text-sm">
                         <li 
@@ -168,11 +168,12 @@
                            Trang Quản Trị
                         </div>
                       </router-link>
+
                       <router-link 
                         to="/user/profile" 
                         class="w-full block text-center py-2 hover:bg-blue-50 text-blue-600 rounded text-sm font-bold mb-1 transition"
                       >
-                         Hồ sơ cá nhân
+                          Hồ sơ cá nhân
                       </router-link>
 
                       <button @click="authStore.logout()" class="w-full text-center py-2 text-red-600 hover:bg-red-50 rounded text-sm font-bold">
