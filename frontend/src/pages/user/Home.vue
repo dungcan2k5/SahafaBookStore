@@ -123,7 +123,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 // Xóa các dòng import axios dư thừa, chỉ dùng bookService
-import { bookService } from '@/services/bookService'; 
+import api from '@/services/api';
 
 // Import Components
 import CategoryNav from '@/components/user/CategoryNav.vue';
@@ -161,25 +161,27 @@ const newBooks = ref([]);
 
 const fetchAllHomeData = async () => {
   try {
-    // Gọi song song 3 API
+    // Gọi trực tiếp qua api.get và truyền params
     const [best, trend, news] = await Promise.all([
-      bookService.getBestSellers(4),
-      bookService.getTrending(),
-      bookService.getNewArrivals()
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
+      api.get('/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
-    // Gán dữ liệu (Vì Backend của bạn đã trả về id, title, image...)
+    // Gán dữ liệu trực tiếp vì api.js đã bóc tách data
     bestSellers.value = best || [];
     trendingBooks.value = trend || [];
     newBooks.value = news || [];
-    
-    console.log("Dữ liệu về:", bestSellers.value); // Để kiểm tra trong F12 Console
   } catch (error) {
-    console.error("Lỗi:", error);
+    console.error("Lỗi khi gọi API trực tiếp:", error);
   }
 };
 
 onMounted(() => {
   fetchAllHomeData();
+});
+
+onUnmounted(() => {
+  clearInterval(slideInterval);
 });
 </script>

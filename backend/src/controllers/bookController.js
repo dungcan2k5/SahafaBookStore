@@ -15,52 +15,31 @@ const { uploadRoot } = require('../middleware/uploadMiddleware');
 // [GET] /api/books - Lấy danh sách sách (có phân trang)
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category, page = 1, limit = 10 } = req.query; 
-        
-        const offset = (page - 1) * limit;
-        const limitInt = parseInt(limit);
+        const { sort, order, limit } = req.query; 
 
-        let whereClause = {};
-        
-        // 1. Logic tìm kiếm (Search)
-        if (search) {
-             whereClause = {
-                [Op.or]: [
-                    { book_title: { [Op.like]: `%${search}%` } },
-                    { '$Author.author_name$': { [Op.like]: `%${search}%` } }
-                ]
-            };
-        }
-
-        // 2. Logic lọc theo Danh mục
-        if (category) {
-            whereClause['$Genre.genre_slug$'] = category;
-        }
-
-        const { count, rows } = await Book.findAndCountAll({
-            where: whereClause,
-            order: [['book_id', 'ASC']], 
-            include: [
-                { model: Author, attributes: ['author_name'] },
-                { model: Genre, attributes: ['genre_name'] },
-                { model: BookImage, attributes: ['book_image_url'] }
-            ],
-            limit: limitInt,
-            offset: offset,
-            distinct: true // Để đếm đúng khi có include
+        const books = await Book.findAll({
+            // Sắp xếp linh hoạt để hiện đúng sách "Bán chạy" hay "Mới về"
+            order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
+            limit: limit ? parseInt(limit) : undefined,
+            include: [{ model: BookImage, attributes: ['book_image_url'] }] 
         });
 
-        res.status(200).json({ 
-            success: true, 
-            data: rows,
-            meta: {
-                total: count,
-                page: parseInt(page),
-                limit: limitInt,
-                totalPages: Math.ceil(count / limitInt)
-            }
-        });
+        // QUAN TRỌNG: Map lại dữ liệu theo đúng tên biến Frontend cần
+        const formattedData = books.map(b => ({
+            id: b.book_id,
+            title: b.book_title,
+            price: b.price,
+            oldPrice: Math.round((b.price * 1.25) / 1000) * 1000, 
+            // Sequelize tự động thêm 's' vào tên model khi dùng include
+            image: b.BookImages && b.BookImages.length > 0 
+                   ? b.BookImages[0].book_image_url 
+                   : 'https://placehold.co/400x600',
+            sold: b.total_sold || 0
+        }));
+
+        res.status(200).json({ success: true, data: formattedData });
     } catch (error) {
+        console.error("Lỗi getAllBooks:", error);
         res.status(500).json({ success: false });
     }
 };
@@ -323,42 +302,25 @@ const getFlashSaleBooks = async (req, res) => {
         const books = await Book.findAll({
             limit: 10,
             order: [['book_id', 'DESC']], 
-            include: [
-                { model: BookImages, attributes: ['book_image_url'] }
-            ]
+            // Dùng đúng model BookImage
+            include: [{ model: BookImage, attributes: ['book_image_url'] }] 
         });
 
-        const flashSaleData = books.map(book => {
-            const originalPrice = parseFloat(book.price);
-            const discountPercent = Math.floor(Math.random() * (50 - 10 + 1)) + 10; 
-            const salePrice = originalPrice * (1 - discountPercent / 100);
-            
-            const totalStock = book.stock_quantity > 0 ? book.stock_quantity : 50;
-            const sold = Math.floor(Math.random() * (totalStock - 1));
-
-            // SỬA LỖI Ở ĐÂY: Dùng BookImages thay vì BOOK_IMAGEs cho khớp với model mới
-            let imageUrl = 'https://placehold.co/400x600?text=No+Image';
-            if (book.BookImages && book.BookImages.length > 0) {
-                 imageUrl = book.BookImages[0].book_image_url;
-            }
-
-            return {
-                id: book.book_id,
-                title: book.book_title,
-                price: Math.round(salePrice / 1000) * 1000, 
-                oldPrice: originalPrice,
-                discount: discountPercent,
-                image: imageUrl,
-                sold: sold,
-                totalStock: totalStock
-            };
-        });
+        const flashSaleData = books.map(book => ({
+            id: book.book_id,
+            title: book.book_title,
+            price: Math.round((book.price * 0.8) / 1000) * 1000, 
+            oldPrice: Number(book.price),
+            discount: 20,
+            // Sequelize tự thêm 's' vào tên model khi include: BookImages
+            image: book.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600',
+            sold: Math.floor(Math.random() * 20),
+            totalStock: 50
+        }));
 
         res.status(200).json({ success: true, data: flashSaleData });
-
     } catch (error) {
-        console.error("Flash Sale Error:", error);
-        res.status(500).json({ success: false, message: "Lỗi Server" });
+        res.status(500).json({ success: false });
     }
 };
 
