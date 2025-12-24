@@ -131,6 +131,13 @@ const routes = [
         meta: { title: 'Quản lý Người dùng' }
       }
     ]
+  },
+
+  // ================== 404 NOT FOUND ==================
+  { 
+    path: '/:pathMatch(.*)*', 
+    name: 'NotFound', 
+    component: () => import('@/pages/NotFound.vue') 
   }
 ]
 

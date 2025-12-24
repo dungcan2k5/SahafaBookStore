@@ -1,7 +1,7 @@
 <template>
-  <div class="common-layout h-screen w-full flex">
-    <el-aside width="220px" class="bg-[#001529] text-white flex flex-col transition-all h-full shadow-xl z-20">
-      <div class="h-16 flex items-center justify-center border-b border-gray-700 bg-[#002140]">
+  <div class="common-layout min-h-screen w-full flex">
+    <el-aside width="220px" class="bg-[#001529] text-white flex flex-col transition-all shadow-xl z-20 sticky top-0 h-screen">
+      <div class="h-16 flex items-center justify-center border-b border-gray-700 bg-[#002140] shrink-0">
            <span class="text-xl font-bold tracking-wider text-white">
              SAHAFA <span class="text-yellow-400">ADMIN</span>
            </span>
@@ -64,8 +64,8 @@
       </el-menu>
     </el-aside>
 
-    <div class="flex-1 flex flex-col h-full overflow-hidden bg-gray-100">
-      <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10 shrink-0">
+    <div class="flex-1 flex flex-col bg-gray-100">
+      <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10 shrink-0 sticky top-0">
           <div class="text-gray-500 font-medium flex items-center gap-2">
              <el-icon class="text-lg"><Fold /></el-icon>
              Trang quản trị hệ thống Sahafa Bookstore
@@ -79,7 +79,7 @@
           </div>
       </header>
       
-      <main class="flex-1 overflow-auto p-6">
+      <main class="flex-1 p-6">
          <router-view v-slot="{ Component }">
             <transition name="el-fade-in-linear" mode="out-in">
               <component :is="Component" />

@@ -12,53 +12,54 @@ const fs = require('fs');
 const path = require('path');
 const { uploadRoot } = require('../middleware/uploadMiddleware');
 
-// [GET] /api/books - Lấy danh sách sách
+// [GET] /api/books - Lấy danh sách sách (có phân trang)
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category } = req.query; 
+        const { search, category, page = 1, limit = 10 } = req.query; 
         
+        const offset = (page - 1) * limit;
+        const limitInt = parseInt(limit);
+
         let whereClause = {};
         
-        // Cấu hình include để lấy dữ liệu liên quan
-        let includeClause = [
-            { model: Author, attributes: ['author_name'] }, // Bỏ alias 'as: Author' để tránh lỗi nếu chưa config
-            { model: BookImage, attributes: ['book_image_url'] },
-            // 👇 SỬA: Lấy thông tin Thể loại (Genre) thay vì Category
-            { 
-                model: Genre, 
-                attributes: ['genre_name', 'genre_slug'] 
-            } 
-        ];
-
         // 1. Logic tìm kiếm (Search)
         if (search) {
              whereClause = {
                 [Op.or]: [
-                    // Tìm theo tên sách
                     { book_title: { [Op.like]: `%${search}%` } },
-                    // Tìm theo tên tác giả (Query trên bảng liên kết Author)
                     { '$Author.author_name$': { [Op.like]: `%${search}%` } }
                 ]
             };
         }
 
-        // 2. Logic lọc theo Danh mục (Thực chất là tìm theo Genre Slug)
+        // 2. Logic lọc theo Danh mục
         if (category) {
-            // Khi frontend gọi /api/books?category=van-hoc -> Backend tìm genre_slug = 'van-hoc'
             whereClause['$Genre.genre_slug$'] = category;
         }
 
-        const books = await Book.findAll({
+        const { count, rows } = await Book.findAndCountAll({
             where: whereClause,
             order: [['book_id', 'ASC']], 
             include: [
                 { model: Author, attributes: ['author_name'] },
                 { model: Genre, attributes: ['genre_name'] },
                 { model: BookImage, attributes: ['book_image_url'] }
-            ]
+            ],
+            limit: limitInt,
+            offset: offset,
+            distinct: true // Để đếm đúng khi có include
         });
 
-        res.status(200).json({ success: true, data: books });
+        res.status(200).json({ 
+            success: true, 
+            data: rows,
+            meta: {
+                total: count,
+                page: parseInt(page),
+                limit: limitInt,
+                totalPages: Math.ceil(count / limitInt)
+            }
+        });
     } catch (error) {
         console.error("Get All Books Error:", error);
         res.status(500).json({ success: false, message: 'Lỗi server' });

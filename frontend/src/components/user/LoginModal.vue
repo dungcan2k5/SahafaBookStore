@@ -102,7 +102,7 @@
               <input 
                 v-model="registerForm.password" 
                 :type="showRegisterPassword ? 'text' : 'password'" 
-                placeholder="Tối thiểu 6 ký tự, gồm chữ và số" 
+                placeholder="Tối thiểu 8 ký tự, gồm hoa, thường, số, ký tự đặc biệt" 
                 class="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:border-blue-500 transition"
                 required
               />
@@ -152,7 +152,8 @@
 <script setup>
 import { ref, reactive, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus'; // Thêm ElMessageBox
+import axios from 'axios';
 
 // Props: Nhận tab ban đầu từ cha
 const props = defineProps({
@@ -169,6 +170,7 @@ const activeTab = ref(props.initialTab);
 const showPassword = ref(false);
 const showRegisterPassword = ref(false);
 const loading = ref(false);
+const forgotEmail = ref(''); // Thêm ref cho email quên mật khẩu
 
 // Theo dõi nếu prop thay đổi thì đổi tab theo
 watch(() => props.initialTab, (newVal) => {
@@ -191,6 +193,38 @@ const handleClose = () => {
   emit('close');
 };
 
+// Xử lý Quên Mật Khẩu
+const handleForgotPassword = async () => {
+    if (!forgotEmail.value) return;
+    loading.value = true;
+    try {
+        const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+            email: forgotEmail.value
+        });
+        if (response.data.success) {
+             // Hiển thị mật khẩu mới (TẠM THỜI)
+             ElMessageBox.alert(
+                `Mật khẩu mới của bạn là: <strong>${response.data.newPassword}</strong><br>Vui lòng đăng nhập và đổi mật khẩu ngay.`, 
+                'Cấp lại mật khẩu thành công', 
+                {
+                    confirmButtonText: 'Đăng nhập ngay',
+                    dangerouslyUseHTMLString: true,
+                    callback: () => {
+                        // Tự động điền thông tin đăng nhập
+                        loginForm.email = forgotEmail.value;
+                        loginForm.password = response.data.newPassword;
+                        activeTab.value = 'login';
+                    }
+                }
+             );
+        }
+    } catch (error) {
+        ElMessage.error(error.response?.data?.message || 'Lỗi kết nối server');
+    } finally {
+        loading.value = false;
+    }
+};
+
 // Xử lý Đăng Nhập
 const handleLogin = async () => {
   loading.value = true;
@@ -211,8 +245,14 @@ const handleLogin = async () => {
 
 // Xử lý Đăng Ký
 const handleRegister = async () => {
-  if (registerForm.password.length < 6) {
-    ElMessage.warning('Mật khẩu phải có ít nhất 6 ký tự');
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/;
+  
+  if (registerForm.password.length < 8) {
+    ElMessage.warning('Mật khẩu phải có ít nhất 8 ký tự');
+    return;
+  }
+  if (!passwordRegex.test(registerForm.password)) {
+    ElMessage.warning('Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*)');
     return;
   }
 

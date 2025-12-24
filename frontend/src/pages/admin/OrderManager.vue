@@ -24,7 +24,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="filteredOrders" style="width: 100%" v-loading="loading" stripe border height="500">
+      <el-table :data="orders" style="width: 100%" v-loading="loading" stripe border height="500">
         <el-table-column prop="order_id" label="Mã Đơn" width="90" align="center">
           <template #default="scope">
             <span class="font-bold text-gray-600">#{{ scope.row.order_id }}</span>
@@ -91,6 +91,10 @@
         <el-table-column label="Xử lý" width="170" align="center" fixed="right">
           <template #default="scope">
             <div class="flex flex-col gap-2">
+              <el-button type="info" size="small" plain @click="viewOrderDetails(scope.row)">
+                 <el-icon class="mr-1"><View /></el-icon> Chi tiết
+              </el-button>
+
               <el-button
                 v-if="scope.row.order_status === 'pending'"
                 type="primary"
@@ -144,13 +148,106 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- Pagination -->
+      <div class="mt-4 flex justify-end">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
+
+    <!-- Dialog Chi tiết đơn hàng -->
+    <el-dialog v-model="detailsVisible" title="Chi tiết đơn hàng" width="800px" top="5vh">
+      <div v-if="selectedOrder" class="space-y-4">
+        <!-- Header Info -->
+        <div class="flex justify-between border-b pb-2">
+           <div>
+              <div class="font-bold text-lg">Đơn hàng #{{ selectedOrder.order_id }}</div>
+              <div class="text-sm text-gray-500">Ngày đặt: {{ new Date(selectedOrder.created_at).toLocaleString('vi-VN') }}</div>
+           </div>
+           <div class="text-right">
+              <el-tag :type="getStatusColor(selectedOrder.order_status)" effect="dark" class="uppercase font-bold mb-1">
+                 {{ formatStatus(selectedOrder.order_status) }}
+              </el-tag>
+              <div class="text-sm font-bold text-red-600">
+                {{ formatCurrency(selectedOrder.final_amount) }}
+              </div>
+           </div>
+        </div>
+
+        <!-- Customer & Shipping -->
+        <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
+            <div>
+               <div class="font-bold text-gray-700 mb-1">Người đặt hàng</div>
+               <div>{{ selectedOrder.User?.full_name }}</div>
+               <div class="text-sm text-gray-500">{{ selectedOrder.User?.email }}</div>
+               <div class="text-sm text-gray-500">{{ selectedOrder.User?.phone }}</div>
+            </div>
+            <div>
+               <div class="font-bold text-gray-700 mb-1">Địa chỉ giao hàng</div>
+               <div class="font-bold">{{ selectedOrder.Address?.recipient_name }}</div>
+               <div class="text-sm">{{ selectedOrder.Address?.phone }}</div>
+               <div class="text-sm text-gray-600">{{ selectedOrder.Address?.address_detail || selectedOrder.shipping_address }}</div>
+            </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="border p-2 rounded border-dashed border-gray-300">
+           <span class="font-bold text-gray-700">Thanh toán: </span>
+           <span class="uppercase font-bold text-blue-600 mr-2">{{ selectedOrder.payment_method || 'COD' }}</span>
+           <span class="text-sm">
+             (Trạng thái: 
+             <span :class="selectedOrder.payment_status === 'paid' ? 'text-green-600 font-bold' : 'text-orange-500'">
+                {{ selectedOrder.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+             </span>)
+           </span>
+           <div v-if="selectedOrder.Transactions?.length" class="mt-1 text-xs text-gray-500">
+               Mã GD: {{ selectedOrder.Transactions.map(t => '#' + t.transaction_id).join(', ') }}
+           </div>
+        </div>
+
+        <!-- Order Items -->
+        <div>
+           <div class="font-bold mb-2">Sản phẩm</div>
+           <el-table :data="selectedOrder.OrderItems" border size="small">
+              <el-table-column label="Sách" prop="Book.book_title" min-width="200" />
+              <el-table-column label="Đơn giá" width="120" align="right">
+                 <template #default="s">
+                    {{ formatCurrency(s.row.unit_price) }}
+                 </template>
+              </el-table-column>
+              <el-table-column label="SL" prop="quantity" width="60" align="center" />
+              <el-table-column label="Thành tiền" width="120" align="right">
+                 <template #default="s">
+                    {{ formatCurrency(s.row.subtotal) }}
+                 </template>
+              </el-table-column>
+           </el-table>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="detailsVisible = false">Đóng</el-button>
+          <el-button type="primary" @click="printInvoice">
+             <el-icon class="mr-1"><Printer /></el-icon> In Hóa Đơn
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { List, MagicStick, Location, Search } from '@element-plus/icons-vue';
+import { ref, onMounted, watch } from 'vue';
+import { List, MagicStick, Location, Search, View, Printer } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
 
@@ -158,6 +255,16 @@ const orders = ref([]);
 const loading = ref(false);
 const creating = ref(false);
 const searchText = ref('');
+let debounceTimer = null;
+
+// Pagination
+const currentPage = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
+
+// Details Dialog
+const detailsVisible = ref(false);
+const selectedOrder = ref(null);
 
 // --- HELPERS ---
 const formatCurrency = (val) =>
@@ -185,25 +292,118 @@ const getStatusColor = (status) => {
   return map[status] || 'info';
 };
 
-// FILTER: mã đơn / tên khách / sđt
-const filteredOrders = computed(() => {
-  const q = (searchText.value || '').trim().toLowerCase();
-  if (!q) return orders.value;
+// --- ACTIONS ---
+const viewOrderDetails = (order) => {
+    selectedOrder.value = order;
+    detailsVisible.value = true;
+};
 
-  return orders.value.filter((o) => {
-    const orderId = String(o.order_id ?? '').toLowerCase();
-    const fullName = String(o.User?.full_name ?? '').toLowerCase();
-    const phone = String(o.User?.phone ?? '').toLowerCase();
-    return orderId.includes(q) || fullName.includes(q) || phone.includes(q);
-  });
-});
+const printInvoice = () => {
+    if (!selectedOrder.value) return;
+    const order = selectedOrder.value;
+    
+    const itemsHtml = order.OrderItems.map(item => `
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.Book?.book_title}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.unit_price)}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.subtotal)}</td>
+        </tr>
+    `).join('');
+
+    const invoiceHtml = `
+        <html>
+        <head>
+            <title>Hóa đơn #${order.order_id}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+                .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+                .info-box { background: #f9f9f9; padding: 15px; border-radius: 4px; }
+                .info-title { font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.85em; color: #666; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th { background: #eee; text-align: left; padding: 10px; font-weight: bold; }
+                .totals { margin-top: 20px; text-align: right; }
+                .totals div { margin-bottom: 5px; }
+                .final-price { font-size: 1.2em; font-weight: bold; color: #d00; }
+                .footer { margin-top: 40px; text-align: center; font-size: 0.9em; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Sahafa Bookstore - Hóa Đơn</h1>
+                <p>Mã đơn hàng: #${order.order_id} - Ngày: ${new Date(order.created_at).toLocaleString('vi-VN')}</p>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-title">Người đặt</div>
+                    <div>${order.User?.full_name}</div>
+                    <div>${order.User?.phone}</div>
+                    <div>${order.User?.email}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">Người nhận & Giao tới</div>
+                    <div><strong>${order.Address?.recipient_name}</strong></div>
+                    <div>${order.Address?.phone}</div>
+                    <div>${order.Address?.address_detail || order.shipping_address}</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th style="text-align: center; width: 50px;">SL</th>
+                        <th style="text-align: right; width: 120px;">Đơn giá</th>
+                        <th style="text-align: right; width: 120px;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div>Tổng tiền hàng: <strong>${formatCurrency(order.total_amount)}</strong></div>
+                <div>Phí vận chuyển: <strong>30.000 ₫</strong> (Đã bao gồm)</div>
+                <div class="final-price">Thanh toán: ${formatCurrency(order.final_amount)}</div>
+                <div><em>(${order.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng'})</em></div>
+            </div>
+
+            <div class="footer">
+                <p>Cảm ơn quý khách đã mua hàng tại Sahafa Bookstore!</p>
+                <p>Website: www.sahafa.com | Hotline: 1900 xxxx</p>
+            </div>
+            
+            <script>
+                window.onload = function() { window.print(); }
+            <\/script>
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(invoiceHtml);
+    printWindow.document.close();
+};
 
 // --- API ---
 const fetchOrders = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/orders/admin');
+    const res = await api.get('/api/orders/admin', {
+        params: {
+            page: currentPage.value,
+            limit: pageSize.value,
+            search: searchText.value?.trim() || undefined
+        }
+    });
     orders.value = res.data.data || [];
+    if (res.data.meta) {
+        total.value = res.data.meta.total;
+    }
   } catch (e) {
     console.error(e);
     ElMessage.error('Lỗi tải danh sách đơn hàng!');
@@ -211,6 +411,26 @@ const fetchOrders = async () => {
     loading.value = false;
   }
 };
+
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  currentPage.value = 1;
+  fetchOrders();
+};
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
+  fetchOrders();
+};
+
+// Search Watcher
+watch(searchText, () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        currentPage.value = 1;
+        fetchOrders();
+    }, 400);
+});
 
 const updateStatus = async (id, newStatus) => {
   try {

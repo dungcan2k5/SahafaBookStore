@@ -46,6 +46,14 @@
               >
                 {{ isLoading ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
               </button>
+              
+              <button 
+                type="button" 
+                @click="showPasswordModal = true" 
+                class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition shadow-md font-bold"
+              >
+                Đổi mật khẩu
+              </button>
             </div>
             <p v-if="message" class="md:ml-32 text-sm font-bold" :class="isError ? 'text-red-600' : 'text-green-600'">
                 {{ message }}
@@ -94,6 +102,7 @@
         <router-link to="/login" class="text-blue-600 underline">Đăng nhập lại nếu đợi quá lâu</router-link>
     </div>
 
+    <!-- MODAL ĐỊA CHỈ -->
     <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
        <div class="bg-white rounded-lg w-full max-w-lg p-6 shadow-xl relative animate-fade-in-up">
           <h3 class="text-lg font-bold mb-4">{{ isEditMode ? 'Cập Nhật Địa Chỉ' : 'Thêm Địa Chỉ Mới' }}</h3>
@@ -117,6 +126,33 @@
                 {{ modalLoading ? 'Lưu...' : 'Hoàn Thành' }}
              </button>
           </div>
+       </div>
+    </div>
+
+    <!-- MODAL ĐỔI MẬT KHẨU -->
+    <div v-if="showPasswordModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+       <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative animate-fade-in-up">
+          <h3 class="text-lg font-bold mb-4 border-b pb-2">Đổi Mật Khẩu</h3>
+          <form @submit.prevent="handleChangePassword" class="space-y-4">
+              <div>
+                  <label class="block text-sm text-gray-600 mb-1">Mật khẩu hiện tại</label>
+                  <input v-model="passForm.oldPassword" type="password" required class="input-field" placeholder="••••••">
+              </div>
+              <div>
+                  <label class="block text-sm text-gray-600 mb-1">Mật khẩu mới</label>
+                  <input v-model="passForm.newPassword" type="password" required class="input-field" placeholder="Tối thiểu 8 ký tự">
+              </div>
+              <div>
+                  <label class="block text-sm text-gray-600 mb-1">Nhập lại mật khẩu mới</label>
+                  <input v-model="passForm.confirmPassword" type="password" required class="input-field" placeholder="••••••">
+              </div>
+              <div class="flex justify-end gap-3 mt-4">
+                 <button type="button" @click="showPasswordModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Hủy</button>
+                 <button type="submit" class="px-4 py-2 bg-[#C92127] text-white rounded hover:bg-red-700 font-bold" :disabled="passLoading">
+                    {{ passLoading ? 'Đang xử lý...' : 'Xác nhận' }}
+                 </button>
+              </div>
+          </form>
        </div>
     </div>
 
@@ -148,6 +184,15 @@ const addrForm = reactive({
    is_default: false
 });
 
+// Password Modal State
+const showPasswordModal = ref(false);
+const passLoading = ref(false);
+const passForm = reactive({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+});
+
 onMounted(() => {
     if (authStore.user) {
         user.value = { 
@@ -157,6 +202,46 @@ onMounted(() => {
         fetchAddresses(); // Lấy danh sách địa chỉ
     }
 });
+
+// --- CHANGE PASSWORD LOGIC ---
+const handleChangePassword = async () => {
+    if (passForm.newPassword !== passForm.confirmPassword) {
+        alert("Mật khẩu mới không khớp!");
+        return;
+    }
+    
+    // Validate complexity
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/;
+    if (passForm.newPassword.length < 8) {
+        alert("Mật khẩu mới phải có ít nhất 8 ký tự!");
+        return;
+    }
+    if (!passwordRegex.test(passForm.newPassword)) {
+        alert("Mật khẩu mới phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*)");
+        return;
+    }
+
+    passLoading.value = true;
+    try {
+        const res = await api.post('/api/auth/change-password', {
+            oldPassword: passForm.oldPassword,
+            newPassword: passForm.newPassword
+        });
+
+        if (res.data.success) {
+            alert("Đổi mật khẩu thành công!");
+            showPasswordModal.value = false;
+            // Reset form
+            passForm.oldPassword = '';
+            passForm.newPassword = '';
+            passForm.confirmPassword = '';
+        }
+    } catch (error) {
+        alert(error.response?.data?.message || 'Lỗi đổi mật khẩu');
+    } finally {
+        passLoading.value = false;
+    }
+};
 
 // --- USER INFO ---
 const handleUpdate = async () => {

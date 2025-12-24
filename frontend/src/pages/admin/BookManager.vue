@@ -84,6 +84,19 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- Pagination -->
+      <div class="mt-4 flex justify-end">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <!-- Dialog -->
@@ -285,6 +298,11 @@ const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
 
+// Pagination
+const currentPage = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
+
 // Image handling
 const imageSourceType = ref('url'); // 'url', 'upload', 'server'
 const selectedFiles = ref([]); // Changed to array
@@ -343,7 +361,9 @@ const fetchData = async () => {
     const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
       api.get('/api/books', {
         params: {
-          search: searchText.value?.trim() || undefined
+          search: searchText.value?.trim() || undefined,
+          page: currentPage.value,
+          limit: pageSize.value
         }
       }),
       api.get('/api/books/authors'),
@@ -352,6 +372,11 @@ const fetchData = async () => {
     ]);
 
     books.value = resBooks.data?.data || [];
+    // Update pagination meta
+    if (resBooks.data?.meta) {
+        total.value = resBooks.data.meta.total;
+    }
+
     authors.value = resAuthors.data?.data || [];
     genres.value = resGenres.data?.data || [];
     publishers.value = resPub.data?.data || [];
@@ -361,6 +386,17 @@ const fetchData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  currentPage.value = 1; // Reset to page 1
+  fetchData();
+};
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
+  fetchData();
 };
 
 const fetchServerImages = async () => {
@@ -381,6 +417,7 @@ const fetchServerImages = async () => {
 watch(searchText, () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
+    currentPage.value = 1; // Reset page when searching
     fetchData();
   }, 400);
 });

@@ -188,17 +188,62 @@ const getMyOrders = async (req, res) => {
 // [GET] /api/orders/admin
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.findAll({
+    const { page = 1, limit = 10, search } = req.query;
+    const offset = (page - 1) * limit;
+    const limitInt = parseInt(limit);
+
+    let whereClause = {};
+    let userWhereClause = {};
+
+    if (search) {
+        const searchNum = parseInt(search);
+        // Nếu search là số -> tìm theo order_id
+        if (!isNaN(searchNum)) {
+             whereClause.order_id = searchNum;
+        } else {
+             // Tìm theo tên hoặc email/sđt user
+             // Vì User là bảng include, ta phải filter trong include hoặc dùng advanced queries.
+             // Đơn giản nhất: tìm theo User (nested where)
+             const { Op } = require('sequelize');
+             userWhereClause = {
+                [Op.or]: [
+                    { full_name: { [Op.like]: `%${search}%` } },
+                    { email: { [Op.like]: `%${search}%` } },
+                    { phone: { [Op.like]: `%${search}%` } }
+                ]
+             };
+        }
+    }
+
+    const { count, rows } = await Order.findAndCountAll({
+      where: whereClause,
       order: [['order_id', 'ASC']],
       include: [
         { model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] },
-        { model: models.User, attributes: ['full_name', 'email', 'phone'] },
+        { 
+            model: models.User, 
+            attributes: ['full_name', 'email', 'phone'],
+            where: Object.keys(userWhereClause).length > 0 ? userWhereClause : undefined,
+            required: Object.keys(userWhereClause).length > 0 // Nếu có search user thì bắt buộc phải có user
+        },
         { model: Address, attributes: ['address_detail', 'recipient_name', 'phone'] },
-        // Lấy kèm Transaction để hiển thị mã GD
         { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
-      ]
+      ],
+      limit: limitInt,
+      offset: offset,
+      distinct: true
     });
-    res.status(200).json({ success: true, data: orders });
+
+    res.status(200).json({ 
+        success: true, 
+        data: rows,
+        meta: {
+            total: count,
+            page: parseInt(page),
+            limit: limitInt,
+            totalPages: Math.ceil(count / limitInt)
+        }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Lỗi server' });

@@ -16,12 +16,24 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
           
           <div class="md:col-span-5 lg:col-span-4">
-            <div class="border rounded-lg overflow-hidden relative group p-2 mb-4">
+            <div class="border rounded-lg overflow-hidden relative group p-2 mb-4 bg-white">
               <img 
-                :src="currentImage || 'https://placehold.co/400x600?text=No+Image'" 
-                class="w-full h-auto object-contain max-h-[400px]" 
+                :src="selectedImage || 'https://placehold.co/400x600?text=No+Image'" 
+                class="w-full h-auto object-contain max-h-[400px] mx-auto transition-opacity duration-300" 
                 :alt="book.book_title" 
               />
+            </div>
+
+            <div v-if="book.BookImages?.length > 0" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div 
+                    v-for="(img, index) in book.BookImages" 
+                    :key="index"
+                    @click="selectedImage = img.book_image_url"
+                    class="w-20 h-20 flex-shrink-0 border-2 rounded-md cursor-pointer overflow-hidden transition-all hover:opacity-100"
+                    :class="selectedImage === img.book_image_url ? 'border-[#C92127] opacity-100' : 'border-transparent opacity-60 hover:border-gray-300'"
+                >
+                    <img :src="img.book_image_url" class="w-full h-full object-cover" :alt="`Ảnh ${index + 1}`">
+                </div>
             </div>
           </div>
 
@@ -119,25 +131,23 @@ const cartStore = useCartStore();
 const quantity = ref(1);
 const book = ref(null);
 const isLoading = ref(false);
+const selectedImage = ref(null);
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
-
-const currentImage = computed(() => {
-    if (book.value?.BookImages?.length > 0) {
-        return book.value.BookImages[0].book_image_url;
-    }
-    return null;
-});
 
 const fetchBookDetail = async (id) => {
   if (!id) return;
   isLoading.value = true;
   book.value = null;
+  selectedImage.value = null;
 
   try {
     const response = await axios.get(`http://localhost:3000/api/books/${id}`);
     if (response.data.success) {
        book.value = response.data.data;
+       if (book.value.BookImages && book.value.BookImages.length > 0) {
+           selectedImage.value = book.value.BookImages[0].book_image_url;
+       }
     }
   } catch (error) {
     console.error("Lỗi tải sách:", error);
@@ -164,7 +174,7 @@ const getProductData = () => {
         id: book.value.book_id,
         title: book.value.book_title,
         price: book.value.price,
-        image: currentImage.value // Lấy luôn ảnh để hiện trong giỏ cho đẹp
+        image: book.value.BookImages?.[0]?.book_image_url || null 
     };
 };
 
