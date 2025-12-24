@@ -123,8 +123,21 @@ const routes = [
         name: 'AdminPosts',
         component: () => import('@/pages/admin/PostManager.vue'),
         meta: { title: 'Quản lý Bài viết' }
+      },
+      { 
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/pages/admin/UserManager.vue'),
+        meta: { title: 'Quản lý Người dùng' }
       }
     ]
+  },
+
+  // ================== 404 NOT FOUND ==================
+  { 
+    path: '/:pathMatch(.*)*', 
+    name: 'NotFound', 
+    component: () => import('@/pages/NotFound.vue') 
   }
 ]
 

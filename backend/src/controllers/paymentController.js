@@ -18,14 +18,62 @@ const handleSepayWebhook = async (req, res) => {
 // [GET] /api/payment/transactions
 const getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.findAll({
+    const { page = 1, limit = 10, search } = req.query;
+    const offset = (page - 1) * limit;
+    const limitInt = parseInt(limit);
+
+    let whereClause = {};
+    let userWhereClause = {};
+
+    if (search) {
+        const searchNum = parseInt(search);
+        // Nếu search là số -> tìm theo order_id hoặc transaction_id
+        if (!isNaN(searchNum)) {
+             whereClause = {
+                [require('sequelize').Op.or]: [
+                    { transaction_id: searchNum },
+                    { order_id: searchNum }
+                ]
+             };
+        } else {
+             // Tìm theo tên hoặc email user
+             const { Op } = require('sequelize');
+             userWhereClause = {
+                [Op.or]: [
+                    { full_name: { [Op.like]: `%${search}%` } },
+                    { email: { [Op.like]: `%${search}%` } }
+                ]
+             };
+        }
+    }
+
+    const { count, rows } = await Transaction.findAndCountAll({
+      where: whereClause,
       order: [['created_at', 'DESC']],
       include: [
-        { model: User, attributes: ['full_name', 'email'] },
+        { 
+            model: User, 
+            attributes: ['full_name', 'email'],
+            where: Object.keys(userWhereClause).length > 0 ? userWhereClause : undefined,
+            required: Object.keys(userWhereClause).length > 0 
+        },
         { model: Order, attributes: ['total_amount', 'final_amount', 'payment_status', 'order_status'] }
-      ]
+      ],
+      limit: limitInt,
+      offset: offset,
+      distinct: true
     });
-    res.status(200).json({ success: true, data: transactions });
+
+    res.status(200).json({ 
+        success: true, 
+        data: rows,
+        meta: {
+            total: count,
+            page: parseInt(page),
+            limit: limitInt,
+            totalPages: Math.ceil(count / limitInt)
+        }
+    });
   } catch (error) {
     console.error('getAllTransactions error:', error);
     res.status(500).json({ success: false, message: 'Server error' });

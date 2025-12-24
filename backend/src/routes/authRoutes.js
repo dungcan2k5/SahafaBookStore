@@ -8,6 +8,8 @@ const { verifyToken } = require('../middleware/authMiddleware');
 // Đăng ký / đăng nhập
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/change-password', verifyToken, authController.changePassword);
 
 /**
  * @swagger

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize } = require('../middleware/authMiddleware');
 
 // Tất cả các route này đều cần đăng nhập
 router.use(verifyToken);
@@ -138,5 +138,110 @@ router.post('/addresses', userController.addAddress);
  */
 router.put('/addresses/:id', userController.updateAddress);
 router.delete('/addresses/:id', userController.deleteAddress);
+
+// --- ADMIN / MANAGER ROUTES ---
+
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Lấy danh sách users (Admin/Employee)
+ *     tags: [Users Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Danh sách users
+ */
+router.get('/', authorize(['admin', 'employee']), userController.getAllUsers);
+
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Tạo user mới (Admin only)
+ *     tags: [Users Management]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - full_name
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               full_name:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [admin, employee, customer]
+ *     responses:
+ *       201:
+ *         description: Tạo thành công
+ */
+router.post('/', authorize(['admin']), userController.createUser);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Cập nhật user (Admin only)
+ *     tags: [Users Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
+ *   delete:
+ *     summary: Xóa user (Admin only)
+ *     tags: [Users Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Xóa thành công
+ */
+router.put('/:id', authorize(['admin']), userController.updateUserAdmin);
+router.delete('/:id', authorize(['admin']), userController.deleteUserAdmin);
 
 module.exports = router;
