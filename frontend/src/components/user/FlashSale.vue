@@ -80,7 +80,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
+import api from '../../services/api';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -110,7 +110,7 @@ const isLoading = ref(false);
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get('http://localhost:3000/api/books/flash-sale');
+        const response = await api.get('/books/flash-sale');
         if (response.data.success) {
             flashSaleBooks.value = response.data.data;
         }

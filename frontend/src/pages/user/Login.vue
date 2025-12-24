@@ -86,7 +86,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { authService } from '../../services/authService';
 
 const router = useRouter();
 const activeTab = ref('login'); // 'login' | 'register'
@@ -109,27 +109,15 @@ const registerForm = reactive({
 const handleLogin = async () => {
   isLoading.value = true;
   try {
-    // Gọi API Backend: /api/auth/login
-    // Lưu ý: Đổi localhost:3000 nếu port backend bạn khác
-    const res = await axios.post('http://localhost:3000/api/auth/login', {
-      email: loginForm.email,
-      password: loginForm.password
-    });
+    const res = await authService.login(loginForm.email, loginForm.password);
 
-    if (res.data.success) {
-      // 1. Lưu token vào localStorage (Quan trọng nhất!)
-      localStorage.setItem('token', res.data.token);
-      
-      // 2. Lưu thông tin user (Optional - để hiện tên trên Header)
-      if (res.data.user) {
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-      }
-
+    if (res.success) {
+      // Token & User đã được lưu trong authService.login
       // 3. Chuyển hướng về trang chủ
       alert('Đăng nhập thành công!');
       router.push('/');
     } else {
-      alert(res.data.message || 'Đăng nhập thất bại');
+      alert(res.message || 'Đăng nhập thất bại');
     }
   } catch (error) {
     console.error(error);
@@ -144,21 +132,20 @@ const handleLogin = async () => {
 const handleRegister = async () => {
   isLoading.value = true;
   try {
-    // Gọi API Backend: /api/auth/register
-    const res = await axios.post('http://localhost:3000/api/auth/register', {
+    const res = await authService.register({
       full_name: registerForm.full_name,
       email: registerForm.email,
       password: registerForm.password
     });
 
-    if (res.data.success) {
+    if (res.success) {
       alert('Đăng ký thành công! Vui lòng đăng nhập.');
       // Chuyển sang tab đăng nhập và điền sẵn email
       activeTab.value = 'login';
       loginForm.email = registerForm.email;
       loginForm.password = '';
     } else {
-      alert(res.data.message || 'Đăng ký thất bại');
+      alert(res.message || 'Đăng ký thất bại');
     }
   } catch (error) {
     console.error(error);

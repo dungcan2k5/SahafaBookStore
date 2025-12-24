@@ -205,7 +205,7 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import LoginModal from '@/components/user/LoginModal.vue';
-import axios from 'axios'; // 👉 Import axios để gọi API
+import api from '../../services/api'; // 👉 Import api để gọi API
 
 const cartStore = useCartStore();
 const authStore = useAuthStore(); 
@@ -240,7 +240,7 @@ const handleLiveSearch = () => {
   debounceTimer = setTimeout(async () => {
     try {
       // Gọi API tìm kiếm hiện có
-      const response = await axios.get('http://localhost:3000/api/books', {
+      const response = await api.get('/books', {
         params: { search: searchQuery.value }
       });
       

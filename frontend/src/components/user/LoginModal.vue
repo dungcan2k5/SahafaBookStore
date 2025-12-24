@@ -153,7 +153,7 @@
 import { ref, reactive, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { ElMessage, ElMessageBox } from 'element-plus'; // Thêm ElMessageBox
-import axios from 'axios';
+import api from '../../services/api';
 
 // Props: Nhận tab ban đầu từ cha
 const props = defineProps({
@@ -198,7 +198,7 @@ const handleForgotPassword = async () => {
     if (!forgotEmail.value) return;
     loading.value = true;
     try {
-        const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+        const response = await api.post('/auth/forgot-password', {
             email: forgotEmail.value
         });
         if (response.data.success) {

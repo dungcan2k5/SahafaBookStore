@@ -73,7 +73,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -103,7 +103,7 @@ const fetchSearchResults = async () => {
 
   try {
     // Gọi API Backend đã sửa ở Bước 1
-    const response = await axios.get('http://localhost:3000/api/books', {
+    const response = await api.get('/books', {
       params: { search: query }
     });
 

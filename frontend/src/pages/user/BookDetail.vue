@@ -121,7 +121,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router'; // 👉 Thêm useRouter
 import { useCartStore } from '@/stores/cart';
-import axios from 'axios';
+import api from '../../services/api';
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 const route = useRoute();
@@ -142,7 +142,7 @@ const fetchBookDetail = async (id) => {
   selectedImage.value = null;
 
   try {
-    const response = await axios.get(`http://localhost:3000/api/books/${id}`);
+    const response = await api.get(`/books/${id}`);
     if (response.data.success) {
        book.value = response.data.data;
        if (book.value.BookImages && book.value.BookImages.length > 0) {
