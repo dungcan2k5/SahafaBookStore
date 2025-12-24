@@ -1,3 +1,4 @@
+const path = require('path');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -24,10 +25,11 @@ const options = {
         },
       },
     },
-    security: [{ bearerAuth: [] }], // Áp dụng bảo mật Bearer toàn cục (hoặc tùy route)
+    security: [{ bearerAuth: [] }],
   },
-  // Quan trọng: Chỉ định nơi chứa file routes để nó quét comment
-  apis: ['./src/routes/*.js'], 
+
+  // Dùng path tuyệt đối để chắc chắn quét đúng routes
+  apis: [path.join(__dirname, '../routes/*.js')],
 };
 
 const specs = swaggerJsdoc(options);

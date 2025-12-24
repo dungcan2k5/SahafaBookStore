@@ -4,19 +4,34 @@
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <el-icon class="text-orange-500"><CollectionTag /></el-icon> Quản lý Thể loại
       </h2>
-      <el-button type="primary" @click="openDialog()">
-        <el-icon class="mr-1"><Plus /></el-icon> Thêm Thể loại
-      </el-button>
+
+      <div class="flex items-center gap-3">
+        <!-- Search -->
+        <el-input
+          v-model="searchText"
+          placeholder="Tìm theo tên thể loại..."
+          clearable
+          style="width: 320px"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+
+        <el-button type="primary" @click="openDialog()">
+          <el-icon class="mr-1"><Plus /></el-icon> Thêm Thể loại
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="genres" style="width: 100%" v-loading="loading" stripe border>
+      <el-table :data="filteredGenres" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column label="#" width="60" align="center">
-           <template #default="scope">{{ scope.$index + 1 }}</template>
+          <template #default="scope">{{ scope.$index + 1 }}</template>
         </el-table-column>
-        
+
         <el-table-column prop="genre_name" label="Tên Thể loại" />
-        
+
         <el-table-column prop="genre_slug" label="Slug (Đường dẫn)" />
 
         <el-table-column label="Hành động" width="150" align="center">
@@ -52,8 +67,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { CollectionTag, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { CollectionTag, Plus, Edit, Delete, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
 
@@ -62,27 +77,54 @@ const loading = ref(false);
 const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
+
+const searchText = ref('');
+
 const form = reactive({ genre_id: null, genre_name: '', genre_slug: '' });
 
 const generateSlug = (val) => {
-    if (!val) return;
-    form.genre_slug = val.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+  if (!val) return;
+  form.genre_slug = val
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '');
 };
+
+// ✅ lọc local theo tên thể loại
+const filteredGenres = computed(() => {
+  const q = (searchText.value || '').trim().toLowerCase();
+  if (!q) return genres.value;
+
+  return genres.value.filter((g) =>
+    (g.genre_name || '').toLowerCase().includes(q)
+  );
+});
 
 const fetchGenres = async () => {
   loading.value = true;
   try {
     const res = await api.get('/api/books/genres');
     genres.value = res.data.data || [];
-  } catch (error) { ElMessage.error('Lỗi tải dữ liệu'); } 
-  finally { loading.value = false; }
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('Lỗi tải dữ liệu');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const openDialog = (item = null) => {
   isEdit.value = !!item;
   dialogVisible.value = true;
   if (item) Object.assign(form, item);
-  else { form.genre_id = null; form.genre_name = ''; form.genre_slug = ''; }
+  else {
+    form.genre_id = null;
+    form.genre_name = '';
+    form.genre_slug = '';
+  }
 };
 
 const handleSave = async () => {
@@ -91,21 +133,26 @@ const handleSave = async () => {
   try {
     if (isEdit.value) await api.put(`/api/books/genres/${form.genre_id}`, form);
     else await api.post('/api/books/genres', form);
-    
+
     ElMessage.success('Thành công!');
     dialogVisible.value = false;
-    fetchGenres();
-  } catch (error) { ElMessage.error('Lỗi lưu dữ liệu!'); } 
-  finally { submitting.value = false; }
+    await fetchGenres();
+  } catch (error) {
+    console.error(error);
+    ElMessage.error(error.response?.data?.message || 'Lỗi lưu dữ liệu!');
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const handleDelete = async (id) => {
   try {
     await api.delete(`/api/books/genres/${id}`);
     ElMessage.success('Đã xóa!');
-    fetchGenres();
-  } catch (error) { 
-      ElMessage.error(error.response?.data?.message || 'Không thể xóa!'); 
+    await fetchGenres();
+  } catch (error) {
+    console.error(error);
+    ElMessage.error(error.response?.data?.message || 'Không thể xóa!');
   }
 };
 
