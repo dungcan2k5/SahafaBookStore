@@ -48,8 +48,16 @@ const createBook = async (req, res) => {
     try {
         const newBook = await Book.create(req.body);
         
-        // Nếu có ảnh, tạo luôn bản ghi ảnh
-        if (req.body.image_url) {
+        // Nếu có ảnh upload (req.file)
+        if (req.file) {
+            const imageUrl = `/uploads/images/${req.file.filename}`;
+            await BookImage.create({
+                book_id: newBook.book_id,
+                book_image_url: imageUrl
+            });
+        } 
+        // Fallback: Nếu gửi link ảnh (req.body.image_url)
+        else if (req.body.image_url) {
             await BookImage.create({
                 book_id: newBook.book_id,
                 book_image_url: req.body.image_url
@@ -70,13 +78,20 @@ const updateBook = async (req, res) => {
         const [updated] = await Book.update(req.body, { where: { book_id: id } });
         
         if (updated) {
-            // Cập nhật ảnh nếu có
-            if (req.body.image_url) {
+            // Xử lý cập nhật ảnh
+            let newImageUrl = null;
+            if (req.file) {
+                newImageUrl = `/uploads/images/${req.file.filename}`;
+            } else if (req.body.image_url) {
+                newImageUrl = req.body.image_url;
+            }
+
+            if (newImageUrl) {
                 const img = await BookImage.findOne({ where: { book_id: id } });
                 if (img) {
-                    await img.update({ book_image_url: req.body.image_url });
+                    await img.update({ book_image_url: newImageUrl });
                 } else {
-                    await BookImage.create({ book_id: id, book_image_url: req.body.image_url });
+                    await BookImage.create({ book_id: id, book_image_url: newImageUrl });
                 }
             }
             return res.status(200).json({ success: true, message: 'Cập nhật thành công' });

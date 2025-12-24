@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 require('dotenv').config();
 const { connectDB } = require('./config/database');
 
@@ -29,6 +30,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Kết nối DB
 connectDB();
+
+// Serve static files (uploads)
+// Đường dẫn này sẽ map http://host:port/uploads -> folder uploads ở root project hoặc UPLOAD_DIR
+const uploadRoot = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
+app.use('/uploads', express.static(uploadRoot));
 
 // Routes
 app.use('/api/books', bookRoutes);
