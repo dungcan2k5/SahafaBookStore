@@ -19,6 +19,7 @@ import ForeignBooksPage from '@/pages/event/ForeignBooksPage.vue'
 import MangaPage from '@/pages/event/MangaPage.vue'
 import Term from '@/pages/user/Term.vue'
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
+import BooksListing from '@/pages/user/BooksListing.vue';
 
 // --- ADMIN LAYOUT ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
@@ -31,6 +32,8 @@ const routes = [
   { path: '/checkout', name: 'Checkout', component: CheckoutPage },
   { path: '/trending', name: 'Trending', component: TrendingPage },
   { path: '/suggestions', name: 'Suggestions', component: SuggestionsPage },
+   // trang danh sách sách với tìm kiếm và lọc
+  { path: '/books', name: 'BooksListing', component: BooksListing },
   { path: '/books/:id', name: 'BookDetail', component: BookDetail },
   { path: '/gift-card', name: 'GiftCard', component: GiftCardPage },
   { path: '/vouchers', name: 'VoucherPage', component: VoucherPage },
@@ -43,7 +46,11 @@ const routes = [
   
   // Trang chính sách
   { path: '/policy/:slug', name: 'policy', component: Term },
+
+
+   
   
+
   // Trang danh mục
   { path: '/category/:id', name: 'CategoryDetail', component: CategoryDetail },
   
@@ -62,6 +69,7 @@ const routes = [
     name: 'news-detail', 
     component: () => import('@/pages/user/PostDetail.vue') 
   },
+
 
   // ================== ADMIN ROUTES (PRIVATE) ==================
   {
