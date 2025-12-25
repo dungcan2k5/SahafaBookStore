@@ -155,7 +155,6 @@ const formatDate = (dateString) => (dateString ? new Date(dateString).toLocaleSt
 const getTxId = (tx) => tx.transaction_id ?? tx.payment_id ?? tx.id ?? '...';
 
 // api
-// Thay thế hàm fetchTransactions
 const fetchTransactions = async () => {
   loading.value = true;
   try {
@@ -167,17 +166,24 @@ const fetchTransactions = async () => {
       }
     });
     
-    const responseData = res.data || res;
+    const txData = res || [];
 
-    transactions.value = responseData.data || [];
-    
-    const meta = responseData.meta || {};
-    total.value = meta.total || 0;
+    if (Array.isArray(txData)) {
+        transactions.value = txData;
+        total.value = txData.meta?.total || txData.length || 0;
+    } 
+    else if (txData.rows) {
+        transactions.value = txData.rows;
+        total.value = txData.count || 0;
+    }
+    else {
+        transactions.value = [];
+        total.value = 0;
+    }
 
   } catch (e) {
     console.error(e);
     ElMessage.error('Không thể tải lịch sử giao dịch');
-    transactions.value = [];
   } finally {
     loading.value = false;
   }

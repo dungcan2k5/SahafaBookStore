@@ -391,7 +391,6 @@ const printInvoice = () => {
 };
 
 // --- API ---
-// Thay thế hàm fetchOrders cũ
 const fetchOrders = async () => {
   loading.value = true;
   try {
@@ -403,19 +402,27 @@ const fetchOrders = async () => {
         }
     });
 
-    const responseData = res.data || res;
-    
-    // Lấy list order
-    orders.value = responseData.data || [];
-    
-    // Lấy total
-    const meta = responseData.meta || {};
-    total.value = meta.total || 0;
+    // res là Array đã kèm meta
+    const ordersData = res || [];
+
+    if (Array.isArray(ordersData)) {
+       orders.value = ordersData;
+       // Lấy total chuẩn chỉ
+       total.value = ordersData.meta?.total || ordersData.length || 0;
+    } 
+    // Phòng hờ backend trả về kiểu { rows, count } (Sequelize raw)
+    else if (ordersData.rows) {
+       orders.value = ordersData.rows;
+       total.value = ordersData.count || 0;
+    }
+    else {
+       orders.value = [];
+       total.value = 0;
+    }
 
   } catch (e) {
-    console.error("Fetch Orders Error:", e);
+    console.error(e);
     ElMessage.error('Lỗi tải danh sách đơn hàng!');
-    orders.value = [];
   } finally {
     loading.value = false;
   }

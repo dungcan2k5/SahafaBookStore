@@ -181,6 +181,7 @@ const form = reactive({
     role: 'customer'
 });
 
+// Tìm và thay thế hàm fetchData cũ
 const fetchData = async () => {
     loading.value = true;
     try {
@@ -192,13 +193,36 @@ const fetchData = async () => {
             role: filterRole.value || undefined
           }
         });
-        const payload = (res && res.data !== undefined) ? res.data : res;
-        const list = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
-        users.value = list;
-        const paginationObj = payload?.pagination || payload?.meta || payload?.meta?.pagination || null;
-        if (paginationObj && paginationObj.total !== undefined) pagination.total = paginationObj.total;
+
+        // Logic hứng data chuẩn, chấp hết các thể loại response
+        let finalData = [];
+        let finalTotal = 0;
+        const raw = res?.data || res; // Handle axios wrap or interceptor wrap
+
+        if (Array.isArray(raw)) {
+            // Case ngon nhất: api.js đã xử lý và gắn meta vào array
+            finalData = raw;
+            finalTotal = raw.meta?.total || raw.length || 0;
+        } 
+        else if (raw?.data && Array.isArray(raw.data)) {
+            // Case backend trả về object chuẩn
+            finalData = raw.data;
+            finalTotal = raw.meta?.total || raw.pagination?.total || 0;
+        }
+        else if (raw?.rows && Array.isArray(raw.rows)) {
+            // Case backend trả về kiểu Sequelize raw { count, rows }
+            finalData = raw.rows;
+            finalTotal = raw.count || 0;
+        }
+
+        users.value = finalData;
+        pagination.total = finalTotal;
+
     } catch (error) {
+        console.error(error);
         ElMessage.error('Lỗi tải danh sách users');
+        users.value = [];
+        pagination.total = 0;
     } finally {
         loading.value = false;
     }

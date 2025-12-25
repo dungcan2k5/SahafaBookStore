@@ -372,33 +372,40 @@ const onIsbnInput = (val) => {
 };
 
 // --- API: Tải dữ liệu ---
-// Tìm hàm fetchData và thay bằng đoạn này
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/books', {
-      params: {
-        search: searchText.value?.trim() || undefined,
-        page: currentPage.value,
-        limit: pageSize.value
-      }
-    });
+    const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
+      api.get('/api/books', {
+        params: {
+          search: searchText.value?.trim() || undefined,
+          page: currentPage.value,
+          limit: pageSize.value
+        }
+      }),
+      api.get('/api/books/authors'),
+      api.get('/api/books/genres'),
+      api.get('/api/books/publishers')
+    ]);
 
-    // Chuẩn hóa response, không try-hard đoán mò nữa
-    const responseData = res.data || res; // Axios trả về .data, hoặc interceptor đã trả về
+    // resBooks bây giờ chính là Array, và nhờ bước 1, nó có thêm .meta
+    const booksData = resBooks || [];
     
-    // Data list
-    books.value = responseData.data || [];
-    
-    // Meta pagination
-    const meta = responseData.meta || {};
-    total.value = meta.total || 0; // Quan trọng: lấy tổng số bản ghi
+    // 1. Gán data cho bảng
+    books.value = Array.isArray(booksData) ? booksData : (booksData.data || []);
+
+    // 2. Lấy total từ meta (hoặc fallback nếu backend trả kiểu khác)
+    // Ưu tiên booksData.meta.total -> sau đó đến booksData.count (kiểu cũ) -> cuối cùng mới là length
+    total.value = booksData.meta?.total || booksData.count || booksData.length || 0;
+
+    // Mấy cái dropdown giữ nguyên
+    authors.value = Array.isArray(resAuthors) ? resAuthors : (resAuthors?.data || []);
+    genres.value = Array.isArray(resGenres) ? resGenres : (resGenres?.data || []);
+    publishers.value = Array.isArray(resPub) ? resPub : (resPub?.data || []);
 
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi kết nối Server!');
-    books.value = [];
-    total.value = 0;
   } finally {
     loading.value = false;
   }

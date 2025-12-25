@@ -23,12 +23,23 @@ api.interceptors.request.use(
 // 👇 THÊM ĐOẠN NÀY: Tự động lấy mảng 'data' bên trong response
 api.interceptors.response.use(
     (response) => {
-        // Nếu Backend trả về { success: true, data: { ... } }
-        if (response.data && response.data.success === true && response.data.data) {
-            return response.data.data;
+        // Lấy cục data thô từ backend
+        const res = response.data; 
+
+        // Nếu cấu trúc chuẩn { success: true, data: [...], meta: {...} }
+        if (res && res.success === true && res.data) {
+            const output = res.data;
+            
+            // TRICK: Nếu output là mảng, ta lén gắn thêm meta vào nó luôn
+            if (Array.isArray(output) && res.meta) {
+                output.meta = res.meta;
+            }
+            
+            return output; // Trả về mảng (nhưng đã có kèm meta ẩn)
         }
-        // Nếu không có success/data, trả về toàn bộ body để Store tự xử lý
-        return response.data; 
+
+        // Các trường hợp khác (lỗi, hoặc trả về raw)
+        return res; 
     },
     (error) => Promise.reject(error)
 );
