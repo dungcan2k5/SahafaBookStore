@@ -135,6 +135,14 @@ const selectedImage = ref(null);
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
+const getImageUrl = (path) => {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    if (path && !path.startsWith('http')) {
+        return `${baseUrl}${path}`;
+    }
+    return path;
+}
+
 const fetchBookDetail = async (idOrSlug) => {
   if (!idOrSlug) return;
   isLoading.value = true;
@@ -147,14 +155,23 @@ const fetchBookDetail = async (idOrSlug) => {
     const data = await api.get(`/api/books/${idOrSlug}`);
     
     if (data) {
+      // Convert image paths to full URLs before assigning to the ref
+      if (data.BookImages && data.BookImages.length > 0) {
+        data.BookImages.forEach(img => {
+          img.book_image_url = getImageUrl(img.book_image_url);
+        });
+      }
+      if (data.image) {
+        data.image = getImageUrl(data.image);
+      }
+
       book.value = data;
       
-      // Xử lý ảnh ban đầu
+      // Set initial selected image from the now-full URLs
       if (book.value.BookImages && book.value.BookImages.length > 0) {
-        // Lưu ý: Sequelize trả về BookImages (số nhiều)
-        selectedImage.value = getImageUrl(book.value.BookImages[0].book_image_url);
+        selectedImage.value = book.value.BookImages[0].book_image_url;
       } else if (book.value.image) {
-        selectedImage.value = getImageUrl(book.value.image);
+        selectedImage.value = book.value.image;
       }
     }
   } catch (error) {
