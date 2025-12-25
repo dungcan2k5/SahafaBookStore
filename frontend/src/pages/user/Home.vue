@@ -3,16 +3,45 @@
     
     <div class="container mx-auto py-6 px-4">
       <div class="grid grid-cols-12 gap-6">
+        
         <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]">
-          <div class="w-full h-full relative">
-             <img :src="bannerImages[currentSlide]" class="w-full h-full object-cover transition-all duration-500 ease-in-out" alt="Banner Slide" />
+          
+          <div 
+            class="flex h-full transition-transform duration-700 ease-in-out" 
+            :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+          >
+             <div 
+               v-for="(banner, index) in bannerImages" 
+               :key="index" 
+               class="min-w-full h-full"
+             >
+                <img :src="banner" class="w-full h-full object-cover" alt="Banner Slide" />
+             </div>
           </div>
-          <button @click="prevSlide" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+
+          <button 
+            @click="prevSlide" 
+            class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10 hover:scale-110"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <button @click="nextSlide" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+
+          <button 
+            @click="nextSlide" 
+            class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10 hover:scale-110"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           </button>
+
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            <button 
+              v-for="(banner, index) in bannerImages" 
+              :key="index"
+              @click="currentSlide = index"
+              class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+              :class="currentSlide === index ? 'bg-white w-6' : 'bg-white/50 hover:bg-white'"
+            ></button>
+          </div>
         </div>
 
         <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]">
@@ -32,39 +61,35 @@
           <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Top Bán Chạy Nhất</h3>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div 
-          v-for="(book, index) in bestSellers" 
-          :key="index" 
-          @click="goToBookDetail(book.slug)" 
-          class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
-        >
-          <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
-             <img 
-               :src="book.image" 
-               class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-               alt="Book Cover"
-               @error="$event.target.src='https://placehold.co/400x600?text=No+Image'" 
-             />
-             <div class="absolute top-2 left-2 w-8 h-8 flex items-center justify-center bg-yellow-400 text-white font-bold rounded-full shadow-md z-10 border-2 border-white">
-                #{{ index + 1 }}
-            </div>
-          </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div 
+    v-for="(book, index) in bestSellers" 
+    :key="index" 
+    @click="$router.push(`/books/${book.id}`)" 
+    class="..."
+  >
+    <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
+      <img 
+        :src="book.image" 
+        class="..." 
+        alt="Book Cover"
+      />
+    </div>
 
-          <div class="flex-1 flex flex-col">
-              <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
-                {{ book.title }}
-              </h4>
-              <div class="mt-auto flex items-end justify-between">
-                  <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
-                  <div v-if="book.originalPrice" class="text-xs text-gray-400 line-through">{{ formatCurrency(book.originalPrice) }}</div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center">
-                  Đã bán {{ book.sold > 1000 ? (book.sold / 1000).toFixed(1) + 'k' : book.sold }}
-              </div>
-          </div>
+    <div class="flex-1 flex flex-col">
+        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
+          {{ book.title }}
+        </h4>
+        <div class="mt-auto flex items-end justify-between">
+            <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
+            <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.oldPrice) }}</div>
         </div>
-      </div>
+        <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
+            Đã bán {{ book.sold }}
+        </div>
+    </div>
+  </div>
+</div>
     </div>
 
     <CategoryNav />
@@ -85,110 +110,66 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router'; // 1. Import Router
+// Xóa các dòng import axios dư thừa, chỉ dùng bookService
+import api from '@/services/api';
+
+// Import Components
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import FlashSale from '@/components/user/FlashSale.vue';
+
+// Import Assets (Banner)
 import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
 import sideBanner2 from '@/assets/banners/promo1.jpg'; 
 
-// Khởi tạo Router
-const router = useRouter(); 
-const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
-
-// Hàm chuyển trang chi tiết
-const goToBookDetail = (slug) => {
-  // Nếu slug bị null hoặc undefined thì fallback về trang chủ hoặc báo lỗi
-  if (!slug) {
-     console.error("Sách này chưa có Slug!");
-     return;
-  }
-  router.push(`/books/${slug}`);
+// --- Helper Format Tiền ---
+const formatCurrency = (val) => {
+  if (!val || isNaN(val)) return "0 ₫";
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 };
 
+// Slider Logic
 const currentSlide = ref(0);
 const bannerImages = [banner1, banner2, banner3];
+let slideInterval;
+
+const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
+const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
+
+// --- Data Fetching Logic ---
 const bestSellers = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 
-let slideInterval;
-const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
-const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
-const startAutoSlide = () => { slideInterval = setInterval(nextSlide, 3000); };
-
-const fetchAllData = async () => {
+const fetchAllHomeData = async () => {
   try {
-    const [trend, news, allBooks] = await Promise.all([
-      bookService.getTrending(),
-      bookService.getNewArrivals(),
-      bookService.getAllBooks() 
+    // Gọi trực tiếp qua api.get và truyền params
+    const [best, trend, news] = await Promise.all([
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
+      api.get('/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
-    // Lưu ý: Nếu getTrending/getNewArrivals sau này dùng API thật thì cũng cần map dữ liệu tương tự như bên dưới
+    // Gán dữ liệu trực tiếp vì api.js đã bóc tách data
+    bestSellers.value = best || [];
     trendingBooks.value = trend || [];
     newBooks.value = news || [];
-    
-    // --- XỬ LÝ TOP BEST SELLER TỪ DỮ LIỆU THẬT ---
-    if (allBooks && allBooks.length > 0) {
-       // 1. Sắp xếp giảm dần theo total_sold
-       const sortedBooks = [...allBooks].sort((a, b) => (b.total_sold || 0) - (a.total_sold || 0));
-       
-       // 2. Lấy 5 cuốn đầu
-       const top5 = sortedBooks.slice(0, 5);
-
-       // 3. Map dữ liệu chuẩn chỉnh
-       bestSellers.value = top5.map(book => {
-          // Xử lý ảnh: Ưu tiên ảnh từ bảng BookImages, nếu không có dùng placeholder xám
-          let imageUrl = 'https://placehold.co/400x600?text=No+Image'; // Ảnh mặc định an toàn
-          
-          // Kiểm tra xem backend trả về BookImages (array) hay book_images
-          const images = book.BookImages || book.book_images;
-          
-          if (images && Array.isArray(images) && images.length > 0) {
-              imageUrl = images[0].book_image_url;
-          } else if (book.image) {
-              imageUrl = book.image; // Fallback nếu API trả về field image cũ
-          }
-
-          // Fix lỗi localhost thiếu http
-          if (imageUrl && !imageUrl.startsWith('http')) {
-              imageUrl = `http://localhost:3000${imageUrl}`;
-          }
-
-          return {
-            id: book.book_id,
-            title: book.book_title,
-            
-            slug: book.book_slug, // 👈 THÊM DÒNG QUAN TRỌNG NÀY (để lấy slug từ DB)
-            
-            price: book.price,
-            originalPrice: null, 
-            sold: book.total_sold || 0,
-            image: imageUrl
-          };
-       });
-    }
-
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
+    console.error("Lỗi khi gọi API trực tiếp:", error);
   }
 };
 
 onMounted(() => {
-  startAutoSlide();
-  fetchAllData();
-  fetchBestSellers();
+  fetchAllHomeData();
 });
 
 onUnmounted(() => {
-  if (slideInterval) clearInterval(slideInterval);
+  clearInterval(slideInterval);
 });
 </script>

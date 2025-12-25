@@ -20,75 +20,32 @@ const { uploadRoot } = require('../middleware/uploadMiddleware');
 // [GET] /api/books - Lấy danh sách sách (Fix lỗi Search Author)
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category, page = 1, limit = 10 } = req.query; 
-        
-        const offset = (page - 1) * limit;
-        const limitInt = parseInt(limit);
+        const { sort, order, limit } = req.query; 
 
-        let whereClause = {};
-        
-        // 1. Logic tìm kiếm (Search)
-        if (search) {
-             whereClause = {
-                [Op.or]: [
-                    { book_title: { [Op.like]: `%${search}%` } },
-                    // Cú pháp $ModelAlias.column$ để search bảng liên kết
-                    { '$Author.author_name$': { [Op.like]: `%${search}%` } }
-                ]
-            };
-        }
-
-        // 2. Logic lọc theo Danh mục
-        if (category) {
-            whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` }; // Sửa lại cho linh hoạt hơn hoặc dùng genre_slug nếu DB có
-        }
-
-        const { count, rows } = await Book.findAndCountAll({
-            where: whereClause,
-            // 👇 LOGIC QUAN TRỌNG: Cho phép sắp xếp theo cột (ví dụ: total_sold)
+        const books = await Book.findAll({
+            // Sắp xếp linh hoạt để hiện đúng sách "Bán chạy" hay "Mới về"
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
-            // 👇 GIỚI HẠN SỐ LƯỢNG: Chỉ lấy số lượng cần thiết (ví dụ: 4)
             limit: limit ? parseInt(limit) : undefined,
-            include: [
-                { 
-                    model: Author, 
-                    attributes: ['author_name'],
-                    as: 'Author' // Đảm bảo Alias khớp với query '$Author...'
-                },
-                { 
-                    model: Genre, 
-                    attributes: ['genre_name'],
-                    as: 'Genre'
-                },
-                { 
-                    model: BookImage, 
-                    attributes: ['book_image_url'],
-                    as: 'BookImages' // Kiểm tra xem trong models define alias là gì (thường là BookImages hoặc book_images)
-                }
-            ],
-            limit: limitInt,
-            offset: offset,
-            distinct: true, // Để đếm đúng sách (không đếm trùng do nhiều ảnh)
-            
-            // 🔥 QUAN TRỌNG: Dòng này sửa lỗi SQLITE_ERROR: no such column: Author.author_name
-            // Nó buộc Sequelize không tạo subquery cắt trang trước khi join bảng
-            subQuery: false 
+            include: [{ model: BookImage, attributes: ['book_image_url'] }] 
         });
 
+        // QUAN TRỌNG: Map lại dữ liệu theo đúng tên biến Frontend cần
+        const formattedData = books.map(b => ({
+            id: b.book_id,
+            title: b.book_title,
+            price: b.price,
+            oldPrice: Math.round((b.price * 1.25) / 1000) * 1000, 
+            // Sequelize tự động thêm 's' vào tên model khi dùng include
+            image: b.BookImages && b.BookImages.length > 0 
+                   ? b.BookImages[0].book_image_url 
+                   : 'https://placehold.co/400x600',
+            sold: b.total_sold || 0
+        }));
 
-        res.status(200).json({ 
-            success: true, 
-            data: rows,
-            meta: {
-                total: count,
-                page: parseInt(page),
-                limit: limitInt,
-                totalPages: Math.ceil(count / limitInt)
-            }
-        });
+        res.status(200).json({ success: true, data: formattedData });
     } catch (error) {
-        console.error("Get All Books Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
+        console.error("Lỗi getAllBooks:", error);
+        res.status(500).json({ success: false });
     }
 };
 
@@ -362,8 +319,7 @@ const getFlashSaleBooks = async (req, res) => {
 
         res.status(200).json({ success: true, data: flashSaleData });
     } catch (error) {
-        console.error("Flash Sale Error:", error);
-        res.status(500).json({ success: false, message: "Lỗi Server" });
+        res.status(500).json({ success: false });
     }
 };
 
