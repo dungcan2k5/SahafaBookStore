@@ -121,7 +121,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
-import { bookService } from '@/services/bookService'; // ✅ Dùng service thay vì axios trực tiếp
+import api from '@/services/api';
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 
 const route = useRoute();
@@ -135,24 +135,27 @@ const selectedImage = ref(null);
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-const fetchBookDetail = async (slug) => { // ✅ Nhận vào slug thay vì id
-  if (!slug) return;
+const fetchBookDetail = async (idOrSlug) => {
+  if (!idOrSlug) return;
   isLoading.value = true;
   book.value = null;
   selectedImage.value = null;
 
   try {
-    // Gọi API qua service (Service đã hỗ trợ gọi theo slug)
-    const data = await bookService.getBookById(slug);
+    // Gọi trực tiếp qua api (baseURL đã có /api)
+    // Route chuẩn: /api/books/:id
+    const data = await api.get(`/books/${idOrSlug}`);
     
     if (data) {
-       book.value = data;
-       // Xử lý ảnh
-       if (book.value.BookImages && book.value.BookImages.length > 0) {
-           selectedImage.value = book.value.BookImages[0].book_image_url;
-       } else if (book.value.image) {
-           selectedImage.value = book.value.image;
-       }
+      book.value = data;
+      
+      // Xử lý ảnh ban đầu
+      if (book.value.BookImages && book.value.BookImages.length > 0) {
+        // Lưu ý: Sequelize trả về BookImages (số nhiều)
+        selectedImage.value = getImageUrl(book.value.BookImages[0].book_image_url);
+      } else if (book.value.image) {
+        selectedImage.value = getImageUrl(book.value.image);
+      }
     }
   } catch (error) {
     console.error("Lỗi tải sách:", error);
@@ -162,19 +165,17 @@ const fetchBookDetail = async (slug) => { // ✅ Nhận vào slug thay vì id
 };
 
 onMounted(() => {
-  // 🔥 Lấy slug từ URL (do router đã đổi thành :slug)
-  const slugFromUrl = route.params.slug;
-  fetchBookDetail(slugFromUrl);
+  // Lấy ID hoặc Slug từ URL
+  const idFromUrl = route.params.id || route.params.slug;
+  fetchBookDetail(idFromUrl);
 });
 
-// Watch slug thay đổi (khi click sách khác ở phần gợi ý)
-watch(() => route.params.slug, (newSlug) => {
+watch(() => route.params.id || route.params.slug, (newVal) => {
     quantity.value = 1;
-    fetchBookDetail(newSlug);
+    fetchBookDetail(newVal);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// Hàm chuẩn bị dữ liệu sản phẩm cho giỏ hàng
 const getProductData = () => {
     if (!book.value) return null;
     return {
@@ -190,7 +191,7 @@ const handleAddToCart = async () => {
   if (product) {
     const success = await cartStore.addToCart(product, quantity.value);
     if (success) {
-       console.log("Đã thêm vào giỏ hàng");
+       alert("Đã thêm vào giỏ hàng thành công!");
     }
   }
 };

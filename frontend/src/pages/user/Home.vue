@@ -81,8 +81,10 @@
           {{ book.title }}
         </h4>
         <div class="mt-auto flex items-end justify-between">
-            <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
-            <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.oldPrice) }}</div>
+            <div class="text-red-600 font-bold">{{ formatCurrency(book.price) }}</div>
+            <div v-if="book.oldPrice > book.price" class="text-xs text-gray-400 line-through">
+                {{ formatCurrency(book.oldPrice) }}
+            </div>
         </div>
         <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
             Đã bán {{ book.sold }}

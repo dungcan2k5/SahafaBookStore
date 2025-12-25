@@ -18,24 +18,23 @@ const path = require('path');
 const { uploadRoot } = require('../middleware/uploadMiddleware');
 
 // [GET] /api/books - Lấy danh sách sách (Fix lỗi Search Author)
+// [GET] /api/books
 const getAllBooks = async (req, res) => {
     try {
         const { sort, order, limit } = req.query; 
 
         const books = await Book.findAll({
-            // Sắp xếp linh hoạt để hiện đúng sách "Bán chạy" hay "Mới về"
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
             limit: limit ? parseInt(limit) : undefined,
             include: [{ model: BookImage, attributes: ['book_image_url'] }] 
         });
 
-        // QUAN TRỌNG: Map lại dữ liệu theo đúng tên biến Frontend cần
         const formattedData = books.map(b => ({
             id: b.book_id,
+            slug: b.book_slug,
             title: b.book_title,
-            price: b.price,
-            oldPrice: Math.round((b.price * 1.25) / 1000) * 1000, 
-            // Sequelize tự động thêm 's' vào tên model khi dùng include
+            price: Number(b.price),     // Giá thật từ DB
+            oldPrice: Number(b.price),  // Để bằng giá thật (không hiện giảm giá)
             image: b.BookImages && b.BookImages.length > 0 
                    ? b.BookImages[0].book_image_url 
                    : 'https://placehold.co/400x600',
@@ -281,6 +280,7 @@ const importStock = async (req, res) => {
 };
 
 // [GET] /api/books/flash-sale
+// [GET] /api/books/flash-sale
 const getFlashSaleBooks = async (req, res) => {
     try {
         const books = await Book.findAll({
@@ -290,12 +290,11 @@ const getFlashSaleBooks = async (req, res) => {
         });
 
         const flashSaleData = books.map(book => {
-            const originalPrice = parseFloat(book.price);
-            const discountPercent = Math.floor(Math.random() * 41) + 10; 
-            const salePrice = originalPrice * (1 - discountPercent / 100);
+            const dbPrice = Number(book.price);
+            // Đẩy giá cũ lên cao (giá DB + 25%) để hạ về giá DB
+            const fakeOldPrice = Math.round((dbPrice * 1.25) / 1000) * 1000;
             
             let imageUrl = 'https://placehold.co/400x600?text=No+Image';
-            // Kiểm tra alias BookImages hoặc book_images
             const images = book.BookImages || book.book_images;
             if (images && images.length > 0) {
                  imageUrl = images[0].book_image_url;
@@ -303,22 +302,20 @@ const getFlashSaleBooks = async (req, res) => {
 
             return {
                 id: book.book_id,
-                
-                // 👇 THÊM DÒNG NÀY ĐỂ FRONTEND CÓ SLUG MÀ DÙNG
                 slug: book.book_slug, 
-                
                 title: book.book_title,
-                price: Math.round(salePrice / 1000) * 1000, 
-                oldPrice: originalPrice,
-                discount: discountPercent,
+                price: dbPrice,        // Giá bán là GIÁ THẬT trong DB
+                oldPrice: fakeOldPrice, // Giá ảo đã được đẩy lên
+                discount: 25,          // Hiển thị nhãn giảm 25%
                 image: imageUrl,
-                sold: Math.floor(Math.random() * 50),
+                sold: Math.floor(Math.random() * 20) + 5, // Số lượng đã bán ảo
                 totalStock: book.stock_quantity || 50
             };
         });
 
         res.status(200).json({ success: true, data: flashSaleData });
     } catch (error) {
+        console.error("Lỗi Flash Sale:", error);
         res.status(500).json({ success: false });
     }
 };

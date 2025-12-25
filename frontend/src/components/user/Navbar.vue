@@ -182,11 +182,14 @@ const getGenreInfo = (genre) => {
 
 const fetchGenres = async () => {
   try {
-    const res = await api.get('/api/books/genres');
-    if (res.data.success) {
-      genres.value = res.data.data;
+    const data = await api.get('/books/genres');
+    // Vì Interceptor đã lo phần kiểm tra success và bóc tách data.data
+    if (data) {
+      genres.value = data;
     }
-  } catch (e) { console.error("Lỗi tải Genres:", e); }
+  } catch (e) {
+    console.error("Lỗi tải Genres:", e);
+  }
 };
 
 const goToCategory = (slug) => {
@@ -206,7 +209,7 @@ const handleLiveSearch = () => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
     try {
-      const response = await api.get('/api/books', { params: { search: searchQuery.value } });
+      const response = await api.get('/books', { params: { search: searchQuery.value } });
       if (response.data.success) {
         searchResults.value = response.data.data.slice(0, 5); 
       }

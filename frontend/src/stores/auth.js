@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import api from '@/services/api'; // Import cái file vừa tạo ở bước 1
+import api from '@/services/api'; 
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(JSON.parse(localStorage.getItem('user')) || null);
@@ -8,32 +8,35 @@ export const useAuthStore = defineStore('auth', () => {
     const isLoading = ref(false);
     const error = ref(null);
 
-    // HÀM ĐĂNG NHẬP THẬT (GỌI API)
+    // HÀM ĐĂNG NHẬP
     const login = async (email, password) => {
         isLoading.value = true;
         error.value = null;
         try {
-            // Gọi API theo đúng tài liệu Swagger: POST /api/auth/login
-            const response = await api.post('/api/auth/login', {
+            // SỬA: Xóa '/api' ở đầu vì baseURL đã có sẵn '/api'
+            // Nếu viết '/api/auth/login' sẽ bị thành '/api/api/auth/login' gây lỗi 404
+            const data = await api.post('/auth/login', {
                 email: email,
                 password: password
             });
 
-            // Backend trả về: { token: "...", user: { role: "admin", ... } }
-            // (Cấu trúc này tôi đoán dựa trên Swagger, nếu sai mình log ra xem lại)
-            const data = response.data; 
-
-            // Lưu vào Store
-            token.value = data.token;
-            user.value = data.user;
-
-            // Lưu vào ổ cứng (để F5 không mất)
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            // QUAN TRỌNG: Nếu api.js của bạn có Interceptor:
+            // return response.data.data -> 'data' lúc này chính là object {token, user}
+            // Không được dùng 'const data = response.data' nữa vì sẽ bị undefined.
             
-            return true; // Đăng nhập thành công
+            if (data && data.token) {
+                token.value = data.token;
+                user.value = data.user;
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                return true; 
+            }
+            return false;
         } catch (err) {
-            console.error(err);
+            console.error("Login Error:", err);
+            // Lấy thông báo lỗi từ backend trả về
             error.value = err.response?.data?.message || 'Đăng nhập thất bại';
             return false;
         } finally {
@@ -41,11 +44,13 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // HÀM ĐĂNG KÝ (Tiện tay làm luôn)
+    // HÀM ĐĂNG KÝ
     const register = async (userData) => {
         isLoading.value = true;
+        error.value = null;
         try {
-            await api.post('/api/auth/register', userData);
+            // SỬA: Bỏ '/api' ở đầu đường dẫn
+            await api.post('/auth/register', userData);
             return true;
         } catch (err) {
             error.value = err.response?.data?.message || 'Đăng ký thất bại';
@@ -55,20 +60,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // HÀM ĐĂNG XUẤT
     const logout = () => {
         user.value = null;
         token.value = null;
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        window.location.href = '/'; // Về trang chủ
+        window.location.href = '/'; 
     };
-    const setUser = (userData) => {
-        user.value = userData; // Cập nhật state
-        localStorage.setItem('user', JSON.stringify(userData)); // Cập nhật LocalStorage
-    };
-    // ---------------------------------------
 
-    // 3. Return (Nhớ phải return setUser ra ngoài mới dùng được)
-    return { user, token, isLoading, error, login, register, logout,setUser };
+    const setUser = (userData) => {
+        user.value = userData;
+        localStorage.setItem('user', JSON.stringify(userData));
+    };
+
+    return { user, token, isLoading, error, login, register, logout, setUser };
 });
