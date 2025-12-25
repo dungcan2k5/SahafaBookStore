@@ -66,7 +66,7 @@
                         :style="{ width: (book.sold / book.totalStock) * 100 + '%' }"
                     ></div>
                     <div class="absolute inset-0 flex items-center justify-center text-[9px] text-white font-bold uppercase z-10">
-                        Đã bán {{ book.sold }}
+                        Đã bán {{ book.total_sold || book.sold || 0 }}
                     </div>
                 </div>
              </div>

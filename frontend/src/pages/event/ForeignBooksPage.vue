@@ -151,7 +151,7 @@
                 <span class="text-red-600 font-bold">{{ Number(book.price).toLocaleString() }}đ</span>
                 <span class="text-gray-400 text-xs line-through">-{{ book.discount }}%</span>
              </div>
-             <div class="text-[10px] text-gray-500 mt-1">Đã bán {{ book.sold }}</div>
+             <div class="text-[10px] text-gray-500 mt-1">Đã bán {{ book.total_sold || book.sold || 0 }}</div>
           </div>
        </div>
     </div>
