@@ -79,40 +79,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import api from '../../services/api'; // Gọi trực tiếp api.js
 
-const router = useRouter();
-
-// --- Logic Đồng hồ ---
-const hours = ref('02');
-const minutes = ref('45');
-const seconds = ref('00');
-let timerInterval = null;
-
-const startTimer = () => {
-  let timeInSecs = 3 * 60 * 60; 
-  timerInterval = setInterval(() => {
-    timeInSecs--;
-    if (timeInSecs < 0) { clearInterval(timerInterval); return; }
-    
-    hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
-    minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
-    seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
-  }, 1000);
-};
-
-// --- Logic API ---
-const flashSaleBooks = ref([]); 
+const flashSaleBooks = ref([]);
 const isLoading = ref(false);
 
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get('http://localhost:3000/api/books/flash-sale');
-        if (response.data.success) {
-            flashSaleBooks.value = response.data.data;
+        // Gọi thẳng route /books/flash-sale (baseURL đã có /api)
+        const data = await api.get('/books/flash-sale'); 
+        if (data) {
+            flashSaleBooks.value = data;
         }
     } catch (error) {
         console.error("Lỗi Flash Sale:", error);

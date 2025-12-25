@@ -61,37 +61,35 @@
           <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide">Top Bán Chạy Nhất</h3>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div 
-          v-for="(book, index) in bestSellers" 
-          :key="index" 
-          @click="goToBookDetail(book.slug || book.id)" 
-          class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
-        >
-          <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
-             <img 
-               :src="book.image" 
-               class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-               alt="Book Cover"
-               @error="$event.target.src='https://placehold.co/400x600?text=No+Image'" 
-             />
-             <div class="absolute top-2 left-2 w-8 h-8 flex items-center justify-center bg-yellow-400 text-white font-bold rounded-full shadow-md z-10 border-2 border-white">
-                #{{ index + 1 }}
-             </div>
-          </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div 
+    v-for="(book, index) in bestSellers" 
+    :key="index" 
+    @click="$router.push(`/books/${book.id}`)" 
+    class="..."
+  >
+    <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
+      <img 
+        :src="book.image" 
+        class="..." 
+        alt="Book Cover"
+      />
+    </div>
 
-          <div class="flex-1 flex flex-col">
-              <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">{{ book.title }}</h4>
-              <div class="mt-auto flex items-end justify-between">
-                  <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
-                  <div v-if="book.originalPrice" class="text-xs text-gray-400 line-through">{{ formatCurrency(book.originalPrice) }}</div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center">
-                  Đã bán {{ book.sold > 1000 ? (book.sold / 1000).toFixed(1) + 'k' : book.sold }}
-              </div>
-          </div>
+    <div class="flex-1 flex flex-col">
+        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
+          {{ book.title }}
+        </h4>
+        <div class="mt-auto flex items-end justify-between">
+            <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
+            <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.oldPrice) }}</div>
         </div>
-      </div>
+        <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
+            Đã bán {{ book.sold }}
+        </div>
+    </div>
+  </div>
+</div>
     </div>
 
     <CategoryNav />
@@ -112,93 +110,66 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router'; 
+// Xóa các dòng import axios dư thừa, chỉ dùng bookService
+import api from '@/services/api';
+
+// Import Components
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import FlashSale from '@/components/user/FlashSale.vue';
+
+// Import Assets (Banner)
 import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
 import sideBanner2 from '@/assets/banners/promo1.jpg'; 
 
-const router = useRouter(); 
-const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
-
-// Hàm chuyển trang chi tiết (SLUG)
-const goToBookDetail = (slugOrId) => {
-  if (!slugOrId) return;
-  router.push(`/books/${slugOrId}`);
+// --- Helper Format Tiền ---
+const formatCurrency = (val) => {
+  if (!val || isNaN(val)) return "0 ₫";
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 };
 
+// Slider Logic
 const currentSlide = ref(0);
 const bannerImages = [banner1, banner2, banner3];
+let slideInterval;
+
+const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
+const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
+
+// --- Data Fetching Logic ---
 const bestSellers = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 
-let slideInterval;
-const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
-const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
-const startAutoSlide = () => { slideInterval = setInterval(nextSlide, 4000); }; // 4 giây chuyển 1 lần
-
-const fetchAllData = async () => {
+const fetchAllHomeData = async () => {
   try {
-    const [trend, news, allBooks] = await Promise.all([
-      bookService.getTrending(),
-      bookService.getNewArrivals(),
-      bookService.getAllBooks() 
+    // Gọi trực tiếp qua api.get và truyền params
+    const [best, trend, news] = await Promise.all([
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
+      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
+      api.get('/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
+    // Gán dữ liệu trực tiếp vì api.js đã bóc tách data
+    bestSellers.value = best || [];
     trendingBooks.value = trend || [];
     newBooks.value = news || [];
-    
-    // Logic Top Seller
-    if (allBooks && allBooks.length > 0) {
-       const sortedBooks = [...allBooks].sort((a, b) => (b.total_sold || 0) - (a.total_sold || 0));
-       const top5 = sortedBooks.slice(0, 5);
-
-       bestSellers.value = top5.map(book => {
-          let imageUrl = 'https://placehold.co/400x600?text=No+Image'; 
-          
-          const images = book.BookImages || book.book_images;
-          if (images && Array.isArray(images) && images.length > 0) {
-              imageUrl = images[0].book_image_url;
-          } else if (book.image) {
-              imageUrl = book.image;
-          }
-
-          if (imageUrl && !imageUrl.startsWith('http')) {
-              imageUrl = `http://localhost:3000${imageUrl}`;
-          }
-
-          return {
-            id: book.book_id,
-            slug: book.book_slug, // Lấy Slug
-            title: book.book_title,
-            price: book.price,
-            originalPrice: null, 
-            sold: book.total_sold || 0,
-            image: imageUrl
-          };
-       });
-    }
-
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
+    console.error("Lỗi khi gọi API trực tiếp:", error);
   }
 };
 
 onMounted(() => {
-  startAutoSlide();
-  fetchAllData();
+  fetchAllHomeData();
 });
 
 onUnmounted(() => {
-  if (slideInterval) clearInterval(slideInterval);
+  clearInterval(slideInterval);
 });
 </script>

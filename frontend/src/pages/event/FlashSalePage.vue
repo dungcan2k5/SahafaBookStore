@@ -79,33 +79,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { bookService } from '@/services/bookService'; 
+import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
+const days = [
+  { label: 'Thứ 2', category: 'Văn Học' },
+  { label: 'Thứ 3', category: 'Kinh Tế' },
+  { label: 'Thứ 4', category: 'Tổng Hợp' },
+  { label: 'Thứ 5', category: 'Tâm Lý' },
+  { label: 'Thứ 6', category: 'Thiếu Nhi' },
+  { label: 'Thứ 7', category: 'Manga' },
+  { label: 'Chủ Nhật', category: 'Ngoại Văn' },
+];
 
-const router = useRouter();
+const products = ref([]);
+const loading = ref(true);
 
-// --- Logic Đồng hồ (Giả lập) ---
-const hours = ref('02');
-const minutes = ref('45');
-const seconds = ref('00');
-let timerInterval = null;
-
-const startTimer = () => {
-  let timeInSecs = 3 * 60 * 60; 
-  timerInterval = setInterval(() => {
-    timeInSecs--;
-    if (timeInSecs < 0) { clearInterval(timerInterval); return; }
-    
-    hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
-    minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
-    seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
-  }, 1000);
+const fetchFlashSale = async () => {
+  try {
+    loading.value = true;
+    const data = await bookService.getFlashSale();
+    // Map lại field nếu cần (ví dụ: soldPercentage)
+    products.value = data.map(b => ({
+      ...b,
+      soldPercentage: Math.round((b.sold / b.totalStock) * 100) || 0
+    }));
+  } catch (error) {
+    console.error("Lỗi:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 
-// --- Logic API ---
-const flashSaleBooks = ref([]); 
-const isLoading = ref(false);
+// watch(activeDay, () => {
+//   generateBooks();
+// });
 
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
@@ -131,11 +139,22 @@ const goToDetail = (slugOrId) => {
 };
 
 onMounted(() => {
-  startTimer();
-  fetchFlashSaleBooks();
+  fetchFlashSale();
+  let totalSeconds = 9999;
+  timer = setInterval(() => {
+    totalSeconds--;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    countdown.value.h = h.toString().padStart(2, '0');
+    countdown.value.m = m.toString().padStart(2, '0');
+    countdown.value.s = s.toString().padStart(2, '0');
+  }, 1000);
 });
 
 onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval);
+   fetchFlashSale();
+  if (timer) clearInterval(timer);
+  
 });
 </script>
