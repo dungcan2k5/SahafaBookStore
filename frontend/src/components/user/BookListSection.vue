@@ -34,9 +34,9 @@
           >
              <BookCard :book="book" class="h-full pointer-events-none" /> 
              <div v-if="showProgressBar" class="mt-2 px-1">
-                <div class="w-full bg-pink-100 rounded-full h-4 relative overflow-hidden">
-                  <div class="bg-[#2563eb] h-full absolute left-0 top-0" :style="{ width: (book.sold / 1200) * 100 + '%' }"></div>
-                  <span class="absolute w-full text-center text-[10px] text-white font-bold leading-4 z-10 uppercase">Đã bán {{ book.sold }}</span>
+                  <div class="w-full bg-pink-100 rounded-full h-4 relative overflow-hidden">
+                  <div class="bg-[#2563eb] h-full absolute left-0 top-0" :style="{ width: ((book.total_sold || book.sold) / 1200) * 100 + '%' }"></div>
+                  <span class="absolute w-full text-center text-[10px] text-white font-bold leading-4 z-10 uppercase">Đã bán {{ book.total_sold || book.sold }}</span>
                 </div>
              </div>
           </div>

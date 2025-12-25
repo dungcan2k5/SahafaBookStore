@@ -28,7 +28,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="transactions" style="width: 100%" v-loading="loading" stripe border>
+    <el-table ref="tableRef" :data="transactions" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column label="Mã GD" width="110" align="center">
           <template #default="scope">
             <span class="font-mono text-gray-600">#{{ getTxId(scope.row) }}</span>
@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Money, Refresh, Check, Search, MagicStick, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -165,10 +165,10 @@ const fetchTransactions = async () => {
         search: searchText.value?.trim() || undefined
       }
     });
-    transactions.value = res.data.data || [];
-    if (res.data.meta) {
-      total.value = res.data.meta.total;
-    }
+    const payload = (res && res.data !== undefined) ? res.data : res;
+    transactions.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
+    const meta = payload?.meta || payload?.pagination || null;
+    if (meta && meta.total !== undefined) total.value = meta.total;
   } catch (e) {
     console.error(e);
     ElMessage.error('Không thể tải lịch sử giao dịch');
@@ -244,4 +244,9 @@ const createFakeTransaction = async () => {
 };
 
 onMounted(fetchTransactions);
+
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 </script>

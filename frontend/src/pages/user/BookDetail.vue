@@ -142,9 +142,9 @@ const fetchBookDetail = async (idOrSlug) => {
   selectedImage.value = null;
 
   try {
-    // Gọi trực tiếp qua api (baseURL đã có /api)
+    // Gọi trực tiếp qua api
     // Route chuẩn: /api/books/:id
-    const data = await api.get(`/books/${idOrSlug}`);
+    const data = await api.get(`/api/books/${idOrSlug}`);
     
     if (data) {
       book.value = data;

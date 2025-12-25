@@ -1,4 +1,5 @@
-<template>
+ypeError: Cannot read properties of undefined (reading 'data')
+    at fetchOrders (OrderManager.vue:403:29)<template>
   <div>
     <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -24,7 +25,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="orders" style="width: 100%" v-loading="loading" stripe border>
+    <el-table ref="tableRef" :data="orders" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column prop="order_id" label="Mã Đơn" width="90" align="center">
           <template #default="scope">
             <span class="font-bold text-gray-600">#{{ scope.row.order_id }}</span>
@@ -246,7 +247,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { List, MagicStick, Location, Search, View, Printer } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -400,9 +401,32 @@ const fetchOrders = async () => {
             search: searchText.value?.trim() || undefined
         }
     });
-    orders.value = res.data.data || [];
-    if (res.data.meta) {
-        total.value = res.data.meta.total;
+
+    // Support multiple response shapes depending on interceptor behavior:
+    // - interceptor may return the unwrapped data (array or object)
+    // - or return the full Axios response-like object { data: ..., meta: ... }
+    const payload = (res && res.data !== undefined) ? res.data : res;
+
+    let list = [];
+    let meta = null;
+
+    if (Array.isArray(payload)) {
+      list = payload;
+    } else if (payload && Array.isArray(payload.data)) {
+      list = payload.data;
+      meta = payload.meta || null;
+    } else if (payload && Array.isArray(payload.rows)) {
+      // handle shape { rows, meta }
+      list = payload.rows;
+      meta = payload.meta || null;
+    } else if (payload && payload.data && Array.isArray(payload.data.rows)) {
+      list = payload.data.rows;
+      meta = payload.data.meta || null;
+    }
+
+    orders.value = list || [];
+    if (meta && meta.total !== undefined) {
+      total.value = meta.total;
     }
   } catch (e) {
     console.error(e);
@@ -411,6 +435,11 @@ const fetchOrders = async () => {
     loading.value = false;
   }
 };
+
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 
 const handleSizeChange = (val) => {
   pageSize.value = val;

@@ -28,13 +28,14 @@ const getAllBooks = async (req, res) => {
 
         // 2. Thêm logic lọc theo từ khóa tìm kiếm (Tên sách hoặc Tên tác giả)
         if (search) {
+            // Temporarily only search by book title to avoid SQL generation issues
             whereClause[Op.or] = [
-                { book_title: { [Op.like]: `%${search}%` } },
-                { '$Author.author_name$': { [Op.like]: `%${search}%` } }
+                { book_title: { [Op.like]: `%${search}%` } }
             ];
         }
 
         if (category) {
+            // Filter by genre name (this uses the joined Genre table)
             whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` };
         }
 
@@ -43,25 +44,35 @@ const getAllBooks = async (req, res) => {
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
             limit: limit ? parseInt(limit) : undefined,
             include: [
-                { model: Author, attributes: ['author_name'], as: 'Author' },
+                { model: Author, attributes: ['author_name'] },
+                { model: Genre, attributes: ['genre_name', 'genre_slug'] },
                 { model: BookImage, attributes: ['book_image_url'] }
             ]
         });
 
-        // 3. Map dữ liệu để khớp với Frontend
+        // 3. Map dữ liệu để khớp với Frontend: giữ cấu trúc giống Sequelize include
         const formattedData = books.map(b => ({
-            id: b.book_id,
-            slug: b.book_slug,
-            title: b.book_title,
+            book_id: b.book_id,
+            book_slug: b.book_slug,
+            book_title: b.book_title,
+            description: b.description || '',
             price: Number(b.price),
-            image: b.BookImages?.[0]?.book_image_url || null,
-            sold: b.total_sold || 0
+            stock_quantity: b.stock_quantity || 0,
+            isbn: b.isbn || null,
+            total_sold: b.total_sold || 0,
+            BookImages: b.BookImages || [],
+            Author: b.Author || null,
+            Genre: b.Genre || null
         }));
 
         res.status(200).json({ success: true, data: formattedData });
     } catch (error) {
-        console.error("Lỗi getAllBooks:", error);
-        res.status(500).json({ success: false });
+        console.error("Lỗi getAllBooks:", {
+            message: error.message,
+            stack: error.stack,
+            query: req.query
+        });
+        res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };
 
@@ -186,7 +197,9 @@ const updateBook = async (req, res) => {
             }
         }
         
-        res.status(200).json({ success: true, message: 'Cập nhật thành công' });
+        // Trả về bản ghi đã cập nhật để frontend có thể đồng bộ ngay
+        const updated = await Book.findByPk(id, { include: [Author, Genre, BookImage, Publisher] });
+        res.status(200).json({ success: true, message: 'Cập nhật thành công', data: updated });
     } catch (error) {
         console.error("Lỗi update sách:", error);
         res.status(500).json({ success: false, message: error.message });

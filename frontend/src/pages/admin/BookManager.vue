@@ -27,7 +27,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="books" style="width: 100%" v-loading="loading" stripe>
+      <el-table ref="tableRef" :data="books" style="width: 100%" v-loading="loading" stripe>
         <el-table-column label="#" width="60" align="center">
           <template #default="scope">
             {{ scope.$index + 1 }}
@@ -53,6 +53,7 @@
               <el-tag size="small" type="info">{{ scope.row.Author?.author_name || 'Tác giả?' }}</el-tag>
               <el-tag size="small" type="warning">{{ scope.row.Genre?.genre_name || 'Thể loại?' }}</el-tag>
             </div>
+            <div class="text-sm text-gray-600 mt-2 truncate" style="max-width:420px">{{ scope.row.description || scope.row.book_description || '—' }}</div>
             <div class="text-xs text-gray-400 mt-1">ISBN: {{ scope.row.isbn || '---' }}</div>
           </template>
         </el-table-column>
@@ -113,12 +114,21 @@
             <el-input v-model="form.book_title" placeholder="Nhập tên sách..." @input="generateSlug" />
           </el-form-item>
           <el-form-item label="Mã ISBN" required>
-            <el-input v-model="form.isbn" placeholder="VD: 978-604-..." />
+            <el-input v-model="form.isbn" placeholder="VD: 978-604-..." @input="onIsbnInput" />
           </el-form-item>
         </div>
 
         <el-form-item label="Slug URL (Tự động)">
           <el-input v-model="form.book_slug" placeholder="tu-dong-tao-slug" disabled />
+        </el-form-item>
+
+        <el-form-item label="Mô tả sách">
+          <el-input
+            type="textarea"
+            :rows="4"
+            v-model="form.description"
+            placeholder="Nhập mô tả về sách..."
+          />
         </el-form-item>
 
         <div class="grid grid-cols-3 gap-4">
@@ -283,7 +293,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue';
 import { Reading, Plus, Edit, Delete, Search, Upload, Picture, Link, UploadFilled, Folder } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -320,6 +330,7 @@ const form = reactive({
   book_title: '',
   book_slug: '',
   isbn: '',
+  description: '',
   price: 0,
   stock_quantity: 10,
   images: [], // Changed from image_url to images array
@@ -354,6 +365,12 @@ const generateSlug = (val) => {
     .replace(/-+$/, '');
 };
 
+// Sanitize ISBN input: allow only digits and hyphens
+const onIsbnInput = (val) => {
+  if (val === undefined || val === null) return (form.isbn = '');
+  form.isbn = String(val).replace(/[^0-9-]/g, '');
+};
+
 // --- API: Tải dữ liệu ---
 const fetchData = async () => {
   loading.value = true;
@@ -371,15 +388,19 @@ const fetchData = async () => {
       api.get('/api/books/publishers')
     ]);
 
-    books.value = resBooks.data?.data || [];
-    // Update pagination meta
-    if (resBooks.data?.meta) {
-        total.value = resBooks.data.meta.total;
-    }
+    const booksPayload = (resBooks && resBooks.data !== undefined) ? resBooks.data : resBooks;
+    books.value = Array.isArray(booksPayload) ? booksPayload : (booksPayload?.data || booksPayload?.rows || []);
+    const bm = booksPayload?.meta || booksPayload?.pagination || null;
+    if (bm && bm.total !== undefined) total.value = bm.total;
 
-    authors.value = resAuthors.data?.data || [];
-    genres.value = resGenres.data?.data || [];
-    publishers.value = resPub.data?.data || [];
+    const authorsPayload = (resAuthors && resAuthors.data !== undefined) ? resAuthors.data : resAuthors;
+    authors.value = Array.isArray(authorsPayload) ? authorsPayload : (authorsPayload?.data || authorsPayload?.rows || []);
+
+    const genresPayload = (resGenres && resGenres.data !== undefined) ? resGenres.data : resGenres;
+    genres.value = Array.isArray(genresPayload) ? genresPayload : (genresPayload?.data || genresPayload?.rows || []);
+
+    const pubPayload = (resPub && resPub.data !== undefined) ? resPub.data : resPub;
+    publishers.value = Array.isArray(pubPayload) ? pubPayload : (pubPayload?.data || pubPayload?.rows || []);
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi kết nối Server!');
@@ -404,7 +425,8 @@ const fetchServerImages = async () => {
   loadingImages.value = true;
   try {
     const res = await api.get('/api/uploads/images');
-    serverImages.value = res.data?.data || [];
+    const payload = (res && res.data !== undefined) ? res.data : res;
+    serverImages.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
   } catch (error) {
     console.error("Lỗi tải ảnh server:", error);
     ElMessage.error('Không tải được danh sách ảnh!');
@@ -426,15 +448,27 @@ watch(searchText, () => {
 const formatCurrency = (val) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
+const tableRef = ref(null);
+const handleResize = () => {
+  if (!tableRef.value) return;
+  try {
+    if (typeof tableRef.value.doLayout === 'function') tableRef.value.doLayout();
+  } catch (e) {
+    // ignore
+  }
+};
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
+
 const getImageUrl = (book) => {
   if (book.BookImages && book.BookImages.length > 0) return book.BookImages[0].book_image_url;
   return 'https://placehold.co/100x150?text=No+Image';
 };
 
-const openDialog = (book = null) => {
+const openDialog = async (book = null) => {
   isEdit.value = !!book;
   dialogVisible.value = true;
-  
+
   // Reset image state
   imageSourceType.value = 'url';
   selectedFiles.value = [];
@@ -442,9 +476,31 @@ const openDialog = (book = null) => {
   currentServerFolder.value = null;
 
   if (book) {
-    Object.assign(form, book);
-    // Convert BookImages array to simple URL array
-    form.images = book.BookImages ? book.BookImages.map(img => img.book_image_url) : [];
+    // If book from list may lack full fields (author_id, genre_id, publisher_id), fetch detail
+    try {
+      const res = await api.get(`/api/books/${book.book_id || book.book_slug}`);
+      const payload = (res && res.data !== undefined) ? res.data : res;
+      const data = payload.data || payload;
+
+      // Populate form explicitly to avoid overwriting id fields with nested objects
+      form.book_id = data.book_id;
+      form.book_title = data.book_title || '';
+      form.book_slug = data.book_slug || '';
+      form.isbn = data.isbn || '';
+      form.price = data.price || 0;
+      form.stock_quantity = data.stock_quantity || 0;
+      form.description = data.description || data.book_description || data.book_summary || '';
+      form.images = (data.BookImages || data.book_images || []).map(i => i.book_image_url);
+      form.author_id = data.author_id || data.Author?.author_id || null;
+      form.genre_id = data.genre_id || data.Genre?.genre_id || null;
+      form.publisher_id = data.publisher_id || data.Publisher?.publisher_id || null;
+    } catch (err) {
+      console.error('Lỗi load chi tiết sách:', err);
+      // Fallback: shallow assign and try to keep nested selection if possible
+      Object.assign(form, book);
+      form.images = book.BookImages ? book.BookImages.map(img => img.book_image_url) : [];
+      form.description = book.description || book.book_description || book.book_summary || '';
+    }
   } else {
     form.book_id = null;
     form.book_title = '';
@@ -453,7 +509,7 @@ const openDialog = (book = null) => {
     form.price = 0;
     form.stock_quantity = 10;
     form.images = [];
-
+    form.description = '';
     form.author_id = authors.value.length > 0 ? authors.value[0].author_id : null;
     form.genre_id = genres.value.length > 0 ? genres.value[0].genre_id : null;
     form.publisher_id = publishers.value.length > 0 ? publishers.value[0].publisher_id : null;
@@ -482,6 +538,8 @@ const removeImage = (index) => {
 const handleSave = async () => {
   if (!form.book_title) return ElMessage.warning('Chưa nhập tên sách!');
   if (!form.isbn) return ElMessage.warning('Chưa nhập ISBN!');
+  // Ensure ISBN contains only digits and hyphens
+  if (!/^[0-9-]+$/.test(form.isbn)) return ElMessage.warning('ISBN chỉ được chứa chữ số và dấu gạch ngang (-)');
 
   submitting.value = true;
   try {

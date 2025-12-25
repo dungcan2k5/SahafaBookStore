@@ -107,7 +107,8 @@ const fetchGenres = async () => {
   loading.value = true;
   try {
     const res = await api.get('/api/books/genres');
-    genres.value = res.data.data || [];
+    const payload = (res && res.data !== undefined) ? res.data : res;
+    genres.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi tải dữ liệu');

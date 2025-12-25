@@ -46,7 +46,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="filteredBooks" style="width: 100%" v-loading="loading" stripe border height="500">
+    <el-table ref="tableRef" :data="filteredBooks" style="width: 100%" v-loading="loading" stripe border height="500">
         <el-table-column label="#" width="60" align="center">
           <template #default="scope">{{ scope.$index + 1 }}</template>
         </el-table-column>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Box, Refresh, Plus, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -146,7 +146,8 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const res = await api.get('/api/books');
-    books.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
+    const payload = (res && res.data !== undefined) ? res.data : res;
+    books.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi tải dữ liệu kho');
@@ -183,4 +184,9 @@ const handleImport = async () => {
 };
 
 onMounted(() => fetchData());
+
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 </script>

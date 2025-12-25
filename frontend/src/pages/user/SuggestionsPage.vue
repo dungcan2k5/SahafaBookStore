@@ -36,24 +36,30 @@
       <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <router-link
           v-for="book in books"
-          :key="book.id"
-          :to="`/books/${book.id}`"
+          :key="book.id || book.book_id"
+          :to="`/books/${book.slug || book.book_slug || book.id}`"
           class="bg-white rounded-lg p-4 hover:shadow-xl transition duration-300 border border-transparent hover:border-gray-200 cursor-pointer flex flex-col group relative"
         >
-          <div class="relative pt-[100%] mb-3 overflow-hidden rounded-md">
-            <img :src="book.image" class="absolute top-0 left-0 w-full h-full object-contain group-hover:scale-105 transition duration-500" />
+          <div class="relative pt-[100%] mb-3 overflow-hidden rounded-md bg-gray-100">
+            <img
+              :src="(book.image || (book.BookImages && book.BookImages[0] && book.BookImages[0].book_image_url) || 'https://placehold.co/400x600?text=No+Image')"
+              class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition duration-500"
+              @error="(e) => e.target.src = 'https://placehold.co/400x600?text=No+Image'"
+            />
             <div v-if="book.discount" class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow">-{{ book.discount }}%</div>
           </div>
 
           <h3 class="text-sm text-gray-700 font-medium line-clamp-2 mb-2 min-h-[40px] group-hover:text-blue-600 transition">
-            {{ book.title }}
+            {{ book.title || book.book_title }}
           </h3>
 
+          <div class="text-sm text-gray-500 mb-2">{{ book.Author?.author_name || book.author_name || '' }}</div>
+
           <div class="mt-auto">
-            <div class="text-red-600 font-bold text-lg">{{ formatPrice(book.price) }}đ</div>
+            <div class="text-red-600 font-bold text-lg">{{ formatPrice(book.price || book.price) }}đ</div>
             <div class="flex items-center gap-2 mt-1">
               <div v-if="book.oldPrice" class="text-gray-400 text-xs line-through">{{ formatPrice(book.oldPrice) }}đ</div>
-              <div class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Đã bán {{ book.sold }}</div>
+              <div class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Đã bán {{ book.total_sold || book.sold || 0 }}</div>
             </div>
           </div>
         </router-link>
@@ -88,10 +94,25 @@ const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v);
 const loadData = async () => {
   try {
     loading.value = true;
-    // Gọi trực tiếp route gợi ý sách (ví dụ /books hoặc route riêng của bạn)
-    // Nếu chưa có route riêng, có thể dùng tạm danh sách sách mới
-    const data = await api.get('/books', { params: { limit: 10, sort: 'book_id' } });
-    books.value = data || [];
+    // Gọi trực tiếp route gợi ý sách
+    const data = await api.get('/api/books', { params: { limit: 10, sort: 'book_id' } });
+    // Normalize response to friendly shape: { id, slug, title, price, image, total_sold, Author }
+    const normalize = (arr) => (Array.isArray(arr) ? arr.map(b => ({
+      id: b.book_id || b.id,
+      slug: b.book_slug || b.slug,
+      book_slug: b.book_slug,
+      book_title: b.book_title,
+      title: b.book_title || b.title,
+      price: Number(b.price) || Number(b.price || 0),
+      oldPrice: b.oldPrice || 0,
+      image: (b.BookImages && b.BookImages[0] && b.BookImages[0].book_image_url) || b.image || null,
+      BookImages: b.BookImages || null,
+      total_sold: b.total_sold || b.sold || 0,
+      sold: b.total_sold || b.sold || 0,
+      Author: b.Author || null
+    })) : []);
+
+    books.value = normalize(data || []);
   } catch (e) {
     console.error("Lỗi tải gợi ý:", e);
   } finally {
