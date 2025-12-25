@@ -172,7 +172,7 @@ const formatCurrency = (value) => {
 const fetchData = async () => {
     loading.value = true;
     try {
-        const res = await api.get('/api/api/stats/dashboard', {
+        const res = await api.get('/api/stats/dashboard', {
             params: { period: filterPeriod.value }
         });
 

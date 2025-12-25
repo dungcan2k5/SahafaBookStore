@@ -320,7 +320,7 @@ watch(currentTab, (newTab) => {
 const fetchOrders = async () => {
     orderLoading.value = true;
     try {
-        const res = await api.get('/api/api/orders/my-orders', {
+        const res = await api.get('/api/orders/my-orders', {
             params: {
                 page: orderPage.value,
                 limit: orderLimit.value
@@ -418,7 +418,7 @@ const handleUpdate = async () => {
 // --- ADDRESS BOOK LOGIC ---
 const fetchAddresses = async () => {
    try {
-      const res = await api.get('/api/api/addresses');
+      const res = await api.get('/api/addresses');
       addresses.value = res.data.data || [];
    } catch (e) { console.error("Lỗi tải địa chỉ:", e); }
 };

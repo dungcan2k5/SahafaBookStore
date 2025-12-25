@@ -69,9 +69,7 @@ const fetchPost = async () => {
     loading.value = true;
     error.value = null;
     const response = await postService.getPostBySlug(slug);
-    if (response.data.success) {
-      post.value = response.data.data;
-    }
+    post.value = response;
   } catch (err) {
     console.error('Failed to fetch post:', err);
     error.value = 'Không tìm thấy bài viết hoặc đã xảy ra lỗi.';

@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true;
     error.value = null;
     try {
-        const res = await api.post('/auth/login', { email, password });
+        const res = await api.post('api/auth/login', { email, password });
         
         // Log để kiểm tra cấu trúc thật (Nếu vẫn undefined thì phải sửa api.js)
         console.log("Dữ liệu sau Interceptor:", res); 

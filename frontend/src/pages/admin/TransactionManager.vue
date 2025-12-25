@@ -158,7 +158,7 @@ const getTxId = (tx) => tx.transaction_id ?? tx.payment_id ?? tx.id ?? '...';
 const fetchTransactions = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/api/payment/transactions', {
+    const res = await api.get('/api/payment/transactions', {
       params: {
         page: currentPage.value,
         limit: pageSize.value,
