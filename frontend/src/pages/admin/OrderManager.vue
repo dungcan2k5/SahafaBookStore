@@ -391,6 +391,7 @@ const printInvoice = () => {
 };
 
 // --- API ---
+// Thay thế hàm fetchOrders cũ
 const fetchOrders = async () => {
   loading.value = true;
   try {
@@ -402,35 +403,19 @@ const fetchOrders = async () => {
         }
     });
 
-    // Support multiple response shapes depending on interceptor behavior:
-    // - interceptor may return the unwrapped data (array or object)
-    // - or return the full Axios response-like object { data: ..., meta: ... }
-    const payload = (res && res.data !== undefined) ? res.data : res;
+    const responseData = res.data || res;
+    
+    // Lấy list order
+    orders.value = responseData.data || [];
+    
+    // Lấy total
+    const meta = responseData.meta || {};
+    total.value = meta.total || 0;
 
-    let list = [];
-    let meta = null;
-
-    if (Array.isArray(payload)) {
-      list = payload;
-    } else if (payload && Array.isArray(payload.data)) {
-      list = payload.data;
-      meta = payload.meta || null;
-    } else if (payload && Array.isArray(payload.rows)) {
-      // handle shape { rows, meta }
-      list = payload.rows;
-      meta = payload.meta || null;
-    } else if (payload && payload.data && Array.isArray(payload.data.rows)) {
-      list = payload.data.rows;
-      meta = payload.data.meta || null;
-    }
-
-    orders.value = list || [];
-    if (meta && meta.total !== undefined) {
-      total.value = meta.total;
-    }
   } catch (e) {
-    console.error(e);
+    console.error("Fetch Orders Error:", e);
     ElMessage.error('Lỗi tải danh sách đơn hàng!');
+    orders.value = [];
   } finally {
     loading.value = false;
   }

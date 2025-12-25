@@ -372,42 +372,50 @@ const onIsbnInput = (val) => {
 };
 
 // --- API: Tải dữ liệu ---
+// Tìm hàm fetchData và thay bằng đoạn này
 const fetchData = async () => {
   loading.value = true;
   try {
-    const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
-      api.get('/api/books', {
-        params: {
-          search: searchText.value?.trim() || undefined,
-          page: currentPage.value,
-          limit: pageSize.value
-        }
-      }),
-      api.get('/api/books/authors'),
-      api.get('/api/books/genres'),
-      api.get('/api/books/publishers')
-    ]);
+    const res = await api.get('/api/books', {
+      params: {
+        search: searchText.value?.trim() || undefined,
+        page: currentPage.value,
+        limit: pageSize.value
+      }
+    });
 
-    const booksPayload = (resBooks && resBooks.data !== undefined) ? resBooks.data : resBooks;
-    books.value = Array.isArray(booksPayload) ? booksPayload : (booksPayload?.data || booksPayload?.rows || []);
-    const bm = booksPayload?.meta || booksPayload?.pagination || null;
-    if (bm && bm.total !== undefined) total.value = bm.total;
+    // Chuẩn hóa response, không try-hard đoán mò nữa
+    const responseData = res.data || res; // Axios trả về .data, hoặc interceptor đã trả về
+    
+    // Data list
+    books.value = responseData.data || [];
+    
+    // Meta pagination
+    const meta = responseData.meta || {};
+    total.value = meta.total || 0; // Quan trọng: lấy tổng số bản ghi
 
-    const authorsPayload = (resAuthors && resAuthors.data !== undefined) ? resAuthors.data : resAuthors;
-    authors.value = Array.isArray(authorsPayload) ? authorsPayload : (authorsPayload?.data || authorsPayload?.rows || []);
-
-    const genresPayload = (resGenres && resGenres.data !== undefined) ? resGenres.data : resGenres;
-    genres.value = Array.isArray(genresPayload) ? genresPayload : (genresPayload?.data || genresPayload?.rows || []);
-
-    const pubPayload = (resPub && resPub.data !== undefined) ? resPub.data : resPub;
-    publishers.value = Array.isArray(pubPayload) ? pubPayload : (pubPayload?.data || pubPayload?.rows || []);
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi kết nối Server!');
+    books.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
 };
+
+// Đảm bảo el-pagination có prop background cho đẹp
+/* <el-pagination
+  background 
+  v-model:current-page="currentPage"
+  v-model:page-size="pageSize"
+  :page-sizes="[10, 20, 50]"
+  layout="total, sizes, prev, pager, next, jumper"
+  :total="total"
+  @size-change="handleSizeChange"
+  @current-change="handleCurrentChange"
+/>
+*/
 
 const handleSizeChange = (val) => {
   pageSize.value = val;
