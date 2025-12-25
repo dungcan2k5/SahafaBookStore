@@ -25,18 +25,25 @@ export const useCartStore = defineStore('cart', {
       try {
         const res = await api.get('/api/cart');
 
-        // Map dữ liệu từ cấu trúc Backend (CartItems -> Book) sang Frontend
-        const body = res.data || res;
-        if (body.success && body.data) {
-          this.items = body.data.CartItems.map(item => ({
+        // `api` interceptor may already unwrap { success:true, data } to return data directly.
+        // Normalize to a `cart` object which should contain `CartItems`.
+        let cart = null;
+        if (res && res.success && res.data) cart = res.data;
+        else if (res && res.CartItems) cart = res;
+        else if (res && res.data && res.data.CartItems) cart = res.data;
+
+        if (cart && Array.isArray(cart.CartItems)) {
+          this.items = cart.CartItems.map(item => ({
              id: item.cart_item_id, // ID giỏ hàng (dùng để xóa/sửa)
              book_id: item.book_id, // ID sách (dùng để link trang chi tiết)
-             title: item.Book.book_title,
-             price: parseFloat(item.Book.price),
+             title: item.Book?.book_title || item.Book?.book_title,
+             price: parseFloat(item.Book?.price || 0),
              // Lấy ảnh đầu tiên hoặc ảnh placeholder
-             image: item.Book.BookImages?.[0]?.book_image_url || 'https://via.placeholder.com/150',
-             quantity: item.quantity
+             image: item.Book?.BookImages?.[0]?.book_image_url || 'https://via.placeholder.com/150',
+             quantity: Number(item.quantity || 1)
           }));
+        } else {
+          this.items = [];
         }
       } catch (error) {
         console.error("Lỗi lấy giỏ hàng:", error);
