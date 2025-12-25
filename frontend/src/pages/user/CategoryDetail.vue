@@ -44,7 +44,7 @@
              </div>
              <div class="flex items-center justify-between">
                 <div class="flex text-yellow-400 text-xs">★★★★★</div>
-                <span class="text-gray-400 text-xs">Đã bán {{ book.sold }}</span>
+                <span class="text-gray-400 text-xs">Đã bán {{ book.total_sold || book.sold || 0 }}</span>
              </div>
           </div>
         </router-link>

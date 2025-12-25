@@ -35,12 +35,12 @@
           v-else
           v-for="book in flashSaleBooks" 
           :key="book.id"
-          @click="goToBookDetail(book.id)"
+          @click="goToBookDetail(book.slug || book.id)"
           class="bg-white rounded-xl p-3 min-w-[170px] max-w-[170px] md:min-w-[210px] md:max-w-[210px] flex flex-col justify-between hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer snap-start"
         >
-          <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
+        <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
             <img 
-              :src="book.image || 'https://via.placeholder.com/200x300?text=No+Image'" 
+              :src="book.image && book.image.startsWith('http') ? book.image : `http://localhost:3000${book.image}`" 
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
@@ -62,13 +62,13 @@
             <div class="relative w-full h-5 bg-pink-100 rounded-full overflow-hidden">
               <div 
                 class="absolute top-0 left-0 h-full bg-[#C92127]" 
-                :style="{ width: (book.sold / book.totalStock) * 100 + '%' }"
+                :style="{ width: ((book.total_sold || book.sold) / book.totalStock) * 100 + '%' }"
               ></div>
               <div class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold uppercase z-10 drop-shadow-sm">
-                <span v-if="book.sold > 0">Đã bán {{ book.sold }}</span>
+                <span v-if="(book.total_sold || book.sold) > 0">Đã bán {{ book.total_sold || book.sold }}</span>
                 <span v-else>Vừa mở bán</span>
               </div>
-              <div class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px]" v-if="book.sold > 10">🔥</div>
+              <div class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px]" v-if="(book.total_sold || book.sold) > 10">🔥</div>
             </div>
           </div>
         </div>
@@ -80,39 +80,40 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import api from '../../services/api';
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'; // Cần thêm import này
+import api from '../../services/api'; 
 
-const router = useRouter();
+const router = useRouter(); // Khai báo router
+const flashSaleBooks = ref([]);
+const isLoading = ref(false);
 
-// --- Logic Đồng hồ ---
+// --- LOGIC ĐỒNG HỒ ---
 const hours = ref('02');
-const minutes = ref('45');
-const seconds = ref('00');
+const minutes = ref('59');
+const seconds = ref('59');
 let timerInterval = null;
 
 const startTimer = () => {
-  let timeInSecs = 3 * 60 * 60; 
+  let timeInSecs = 3 * 60 * 60; // 3 tiếng
   timerInterval = setInterval(() => {
     timeInSecs--;
-    if (timeInSecs < 0) { clearInterval(timerInterval); return; }
-    
+    if (timeInSecs < 0) {
+      clearInterval(timerInterval);
+      return;
+    }
     hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
     minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
     seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
   }, 1000);
 };
 
-// --- Logic API ---
-const flashSaleBooks = ref([]); 
-const isLoading = ref(false);
-
+// --- LOGIC API ---
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const response = await api.get('/books/flash-sale');
-        if (response.data.success) {
-            flashSaleBooks.value = response.data.data;
+        const data = await api.get('/api/books/flash-sale'); 
+        if (data) {
+            flashSaleBooks.value = data;
         }
     } catch (error) {
         console.error("Lỗi Flash Sale:", error);
@@ -123,12 +124,13 @@ const fetchFlashSaleBooks = async () => {
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-const goToBookDetail = (id) => {
-  router.push(`/books/${id}`);
+const goToBookDetail = (slugOrId) => {
+  if (!slugOrId) return;
+  router.push(`/books/${slugOrId}`);
 };
 
 onMounted(() => {
-  startTimer();
+  startTimer(); // Bây giờ hàm này đã tồn tại nên sẽ không lỗi
   fetchFlashSaleBooks();
 });
 
@@ -138,23 +140,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 👇 ĐÃ SỬA: Style thanh cuộn màu trắng mờ (để nổi trên nền đỏ) */
-.custom-scrollbar::-webkit-scrollbar {
-    height: 8px; /* Độ dày thanh cuộn */
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1); /* Nền rãnh hơi tối nhẹ */
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.5); /* Thanh cuộn màu trắng bán trong suốt */
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.9); /* Sáng rõ khi di chuột vào */
-}
+.custom-scrollbar::-webkit-scrollbar { height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); border-radius: 4px; cursor: pointer; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.9); }
 </style>

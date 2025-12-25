@@ -45,7 +45,7 @@
             <div class="text-red-600 font-bold text-lg">{{ formatPrice(book.price) }}đ</div>
             <div class="flex items-center gap-2 mt-1">
               <div v-if="book.oldPrice" class="text-gray-400 text-xs line-through">{{ formatPrice(book.oldPrice) }}đ</div>
-              <div class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Đã bán {{ book.sold }}</div>
+              <div class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Đã bán {{ book.total_sold || book.sold || 0 }}</div>
             </div>
           </div>
         </router-link>

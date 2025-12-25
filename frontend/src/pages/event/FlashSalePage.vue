@@ -1,168 +1,141 @@
 <template>
-  <div class="bg-blue-50 min-h-screen pb-10 font-sans">
-    
-    <div class="bg-blue-600 relative overflow-hidden text-white">
-      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+  <div class="bg-gray-50 min-h-screen py-8">
+    <div class="container mx-auto px-4">
       
-      <div class="container mx-auto px-4 py-10 relative z-10 text-center">
-        <div class="inline-block bg-yellow-400 text-blue-800 font-black px-4 py-1 rounded-full text-sm mb-4 animate-bounce shadow-lg">
-          ⚡ 10 KHUNG GIỜ VÀNG
-        </div>
-
-        <h1 class="text-4xl md:text-7xl font-black uppercase tracking-tighter drop-shadow-xl mb-2" style="-webkit-text-stroke: 1px #1e3a8a;">
-          FLASH SALE <br/>
-          <span class="text-yellow-300">HOÀNH TRÁNG</span>
-        </h1>
-        
-        <div class="flex items-center justify-center gap-4 mt-6">
-           <div class="bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-8 py-2 shadow-lg">
-              <span class="text-2xl font-bold">GIẢM ĐẾN 50%++</span>
-           </div>
-        </div>
-      </div>
-
-      <div class="container mx-auto px-4 pb-0 -mb-px">
-         <div class="flex gap-1 overflow-x-auto justify-start md:justify-center scrollbar-hide">
-            <button 
-              v-for="(day, index) in days" 
-              :key="index"
-              @click="activeDay = index"
-              class="min-w-[100px] md:min-w-[120px] rounded-t-xl border-t-2 border-x-2 transition-all duration-300 relative overflow-hidden group"
-              :class="activeDay === index 
-                ? 'bg-white text-blue-700 border-white h-24 -mt-2 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' 
-                : 'bg-blue-800 text-blue-200 border-blue-700 h-20 hover:bg-blue-700 hover:text-white'"
-            >
-               <div class="flex flex-col items-center justify-center h-full p-2">
-                  <span class="text-xs md:text-sm font-bold uppercase opacity-80">{{ day.label }}</span>
-                  <span class="text-sm md:text-base font-black leading-tight text-center mt-1">{{ day.category }}</span>
-               </div>
-            </button>
+      <div class="mb-8 flex items-end justify-between border-b pb-4">
+         <div>
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span class="text-yellow-500 text-3xl">⚡</span>
+                FLASH SALE 
+                <span class="text-gray-400 text-lg font-normal ml-2">Kết thúc trong</span>
+                <div class="flex gap-1 text-base font-mono text-white">
+                   <span class="bg-black rounded px-2">{{ hours }}</span>:
+                   <span class="bg-black rounded px-2">{{ minutes }}</span>:
+                   <span class="bg-black rounded px-2">{{ seconds }}</span>
+                </div>
+            </h1>
          </div>
       </div>
-    </div>
 
-    <div class="sticky top-[60px] z-40 bg-white shadow-md border-b-4 border-blue-600">
-       <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-3">
-             <div class="text-gray-600 font-bold uppercase text-sm tracking-wide">Kết thúc trong:</div>
-             <div class="flex gap-1 text-white font-bold font-mono">
-                <span class="bg-gray-800 px-2 py-1 rounded shadow-sm">{{ countdown.h }}</span>
-                <span class="text-gray-800 font-black">:</span>
-                <span class="bg-gray-800 px-2 py-1 rounded shadow-sm">{{ countdown.m }}</span>
-                <span class="text-gray-800 font-black">:</span>
-                <span class="bg-yellow-400 text-red-600 px-2 py-1 rounded shadow-sm">{{ countdown.s }}</span>
-             </div>
-          </div>
-          <div class="flex items-center gap-2 text-blue-600 font-black text-lg italic">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 animate-pulse text-yellow-400 fill-yellow-400" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-             ĐANG DIỄN RA
-          </div>
-       </div>
-    </div>
+      <div v-if="isLoading" class="flex justify-center py-20">
+         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+      </div>
 
-    <div class="container mx-auto px-4 py-8">
-       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          <div v-for="book in products" :key="book.id" class="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group hover:-translate-y-1">
+      <div v-else-if="flashSaleBooks.length === 0" class="text-center py-20 bg-white rounded-lg shadow-sm border border-gray-100">
+        <p class="text-gray-500 text-lg mb-4">Hiện chưa có chương trình Flash Sale nào.</p>
+        <router-link to="/" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            Về trang chủ
+        </router-link>
+      </div>
+
+      <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+        <div 
+          v-for="book in flashSaleBooks" 
+          :key="book.id" 
+          class="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group cursor-pointer hover:-translate-y-1"
+          @click="goToDetail(book.slug || book.id)"
+        >
+        <div class="relative pt-[140%] bg-gray-100 overflow-hidden">
+            <img 
+              :src="book.image || 'https://placehold.co/400x600?text=No+Image'" 
+              class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+              alt="Book cover"
+            />
+            <div 
+              v-if="book.discount && book.discount > 0" 
+              class="absolute top-0 right-0 bg-[#C92127] text-white text-xs font-bold px-2 py-1 rounded-bl-lg shadow-sm"
+            >
+              -{{ book.discount }}%
+            </div>
+          </div>
+
+          <div class="p-3 flex flex-col h-[140px]">
+             <h3 class="text-sm md:text-base font-medium text-gray-800 line-clamp-2 mb-1 group-hover:text-[#C92127] transition-colors leading-tight">
+               {{ book.title }}
+             </h3>
              
-             <div class="relative pt-[100%] bg-gray-50">
-                <img :src="book.image" class="absolute top-0 left-0 w-full h-full object-contain p-4 group-hover:scale-110 transition duration-500"/>
-                
-                <div class="absolute top-0 right-0 bg-red-600 text-white font-bold text-xs px-2 py-1 rounded-bl-lg shadow-md">
-                  -{{ book.discount }}%
+             <div class="mt-auto pt-2 border-t border-gray-50">
+                <div class="text-[#C92127] font-bold text-lg leading-none">
+                    {{ formatPrice(book.price) }}đ
                 </div>
-                
-                <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-black/10 to-transparent"></div>
-             </div>
+                <div class="text-gray-400 text-xs line-through mb-1">{{ formatPrice(book.oldPrice) }}đ</div>
 
-             <div class="p-3">
-                <h3 class="text-sm text-gray-700 line-clamp-2 h-10 mb-2 font-medium group-hover:text-blue-600 transition">{{ book.title }}</h3>
-                
-                <div class="flex items-end gap-2 mb-3">
-                   <span class="text-blue-600 font-bold text-lg">{{ Number(book.price).toLocaleString() }}đ</span>
-                   <span class="text-gray-400 text-xs line-through">{{ Number(book.oldPrice).toLocaleString() }}đ</span>
-                </div>
-
-                <div class="relative w-full h-4 bg-blue-100 rounded-full overflow-hidden">
-                   <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-blue-400" :style="{ width: book.soldPercentage + '%' }"></div>
-                   <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-[10px] text-white font-bold uppercase drop-shadow-md z-10">
-                      Đã bán {{ book.sold }}
-                   </div>
-                   <img src="https://cdn-icons-png.flaticon.com/512/785/785116.png" class="absolute top-0 left-1 h-3 w-3 mt-0.5 animate-pulse"/>
+                <div class="relative w-full h-4 bg-pink-100 rounded-full overflow-hidden mt-1">
+                    <div 
+                        class="absolute top-0 left-0 h-full bg-[#C92127]" 
+                        :style="{ width: (book.sold / book.totalStock) * 100 + '%' }"
+                    ></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-[9px] text-white font-bold uppercase z-10">
+                        Đã bán {{ book.total_sold || book.sold || 0 }}
+                    </div>
                 </div>
              </div>
           </div>
-       </div>
-    </div>
+        </div>
+      </div>
 
-   <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
-       <div class="container mx-auto px-4">
-          <SuggestionsPage :is-embedded="true" />
-       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
-const days = [
-  { label: 'Thứ 2', category: 'Văn Học' },
-  { label: 'Thứ 3', category: 'Kinh Tế' },
-  { label: 'Thứ 4', category: 'Tổng Hợp' },
-  { label: 'Thứ 5', category: 'Tâm Lý' },
-  { label: 'Thứ 6', category: 'Thiếu Nhi' },
-  { label: 'Thứ 7', category: 'Manga' },
-  { label: 'Chủ Nhật', category: 'Ngoại Văn' },
-];
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-const activeDay = ref(0);
-const products = ref([]);
+const router = useRouter();
 
-const generateBooks = () => {
-  const list = [];
-  for (let i = 1; i <= 10; i++) {
-    list.push({
-      id: i,
-      title: `Sách Flash Sale ${days[activeDay.value].category} - Quyển số ${i}`,
-      price: 50000 + Math.floor(Math.random() * 200000),
-      oldPrice: 300000,
-      discount: 40 + Math.floor(Math.random() * 10),
-      image: 'https://cdn0.fahasa.com/media/catalog/product/c/a/cay_cam_ngot_cua_toi_1.jpg',
-      sold: 10 + Math.floor(Math.random() * 100),
-      soldPercentage: 30 + Math.floor(Math.random() * 60)
-    });
-  }
-  products.value = list;
+// --- Logic Đồng hồ (Giả lập) ---
+const hours = ref('02');
+const minutes = ref('45');
+const seconds = ref('00');
+let timerInterval = null;
+
+const startTimer = () => {
+  let timeInSecs = 3 * 60 * 60; 
+  timerInterval = setInterval(() => {
+    timeInSecs--;
+    if (timeInSecs < 0) { clearInterval(timerInterval); return; }
+    
+    hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
+    minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
+    seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
+  }, 1000);
 };
 
-watch(activeDay, () => {
-  generateBooks();
-});
+// --- Logic API ---
+const flashSaleBooks = ref([]); 
+const isLoading = ref(false);
 
-const countdown = ref({ h: '02', m: '45', s: '12' });
-let timer = null;
+const fetchFlashSaleBooks = async () => {
+    isLoading.value = true;
+    try {
+        const response = await axios.get('http://localhost:3000/api/books/flash-sale');
+        if (response.data.success) {
+            flashSaleBooks.value = response.data.data;
+        }
+    } catch (error) {
+        console.error("Lỗi Flash Sale:", error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
+
+// Hàm chuyển hướng
+const goToDetail = (slugOrId) => {
+  // Nếu vì lý do gì đó mà slugOrId bị undefined, chặn lại
+  if (!slugOrId) return;
+  router.push(`/books/${slugOrId}`);
+};
 
 onMounted(() => {
-  generateBooks();
-  
-  let totalSeconds = 9999;
-  timer = setInterval(() => {
-    totalSeconds--;
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    countdown.value.h = h.toString().padStart(2, '0');
-    countdown.value.m = m.toString().padStart(2, '0');
-    countdown.value.s = s.toString().padStart(2, '0');
-  }, 1000);
+  startTimer();
+  fetchFlashSaleBooks();
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
+  if (timerInterval) clearInterval(timerInterval);
 });
 </script>
-
-<style scoped>
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-</style>

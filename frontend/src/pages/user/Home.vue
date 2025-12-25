@@ -5,50 +5,52 @@
       <div class="grid grid-cols-12 gap-6">
         
         <div class="col-span-12 lg:col-span-8 bg-white rounded-2xl overflow-hidden shadow-lg relative group h-[200px] md:h-[320px]">
-          <div class="w-full h-full relative">
-             <img 
-               :src="bannerImages[currentSlide]" 
-               class="w-full h-full object-cover transition-all duration-500 ease-in-out" 
-               alt="Banner Slide"
-             />
+          
+          <div 
+            class="flex h-full transition-transform duration-700 ease-in-out" 
+            :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+          >
+             <div 
+               v-for="(banner, index) in bannerImages" 
+               :key="index" 
+               class="min-w-full h-full"
+             >
+                <img :src="banner" class="w-full h-full object-cover" alt="Banner Slide" />
+             </div>
           </div>
 
-          <button @click="prevSlide" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <button 
+            @click="prevSlide" 
+            class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10 hover:scale-110"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
           </button>
 
-          <button @click="nextSlide" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-md backdrop-blur-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          <button 
+            @click="nextSlide" 
+            class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10 hover:scale-110"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           </button>
 
-          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             <button 
-              v-for="(img, index) in bannerImages" 
+              v-for="(banner, index) in bannerImages" 
               :key="index"
               @click="currentSlide = index"
-              :class="['h-2 rounded-full transition-all duration-300 shadow-sm', currentSlide === index ? 'bg-red-600 w-8' : 'bg-white/70 w-2 hover:bg-white']"
+              class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+              :class="currentSlide === index ? 'bg-white w-6' : 'bg-white/50 hover:bg-white'"
             ></button>
           </div>
         </div>
 
         <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-auto lg:h-[320px]">
-          
           <router-link to="/about" class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group block relative">
-            <img 
-              :src="sideBanner1" 
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
-              alt="Gioi thieu Sahafa"
-            />
+            <img :src="sideBanner1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer" alt="Gioi thieu" />
           </router-link>
-
           <router-link to="/blog" class="h-[150px] lg:h-1/2 rounded-2xl overflow-hidden shadow-md group block relative">
-            <img 
-              :src="sideBanner2" 
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
-              alt="Sahafa Blog"
-            />
+            <img :src="sideBanner2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer" alt="Blog" />
           </router-link>
-
         </div>
       </div>
     </div>
@@ -60,57 +62,45 @@
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div 
-          v-for="(book, index) in bestSellers" 
-          :key="index" 
-          class="bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer group flex flex-col"
-        >
-          <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
-             <img 
-               :src="book.image" 
-               class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-               alt="Book Cover"
-             />
-             <div class="absolute top-2 left-2 w-8 h-8 flex items-center justify-center bg-yellow-400 text-white font-bold rounded-full shadow-md z-10 border-2 border-white">
-                #{{ index + 1 }}
-             </div>
-          </div>
+  <div 
+    v-for="(book, index) in bestSellers" 
+    :key="index" 
+    @click="$router.push(`/books/${book.slug || book.id}`)" 
+    class="..."
+  >
+    <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
+      <img 
+        :src="book.image" 
+        class="..." 
+        alt="Book Cover"
+      />
+    </div>
 
-          <div class="flex-1 flex flex-col">
-              <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">{{ book.title }}</h4>
-              <div class="mt-auto flex items-end justify-between">
-                  <div class="text-red-600 font-bold text-base">{{ formatCurrency(book.price) }}</div>
-                  <div class="text-xs text-gray-400 line-through">{{ formatCurrency(book.originalPrice) }}</div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center">
-                  Đã bán {{ book.sold }}k
-              </div>
-          </div>
+    <div class="flex-1 flex flex-col">
+        <h4 class="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition">
+          {{ book.title }}
+        </h4>
+        <div class="mt-auto flex items-end justify-between">
+            <div class="text-red-600 font-bold">{{ formatCurrency(book.price) }}</div>
+            <div v-if="book.oldPrice > book.price" class="text-xs text-gray-400 line-through">
+                {{ formatCurrency(book.oldPrice) }}
+            </div>
         </div>
-      </div>
+        <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
+          Đã bán {{ book.total_sold || book.sold || 0 }}
+        </div>
+    </div>
+  </div>
+</div>
     </div>
 
     <CategoryNav />
-    
     <FlashSale /> 
     <ProductCategory />
-
     <GiftCardSection />
     
-    <BookListSection 
-      v-if="trendingBooks.length"
-      title="Xu Hướng Mua Sắm" 
-      headerClass="bg-pink-100"
-      :books="trendingBooks"
-      seeMoreLink="/trending"
-    />
-
-    <BookListSection 
-      v-if="newBooks.length"
-      title="Sách Mới Tuyển Chọn" 
-      :books="newBooks"
-      seeMoreLink="/new-arrivals"
-    />
+    <BookListSection v-if="trendingBooks.length" title="Xu Hướng Mua Sắm" headerClass="bg-pink-100" :books="trendingBooks" seeMoreLink="/trending" />
+    <BookListSection v-if="newBooks.length" title="Sách Mới Tuyển Chọn" :books="newBooks" seeMoreLink="/new-arrivals" />
 
     <div class="mt-8 bg-blue-50 pt-8 pb-0 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] relative z-10">
       <div class="container mx-auto px-4">
@@ -122,76 +112,77 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+// Xóa các dòng import axios dư thừa, chỉ dùng bookService
+import api from '@/services/api';
+
+// Import Components
 import CategoryNav from '@/components/user/CategoryNav.vue';
 import GiftCardSection from '@/components/user/GiftCardSection.vue';
 import BookListSection from '@/components/user/BookListSection.vue';
 import ProductCategory from '@/components/user/ProductCategory.vue';
-import { bookService } from '@/services/bookService'; 
 import SuggestionsPage from '@/pages/user/SuggestionsPage.vue';
 import FlashSale from '@/components/user/FlashSale.vue';
 
-// --- IMPORT ẢNH BANNER ---
+// Import Assets (Banner)
 import banner1 from '@/assets/banners/SAHAFA_BOOKSTORE.png';
 import banner2 from '@/assets/banners/SAHAFA_SALE.png';
 import banner3 from '@/assets/banners/MERRY_CHRISTMAS.png';
 import sideBanner1 from '@/assets/banners/SAHAFA.COM.png';
-// ✅ ĐÃ CẬP NHẬT: sideBanner2 chính là promo1.jpg (ảnh Blog)
 import sideBanner2 from '@/assets/banners/promo1.jpg'; 
 
 // --- Helper Format Tiền ---
-const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+const formatCurrency = (val) => {
+  if (!val || isNaN(val)) return "0 ₫";
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+};
 
-// Banner Slider Logic
+// Slider Logic
 const currentSlide = ref(0);
 const bannerImages = [banner1, banner2, banner3];
-
-// --- DỮ LIỆU GIẢ CHO BEST SELLER ---
-const bestSellers = ref([
-    { title: 'Cây Cam Ngọt Của Tôi', price: 85000, originalPrice: 108000, sold: 5.2, image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg' },
-    { title: 'Nhà Giả Kim (Tái Bản)', price: 63000, originalPrice: 79000, sold: 12.5, image: 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim_2020_bia_cung.jpg' },
-    { title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu', price: 72000, originalPrice: 90000, sold: 8.9, image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tuoi-tre-dang-gia-bao-nhieu-u.jpg' },
-    { title: 'Đắc Nhân Tâm (Khổ Nhỏ)', price: 55000, originalPrice: 86000, sold: 21.1, image: 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086851928.jpg' }
-]);
-
 let slideInterval;
 
-const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % bannerImages.length;
-};
+const nextSlide = () => { currentSlide.value = (currentSlide.value + 1) % bannerImages.length; };
+const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length; };
 
-const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + bannerImages.length) % bannerImages.length;
-};
-
-const startAutoSlide = () => {
-  slideInterval = setInterval(nextSlide, 3000);
-};
-
-// Data Fetching Logic
+// --- Data Fetching Logic ---
+const bestSellers = ref([]);
 const trendingBooks = ref([]);
 const newBooks = ref([]);
 
-const fetchAllData = async () => {
+const fetchAllHomeData = async () => {
   try {
-    const [trend, news] = await Promise.all([
-      bookService.getTrending(),
-      bookService.getNewArrivals()
+    // Gọi trực tiếp qua api.get và truyền params
+    const [best, trend, news] = await Promise.all([
+      api.get('/api/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
+      api.get('/api/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
+      api.get('/api/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
-    trendingBooks.value = trend;
-    newBooks.value = news;
-    
+    // Normalize backend response (which returns Sequelize-like objects)
+    const normalize = (arr) => (Array.isArray(arr) ? arr.map(b => ({
+      id: b.book_id || b.id,
+      slug: b.book_slug || b.slug,
+      title: b.book_title || b.title,
+      price: Number(b.price) || Number(b.price || 0),
+      oldPrice: b.oldPrice || b.oldPrice || 0,
+      image: (b.BookImages && b.BookImages[0] && b.BookImages[0].book_image_url) || b.image || 'https://placehold.co/400x600?text=No+Image',
+      total_sold: b.total_sold || b.sold || 0,
+      sold: b.total_sold || b.sold || 0
+    })) : []);
+
+    bestSellers.value = normalize(best);
+    trendingBooks.value = normalize(trend);
+    newBooks.value = normalize(news);
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
+    console.error("Lỗi khi gọi API trực tiếp:", error);
   }
 };
 
 onMounted(() => {
-  startAutoSlide();
-  fetchAllData();
+  fetchAllHomeData();
 });
 
 onUnmounted(() => {
-  if (slideInterval) clearInterval(slideInterval);
+  clearInterval(slideInterval);
 });
 </script>

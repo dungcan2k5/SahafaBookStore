@@ -108,7 +108,7 @@
                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                       <div class="bg-blue-500 h-1.5 rounded-full" :style="{ width: (Math.random() * 50 + 20) + '%' }"></div>
                    </div>
-                   <div class="text-[10px] text-gray-500 mt-0.5">Đã bán {{ book.sold }}</div>
+                   <div class="text-[10px] text-gray-500 mt-0.5">Đã bán {{ book.total_sold || book.sold || 0 }}</div>
                 </div>
              </div>
           </div>

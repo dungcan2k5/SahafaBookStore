@@ -28,7 +28,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="filteredVouchers" style="width: 100%" v-loading="loading" stripe border>
+      <el-table ref="tableRef" :data="filteredVouchers" style="width: 100%" v-loading="loading" stripe border>
         
         <el-table-column label="Mã Voucher" width="180">
             <template #default="scope">
@@ -193,7 +193,8 @@ const fetchVouchers = async () => {
   loading.value = true;
   try {
     const res = await api.get('/api/vouchers/admin');
-    vouchers.value = res.data.data || [];
+   const payload = (res && res.data !== undefined) ? res.data : res;
+    vouchers.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
   } catch (error) { 
       console.error(error);
       ElMessage.error('Lỗi tải danh sách voucher!'); 
@@ -261,4 +262,11 @@ const handleDelete = async (id) => {
 };
 
 onMounted(() => fetchVouchers());
+
+// Table resize handler
+import { onUnmounted } from 'vue';
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 </script>

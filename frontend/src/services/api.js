@@ -1,16 +1,13 @@
 import axios from 'axios';
 
-// 1. Tạo instance axios với đường dẫn gốc
-// QUAN TRỌNG: Đổi về localhost:3000 để dùng được tài khoản Admin "demo" vừa tạo ở máy bạn
 const api = axios.create({
-    // Dùng biến môi trường thay vì gõ cứng
-    baseURL: import.meta.env.VITE_API_URL, 
+    // Sử dụng biến môi trường đã khai báo ở bước 1
+    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// 2. Tự động gắn Token vào header mỗi khi gọi API (Interceptor)
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -21,5 +18,19 @@ api.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
+
+// 👇 THÊM ĐOẠN NÀY: Tự động lấy mảng 'data' bên trong response
+api.interceptors.response.use(
+    (response) => {
+        // Nếu Backend trả về { success: true, data: { ... } }
+        if (response.data && response.data.success === true && response.data.data) {
+            return response.data.data;
+        }
+        // Nếu không có success/data, trả về toàn bộ body để Store tự xử lý
+        return response.data; 
+    },
+    (error) => Promise.reject(error)
+);
+
 
 export default api;

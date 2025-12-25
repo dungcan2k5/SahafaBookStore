@@ -1,4 +1,19 @@
-import api from './api';
+import axios from 'axios';
+
+// Cấu hình URL API (sau này đổi thành biến môi trường thì tốt hơn)
+// const API_URL = 'http://localhost:3000/api/auth';
+const api = axios.create({
+    // Sử dụng biến môi trường đã khai báo ở bước 1
+    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+// Helper để lấy token
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token'); // Giả sử mày lưu token ở localStorage khi login
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export const authService = {
     async login(email, password) {
