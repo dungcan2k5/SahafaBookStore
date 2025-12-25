@@ -5,7 +5,7 @@
         
         <div class="flex items-center gap-6 shrink-0">
           <router-link to="/" class="text-3xl font-extrabold tracking-tighter flex items-center italic">
-            Sahafa<span class="text-yellow-400">.com</span>
+            Sahafa<span class="text-yellow-400"></span>
           </router-link>
 
           <div class="relative group z-50">
