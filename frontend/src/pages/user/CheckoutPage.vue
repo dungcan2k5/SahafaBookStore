@@ -289,7 +289,7 @@ const submitOrder = async () => {
     // 3. Tự động lưu vào sổ địa chỉ nếu người dùng yêu cầu
     if (saveToAddressBook.value && !selectedAddressId.value) {
       try {
-        await api.post('api/addresses', {
+        await api.post('/api/addresses', {
           recipient_name: form.name,
           phone: form.phone,
           address_detail: finalAddress,
@@ -302,7 +302,7 @@ const submitOrder = async () => {
 
     // 4. Gửi yêu cầu đặt hàng lên Backend
     // Lưu ý: Bỏ '/api' ở đầu nếu baseURL đã có '/api' để tránh lỗi 404
-    const res = await api.post('api/orders', {
+    const res = await api.post('/api/orders', {
       address_id: selectedAddressId.value || null,
       recipient_name: form.name,
       phone: form.phone,

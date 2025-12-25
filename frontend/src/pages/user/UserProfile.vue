@@ -128,10 +128,14 @@
                 <div v-for="order in orders" :key="order.order_id" class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
                     <!-- Order Header -->
                     <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-b">
-                        <div class="flex items-center gap-4">
-                            <span class="font-bold text-gray-700">#{{ order.order_id }}</span>
-                            <span class="text-sm text-gray-500">{{ new Date(order.created_at).toLocaleString('vi-VN') }}</span>
-                        </div>
+                                    <div class="flex items-center gap-4">
+                                          <span class="font-bold text-gray-700">#{{ order.order_id }}</span>
+                                          <span class="text-sm text-gray-500">{{ new Date(order.created_at).toLocaleString('vi-VN') }}</span>
+                                          <div class="ml-3 text-sm text-gray-500">
+                                             <div class="truncate">{{ order.recipient_name || 'Người nhận: —' }}</div>
+                                             <div class="truncate text-xs">{{ order.shipping_address || 'Địa chỉ: —' }}</div>
+                                          </div>
+                                    </div>
                         <div class="flex items-center gap-2">
                            <span class="text-sm uppercase font-bold px-2 py-1 rounded" 
                                  :class="{
@@ -148,13 +152,13 @@
 
                     <!-- Order Items -->
                     <div class="p-4">
-                        <div v-for="item in order.OrderItems" :key="item.id" class="flex justify-between items-center py-2 border-b last:border-0">
-                            <div class="flex-1">
-                                <div class="font-medium text-gray-800">{{ item.Book?.book_title }}</div>
+                            <div v-for="item in order.OrderItems" :key="item.order_item_id || item.id" class="flex justify-between items-center py-2 border-b last:border-0">
+                              <div class="flex-1">
+                                <div class="font-medium text-gray-800">{{ item.Book?.book_title || item.book_title || 'Sách' }}</div>
                                 <div class="text-xs text-gray-500">x{{ item.quantity }}</div>
+                              </div>
+                              <div class="font-medium text-gray-900">{{ formatCurrency(Number(item.unit_price) || Number(item.price) || 0) }}</div>
                             </div>
-                            <div class="font-medium text-gray-900">{{ formatCurrency(item.unit_price) }}</div>
-                        </div>
                     </div>
 
                     <!-- Order Footer -->
@@ -326,10 +330,45 @@ const fetchOrders = async () => {
                 limit: orderLimit.value
             }
         });
-        orders.value = res.data.data || [];
-        if (res.data.meta) {
-            orderTotal.value = res.data.meta.total;
-        }
+      // `api` interceptor may unwrap response to `data` directly.
+      // Normalize possible shapes: (1) array of rows, (2) { data: rows, meta }
+      let payload = res;
+      let rows = [];
+      if (Array.isArray(res)) {
+         rows = res;
+         payload = { data: rows };
+      } else if (res && Array.isArray(res.data)) {
+         rows = res.data;
+         payload = res;
+      } else if (res && Array.isArray(res.data?.data)) {
+         rows = res.data.data;
+         payload = res.data;
+      } else {
+         // Fallback: if res has .length treat as rows
+         rows = Array.isArray(res) ? res : [];
+         payload = { data: rows };
+      }
+      console.debug('fetchOrders payload:', { res, rows, meta: payload.meta });
+      // Normalize each order for frontend usage and extract address info
+         const normalized = rows.map(o => {
+         // Transactions may be an array (Transactions)
+         const tx = (o.Transactions && o.Transactions[0]) || (o.Transaction && o.Transaction) || null;
+         const addr = o.Address || o.address || null;
+         return {
+            ...o,
+            payment_method: tx?.payment_method || o.payment_method || (tx && tx.payment_method) || null,
+            payment_status: o.payment_status || (tx && tx.status) || null,
+            final_amount: Number(o.final_amount) || Number(o.total_amount) || 0,
+            OrderItems: Array.isArray(o.OrderItems) ? o.OrderItems : (o.order_items || []),
+            shipping_address: addr ? (addr.address_detail || addr.address || '') : (o.address_detail || ''),
+            recipient_name: addr ? (addr.recipient_name || addr.name || '') : (o.recipient_name || ''),
+            shipping_phone: addr ? (addr.phone || '') : (o.phone || '')
+         };
+      });
+      orders.value = normalized;
+    if (payload.meta) {
+      orderTotal.value = payload.meta.total || 0;
+    }
     } catch (e) {
         console.error("Lỗi tải đơn hàng:", e);
     } finally {
@@ -419,7 +458,19 @@ const handleUpdate = async () => {
 const fetchAddresses = async () => {
    try {
       const res = await api.get('/api/addresses');
-      addresses.value = res.data.data || [];
+      // api interceptor may return: (a) array of addresses, (b) { data: [...] }, (c) { data: { data: [...] } }
+      let rows = [];
+      if (Array.isArray(res)) {
+         rows = res;
+      } else if (res && Array.isArray(res.data)) {
+         rows = res.data;
+      } else if (res && Array.isArray(res.data?.data)) {
+         rows = res.data.data;
+      } else {
+         rows = [];
+      }
+      console.debug('fetchAddresses result:', { res, rows });
+      addresses.value = rows;
    } catch (e) { console.error("Lỗi tải địa chỉ:", e); }
 };
 

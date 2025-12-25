@@ -183,7 +183,8 @@ const getMyOrders = async (req, res) => {
       order: [['created_at', 'DESC']],
       include: [
         { model: OrderItem, include: [{ model: Book, attributes: ['book_title'] }] },
-        { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
+        { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] },
+        { model: Address, attributes: ['address_detail', 'recipient_name', 'phone'] }
       ],
       limit: limitInt,
       offset: offset,

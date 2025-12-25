@@ -51,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = null;
         try {
             // SỬA: Bỏ '/api' ở đầu đường dẫn
-            await api.post('/auth/register', userData);
+            await api.post('/api/auth/register', userData);
             return true;
         } catch (err) {
             error.value = err.response?.data?.message || 'Đăng ký thất bại';
