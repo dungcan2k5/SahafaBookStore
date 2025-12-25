@@ -65,9 +65,7 @@ const fetchPosts = async () => {
   try {
     loading.value = true;
     const response = await postService.getAllPosts();
-    if (response.data.success) {
-      posts.value = response.data.data;
-    }
+    posts.value = response;
   } catch (err) {
     console.error('Failed to fetch posts:', err);
     error.value = 'Không thể tải danh sách bài viết. Vui lòng thử lại sau.';

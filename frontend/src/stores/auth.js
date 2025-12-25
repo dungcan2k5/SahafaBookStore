@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true;
     error.value = null;
     try {
-        const res = await api.post('/auth/login', { email, password });
+        const res = await api.post('api/auth/login', { email, password });
         
         // Log để kiểm tra cấu trúc thật (Nếu vẫn undefined thì phải sửa api.js)
         console.log("Dữ liệu sau Interceptor:", res); 
@@ -51,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = null;
         try {
             // SỬA: Bỏ '/api' ở đầu đường dẫn
-            await api.post('/auth/register', userData);
+            await api.post('/api/auth/register', userData);
             return true;
         } catch (err) {
             error.value = err.response?.data?.message || 'Đăng ký thất bại';

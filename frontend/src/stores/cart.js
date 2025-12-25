@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '../services/api';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -23,13 +23,12 @@ export const useCartStore = defineStore('cart', {
 
       this.isLoading = true;
       try {
-        const res = await axios.get('http://localhost:3000/api/cart', {
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await api.get('/api/cart');
 
         // Map dữ liệu từ cấu trúc Backend (CartItems -> Book) sang Frontend
-        if (res.data.success && res.data.data) {
-          this.items = res.data.data.CartItems.map(item => ({
+        const body = res.data || res;
+        if (body.success && body.data) {
+          this.items = body.data.CartItems.map(item => ({
              id: item.cart_item_id, // ID giỏ hàng (dùng để xóa/sửa)
              book_id: item.book_id, // ID sách (dùng để link trang chi tiết)
              title: item.Book.book_title,
@@ -56,12 +55,10 @@ export const useCartStore = defineStore('cart', {
       }
 
       try {
-        await axios.post('http://localhost:3000/api/cart/add', {
-           book_id: book.id, 
-           quantity: quantity
-        }, {
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+          await api.post('/api/cart/add', {
+            book_id: book.id, 
+            quantity: quantity
+          });
 
         // Tải lại giỏ hàng để cập nhật ID mới nhất từ server
         await this.fetchCart();
@@ -81,9 +78,7 @@ export const useCartStore = defineStore('cart', {
       if (!confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
 
       try {
-        await axios.delete(`http://localhost:3000/api/cart/item/${cartItemId}`, {
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+          await api.delete(`/api/cart/item/${cartItemId}`);
         
         // Cập nhật giao diện ngay lập tức
         this.items = this.items.filter(item => item.id !== cartItemId);
@@ -111,11 +106,9 @@ export const useCartStore = defineStore('cart', {
       this.items[itemIndex].quantity = newQuantity;
 
       try {
-        await axios.put(`http://localhost:3000/api/cart/item/${cartItemId}`, {
-           quantity: newQuantity
-        }, {
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+          await api.put(`/api/cart/item/${cartItemId}`, {
+            quantity: newQuantity
+          });
       } catch (error) {
         console.error("Lỗi cập nhật số lượng:", error);
         // Hoàn tác lại số lượng cũ nếu API lỗi
@@ -132,9 +125,7 @@ export const useCartStore = defineStore('cart', {
       if (!confirm("Bạn chắc chắn muốn xóa toàn bộ giỏ hàng?")) return;
 
       try {
-        await axios.delete('http://localhost:3000/api/cart/clear', {
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+          await api.delete('/api/cart/clear');
         this.items = [];
         alert("Đã xóa sạch giỏ hàng!");
       } catch (error) {

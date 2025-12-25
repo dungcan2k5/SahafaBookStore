@@ -170,8 +170,12 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+<<<<<<< HEAD
 import axios from 'axios';
 import { authService } from '../../services/authService';
+=======
+import api from '../../services/api';
+>>>>>>> f660b102a1337d598f9630ab820e88f449eedcf8
 
 const router = useRouter();
 const activeTab = ref('login');
@@ -205,15 +209,32 @@ const newPasswordDisplay = ref('');
 const handleLogin = async () => {
   isLoading.value = true;
   try {
+<<<<<<< HEAD
     const res = await axios.post('http://localhost:3000/api/auth/login', {
+=======
+    // Gọi API Backend: /api/auth/login
+    // Lưu ý: Đổi localhost:3000 nếu port backend bạn khác
+    const res = await api.post('/api/auth/login', {
+>>>>>>> f660b102a1337d598f9630ab820e88f449eedcf8
       email: loginForm.email,
       password: loginForm.password
     });
 
+<<<<<<< HEAD
     if (res.data.success) {
       localStorage.setItem('token', res.data.token);
       if (res.data.user) {
         localStorage.setItem('user', JSON.stringify(res.data.user));
+=======
+    const body = res.data || res;
+    if (body.success) {
+      // 1. Lưu token vào localStorage (Quan trọng nhất!)
+      localStorage.setItem('token', body.token);
+      
+      // 2. Lưu thông tin user (Optional - để hiện tên trên Header)
+      if (body.user) {
+        localStorage.setItem('user', JSON.stringify(body.user));
+>>>>>>> f660b102a1337d598f9630ab820e88f449eedcf8
       }
       alert('✅ Đăng nhập thành công!');
       router.push('/');
@@ -233,14 +254,26 @@ const handleLogin = async () => {
 const handleRegister = async () => {
   isLoading.value = true;
   try {
+<<<<<<< HEAD
     const res = await axios.post('http://localhost:3000/api/auth/register', {
+=======
+    // Gọi API Backend: /api/auth/register
+    const res = await api.post('/api/auth/register', {
+>>>>>>> f660b102a1337d598f9630ab820e88f449eedcf8
       full_name: registerForm.full_name,
       email: registerForm.email,
       password: registerForm.password
     });
+<<<<<<< HEAD
 
     if (res.data.success) {
       alert('✅ Đăng ký thành công! Vui lòng đăng nhập.');
+=======
+    const body = res.data || res;
+    if (body.success) {
+      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+      // Chuyển sang tab đăng nhập và điền sẵn email
+>>>>>>> f660b102a1337d598f9630ab820e88f449eedcf8
       activeTab.value = 'login';
       loginForm.email = registerForm.email;
       loginForm.password = '';
@@ -248,7 +281,7 @@ const handleRegister = async () => {
       registerForm.email = '';
       registerForm.password = '';
     } else {
-      alert(res.data.message || 'Đăng ký thất bại');
+      alert(body.message || 'Đăng ký thất bại');
     }
   } catch (error) {
     console.error(error);
