@@ -86,7 +86,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../services/api';
 
 const router = useRouter();
 const activeTab = ref('login'); // 'login' | 'register'
@@ -111,18 +111,19 @@ const handleLogin = async () => {
   try {
     // Gọi API Backend: /api/auth/login
     // Lưu ý: Đổi localhost:3000 nếu port backend bạn khác
-    const res = await axios.post('http://localhost:3000/api/auth/login', {
+    const res = await api.post('/api/auth/login', {
       email: loginForm.email,
       password: loginForm.password
     });
 
-    if (res.data.success) {
+    const body = res.data || res;
+    if (body.success) {
       // 1. Lưu token vào localStorage (Quan trọng nhất!)
-      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('token', body.token);
       
       // 2. Lưu thông tin user (Optional - để hiện tên trên Header)
-      if (res.data.user) {
-        localStorage.setItem('user', JSON.stringify(res.data.user));
+      if (body.user) {
+        localStorage.setItem('user', JSON.stringify(body.user));
       }
 
       // 3. Chuyển hướng về trang chủ
@@ -145,20 +146,20 @@ const handleRegister = async () => {
   isLoading.value = true;
   try {
     // Gọi API Backend: /api/auth/register
-    const res = await axios.post('http://localhost:3000/api/auth/register', {
+    const res = await api.post('/api/auth/register', {
       full_name: registerForm.full_name,
       email: registerForm.email,
       password: registerForm.password
     });
-
-    if (res.data.success) {
+    const body = res.data || res;
+    if (body.success) {
       alert('Đăng ký thành công! Vui lòng đăng nhập.');
       // Chuyển sang tab đăng nhập và điền sẵn email
       activeTab.value = 'login';
       loginForm.email = registerForm.email;
       loginForm.password = '';
     } else {
-      alert(res.data.message || 'Đăng ký thất bại');
+      alert(body.message || 'Đăng ký thất bại');
     }
   } catch (error) {
     console.error(error);

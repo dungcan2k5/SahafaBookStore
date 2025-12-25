@@ -40,7 +40,7 @@
         >
         <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
             <img 
-              :src="book.image && book.image.startsWith('http') ? book.image : `http://localhost:3000${book.image}`" 
+                :src="fullImage(book.image)" 
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
@@ -109,17 +109,23 @@ const startTimer = () => {
 
 // --- LOGIC API ---
 const fetchFlashSaleBooks = async () => {
-    isLoading.value = true;
-    try {
-        const data = await api.get('/api/books/flash-sale'); 
-        if (data) {
-            flashSaleBooks.value = data;
-        }
-    } catch (error) {
-        console.error("Lỗi Flash Sale:", error);
-    } finally {
-        isLoading.value = false;
+  isLoading.value = true;
+  try {
+    const res = await api.get('/api/books/flash-sale'); 
+    if (res) {
+      // api interceptor may return { success, data } or data array directly
+      flashSaleBooks.value = res.data || res;
     }
+  } catch (error) {
+    console.error("Lỗi Flash Sale:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const fullImage = (img) => {
+  if (!img) return '';
+  return img.startsWith('http') ? img : `${api.defaults.baseURL}${img}`;
 };
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
