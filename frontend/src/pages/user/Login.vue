@@ -86,7 +86,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { authService } from '../../services/authService';
+import api from '../../services/api';
 
 const router = useRouter();
 const activeTab = ref('login'); // 'login' | 'register'
@@ -109,7 +109,22 @@ const registerForm = reactive({
 const handleLogin = async () => {
   isLoading.value = true;
   try {
-    const res = await authService.login(loginForm.email, loginForm.password);
+    // Gọi API Backend: /api/auth/login
+    // Lưu ý: Đổi localhost:3000 nếu port backend bạn khác
+    const res = await api.post('/api/auth/login', {
+      email: loginForm.email,
+      password: loginForm.password
+    });
+
+    const body = res.data || res;
+    if (body.success) {
+      // 1. Lưu token vào localStorage (Quan trọng nhất!)
+      localStorage.setItem('token', body.token);
+      
+      // 2. Lưu thông tin user (Optional - để hiện tên trên Header)
+      if (body.user) {
+        localStorage.setItem('user', JSON.stringify(body.user));
+      }
 
     if (res.success) {
       // Token & User đã được lưu trong authService.login
@@ -132,20 +147,21 @@ const handleLogin = async () => {
 const handleRegister = async () => {
   isLoading.value = true;
   try {
-    const res = await authService.register({
+    // Gọi API Backend: /api/auth/register
+    const res = await api.post('/api/auth/register', {
       full_name: registerForm.full_name,
       email: registerForm.email,
       password: registerForm.password
     });
-
-    if (res.success) {
+    const body = res.data || res;
+    if (body.success) {
       alert('Đăng ký thành công! Vui lòng đăng nhập.');
       // Chuyển sang tab đăng nhập và điền sẵn email
       activeTab.value = 'login';
       loginForm.email = registerForm.email;
       loginForm.password = '';
     } else {
-      alert(res.message || 'Đăng ký thất bại');
+      alert(body.message || 'Đăng ký thất bại');
     }
   } catch (error) {
     console.error(error);

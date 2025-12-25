@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const api = axios.create({
     // Sử dụng biến môi trường đã khai báo ở bước 1
-    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`,
+    // baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`,
+    baseURL: "https://sahafa.dungcan.id.vn", // Tạm thời cố định URL Backend
     headers: {
         'Content-Type': 'application/json',
     },

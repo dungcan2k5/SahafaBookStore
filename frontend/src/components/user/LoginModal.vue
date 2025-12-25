@@ -135,7 +135,7 @@
 import { ref, reactive, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { ElMessage } from 'element-plus';
-import axios from 'axios';
+import api from '../../services/api';
 
 const props = defineProps({ initialTab: { type: String, default: 'login' } });
 const emit = defineEmits(['close']);
@@ -179,15 +179,14 @@ const handleForgotPassword = async () => {
     }
     loading.value = true;
     try {
-        // Gọi API Backend
-        const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+          // Gọi API Backend via shared api
+          const res = await api.post('/api/auth/forgot-password', {
             email: forgotEmail.value
-        });
+          });
 
-        if (response.data.success) {
-             // Thay vì hiện Alert Box đè lên, ta gán vào biến state để hiển thị ngay trong Modal
-             tempPasswordResult.value = response.data.newPassword;
-        }
+          if (res && res.success) {
+             tempPasswordResult.value = res.newPassword || res.data?.newPassword;
+          }
     } catch (error) {
         ElMessage.error(error.response?.data?.message || 'Email không tồn tại hoặc lỗi hệ thống');
     } finally {

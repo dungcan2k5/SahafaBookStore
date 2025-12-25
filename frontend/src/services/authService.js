@@ -1,43 +1,28 @@
-import axios from 'axios';
-
-// Cấu hình URL API (sau này đổi thành biến môi trường thì tốt hơn)
-// const API_URL = 'http://localhost:3000/api/auth';
-const api = axios.create({
-    // Sử dụng biến môi trường đã khai báo ở bước 1
-    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-// Helper để lấy token
-const getAuthHeader = () => {
-    const token = localStorage.getItem('token'); // Giả sử mày lưu token ở localStorage khi login
-    return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import api from './api';
 
 export const authService = {
     async login(email, password) {
-        const res = await api.post('/auth/login', { email, password });
-        if (res.data.success) {
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
+        const res = await api.post('/api/auth/login', { email, password });
+        const body = res.data || res;
+        if (body.success) {
+            if (body.token) localStorage.setItem('token', body.token);
+            if (body.user) localStorage.setItem('user', JSON.stringify(body.user));
         }
-        return res.data;
+        return body;
     },
 
     async register(data) {
-        const res = await api.post('/auth/register', data);
-        return res.data;
+        const res = await api.post('/api/auth/register', data);
+        return res.data || res;
     },
 
     async getProfile() {
-        const res = await api.get('/auth/me');
-        return res.data;
+        const res = await api.get('/api/auth/me');
+        return res.data || res;
     },
 
     async updateProfile(data) {
-        const res = await api.put('/auth/me', data);
-        // Update lại user trong localStorage nếu cần
-        return res.data;
+        const res = await api.put('/api/auth/me', data);
+        return res.data || res;
     }
 };
