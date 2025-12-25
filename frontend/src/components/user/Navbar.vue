@@ -209,11 +209,21 @@ const handleLiveSearch = () => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
     try {
-      const response = await api.get('/books', { params: { search: searchQuery.value } });
-      if (response.data.success) {
-        searchResults.value = response.data.data.slice(0, 5); 
+      // Gọi API với tham số search chuẩn
+      const response = await api.get('/books', { params: { search: searchQuery.value, limit: 5 } });
+      
+      // Nếu Interceptor hoạt động đúng, response chính là mảng sách
+      if (response && Array.isArray(response)) {
+        searchResults.value = response;
+      } else if (response?.data) { // Phòng hờ nếu chưa qua Interceptor
+        searchResults.value = response.data.slice(0, 5);
+      } else {
+        searchResults.value = [];
       }
-    } catch (error) { console.error("Lỗi search:", error); } 
+    } catch (error) { 
+      console.error("Lỗi search:", error); 
+      searchResults.value = [];
+    } 
     finally { isSearching.value = false; }
   }, 300);
 };

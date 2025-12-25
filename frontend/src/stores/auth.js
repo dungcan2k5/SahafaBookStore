@@ -10,39 +10,40 @@ export const useAuthStore = defineStore('auth', () => {
 
     // HÀM ĐĂNG NHẬP
     const login = async (email, password) => {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            // SỬA: Xóa '/api' ở đầu vì baseURL đã có sẵn '/api'
-            // Nếu viết '/api/auth/login' sẽ bị thành '/api/api/auth/login' gây lỗi 404
-            const data = await api.post('/auth/login', {
-                email: email,
-                password: password
-            });
+    isLoading.value = true;
+    error.value = null;
+    try {
+        const res = await api.post('/auth/login', { email, password });
+        
+        // Log để kiểm tra cấu trúc thật (Nếu vẫn undefined thì phải sửa api.js)
+        console.log("Dữ liệu sau Interceptor:", res); 
 
-            // QUAN TRỌNG: Nếu api.js của bạn có Interceptor:
-            // return response.data.data -> 'data' lúc này chính là object {token, user}
-            // Không được dùng 'const data = response.data' nữa vì sẽ bị undefined.
-            
-            if (data && data.token) {
-                token.value = data.token;
-                user.value = data.user;
-
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                return true; 
-            }
-            return false;
-        } catch (err) {
-            console.error("Login Error:", err);
-            // Lấy thông báo lỗi từ backend trả về
-            error.value = err.response?.data?.message || 'Đăng nhập thất bại';
-            return false;
-        } finally {
-            isLoading.value = false;
+        // SỬA TẠI ĐÂY: Kiểm tra linh hoạt các tầng dữ liệu
+        let finalData = res;
+        
+        // Nếu res bị undefined hoặc không có token, thử lấy từ res.data (phòng hờ Interceptor lỗi)
+        if (!finalData || !finalData.token) {
+            finalData = res?.data;
         }
-    };
+
+        if (finalData && finalData.token) {
+            token.value = finalData.token;
+            user.value = finalData.user;
+            localStorage.setItem('token', finalData.token);
+            localStorage.setItem('user', JSON.stringify(finalData.user));
+            return true;
+        } else {
+            error.value = "Thông tin phản hồi từ Server không hợp lệ (Thiếu Token)";
+            return false;
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        error.value = err.response?.data?.message || 'Đăng nhập thất bại';
+        return false;
+    } finally {
+        isLoading.value = false;
+    }
+};
 
     // HÀM ĐĂNG KÝ
     const register = async (userData) => {

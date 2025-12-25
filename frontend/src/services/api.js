@@ -22,13 +22,15 @@ api.interceptors.request.use(
 // 👇 THÊM ĐOẠN NÀY: Tự động lấy mảng 'data' bên trong response
 api.interceptors.response.use(
     (response) => {
-        // Nếu API trả về { success: true, data: [...] } thì trả về data
-        if (response.data && response.data.success) {
+        // Nếu Backend trả về { success: true, data: { ... } }
+        if (response.data && response.data.success === true && response.data.data) {
             return response.data.data;
         }
-        return response.data;
+        // Nếu không có success/data, trả về toàn bộ body để Store tự xử lý
+        return response.data; 
     },
     (error) => Promise.reject(error)
 );
+
 
 export default api;

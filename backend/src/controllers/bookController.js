@@ -21,23 +21,40 @@ const { uploadRoot } = require('../middleware/uploadMiddleware');
 // [GET] /api/books
 const getAllBooks = async (req, res) => {
     try {
-        const { sort, order, limit } = req.query; 
+        // 1. Lấy tham số search từ query
+        const { sort, order, limit, category, search } = req.query; 
+
+        let whereClause = {};
+
+        // 2. Thêm logic lọc theo từ khóa tìm kiếm (Tên sách hoặc Tên tác giả)
+        if (search) {
+            whereClause[Op.or] = [
+                { book_title: { [Op.like]: `%${search}%` } },
+                { '$Author.author_name$': { [Op.like]: `%${search}%` } }
+            ];
+        }
+
+        if (category) {
+            whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` };
+        }
 
         const books = await Book.findAll({
+            where: whereClause,
             order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
             limit: limit ? parseInt(limit) : undefined,
-            include: [{ model: BookImage, attributes: ['book_image_url'] }] 
+            include: [
+                { model: Author, attributes: ['author_name'], as: 'Author' },
+                { model: BookImage, attributes: ['book_image_url'] }
+            ]
         });
 
+        // 3. Map dữ liệu để khớp với Frontend
         const formattedData = books.map(b => ({
             id: b.book_id,
             slug: b.book_slug,
             title: b.book_title,
-            price: Number(b.price),     // Giá thật từ DB
-            oldPrice: Number(b.price),  // Để bằng giá thật (không hiện giảm giá)
-            image: b.BookImages && b.BookImages.length > 0 
-                   ? b.BookImages[0].book_image_url 
-                   : 'https://placehold.co/400x600',
+            price: Number(b.price),
+            image: b.BookImages?.[0]?.book_image_url || null,
             sold: b.total_sold || 0
         }));
 
