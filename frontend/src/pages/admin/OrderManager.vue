@@ -402,32 +402,24 @@ const fetchOrders = async () => {
         }
     });
 
-    // Support multiple response shapes depending on interceptor behavior:
-    // - interceptor may return the unwrapped data (array or object)
-    // - or return the full Axios response-like object { data: ..., meta: ... }
-    const payload = (res && res.data !== undefined) ? res.data : res;
+    // res là Array đã kèm meta
+    const ordersData = res || [];
 
-    let list = [];
-    let meta = null;
-
-    if (Array.isArray(payload)) {
-      list = payload;
-    } else if (payload && Array.isArray(payload.data)) {
-      list = payload.data;
-      meta = payload.meta || null;
-    } else if (payload && Array.isArray(payload.rows)) {
-      // handle shape { rows, meta }
-      list = payload.rows;
-      meta = payload.meta || null;
-    } else if (payload && payload.data && Array.isArray(payload.data.rows)) {
-      list = payload.data.rows;
-      meta = payload.data.meta || null;
+    if (Array.isArray(ordersData)) {
+       orders.value = ordersData;
+       // Lấy total chuẩn chỉ
+       total.value = ordersData.meta?.total || ordersData.length || 0;
+    } 
+    // Phòng hờ backend trả về kiểu { rows, count } (Sequelize raw)
+    else if (ordersData.rows) {
+       orders.value = ordersData.rows;
+       total.value = ordersData.count || 0;
+    }
+    else {
+       orders.value = [];
+       total.value = 0;
     }
 
-    orders.value = list || [];
-    if (meta && meta.total !== undefined) {
-      total.value = meta.total;
-    }
   } catch (e) {
     console.error(e);
     ElMessage.error('Lỗi tải danh sách đơn hàng!');

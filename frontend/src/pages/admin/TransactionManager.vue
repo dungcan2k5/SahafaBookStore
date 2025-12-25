@@ -165,10 +165,22 @@ const fetchTransactions = async () => {
         search: searchText.value?.trim() || undefined
       }
     });
-    const payload = (res && res.data !== undefined) ? res.data : res;
-    transactions.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
-    const meta = payload?.meta || payload?.pagination || null;
-    if (meta && meta.total !== undefined) total.value = meta.total;
+    
+    const txData = res || [];
+
+    if (Array.isArray(txData)) {
+        transactions.value = txData;
+        total.value = txData.meta?.total || txData.length || 0;
+    } 
+    else if (txData.rows) {
+        transactions.value = txData.rows;
+        total.value = txData.count || 0;
+    }
+    else {
+        transactions.value = [];
+        total.value = 0;
+    }
+
   } catch (e) {
     console.error(e);
     ElMessage.error('Không thể tải lịch sử giao dịch');

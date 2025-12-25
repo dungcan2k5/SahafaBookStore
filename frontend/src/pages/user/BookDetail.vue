@@ -25,15 +25,15 @@
             </div>
 
             <div v-if="book.BookImages?.length > 0" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <div 
-                    v-for="(img, index) in book.BookImages" 
-                    :key="index"
-                    @click="selectedImage = img.book_image_url"
-                    class="w-20 h-20 flex-shrink-0 border-2 rounded-md cursor-pointer overflow-hidden transition-all hover:opacity-100"
-                    :class="selectedImage === img.book_image_url ? 'border-[#C92127] opacity-100' : 'border-transparent opacity-60 hover:border-gray-300'"
-                >
-                    <img :src="img.book_image_url" class="w-full h-full object-cover" :alt="`Ảnh ${index + 1}`">
-                </div>
+              <div 
+                v-for="(img, index) in book.BookImages" 
+                :key="index"
+                @click="selectedImage = getImageUrl(img.book_image_url)"
+                class="w-20 h-20 flex-shrink-0 border-2 rounded-md cursor-pointer overflow-hidden transition-all hover:opacity-100"
+                :class="selectedImage === getImageUrl(img.book_image_url) ? 'border-[#C92127] opacity-100' : 'border-transparent opacity-60 hover:border-gray-300'"
+              >
+                <img :src="getImageUrl(img.book_image_url)" class="w-full h-full object-cover" :alt="`Ảnh ${index + 1}`">
+              </div>
             </div>
           </div>
 
@@ -162,6 +162,14 @@ const fetchBookDetail = async (idOrSlug) => {
   } finally {
     isLoading.value = false;
   }
+};
+
+// Helper: trả về URL ảnh đầy đủ (nếu backend trả relative path)
+const getImageUrl = (url) => {
+  if (!url) return 'https://placehold.co/400x600?text=No+Image';
+  if (url.startsWith('http')) return url;
+  const base = api?.defaults?.baseURL || '';
+  return `${base}${url}`;
 };
 
 onMounted(() => {

@@ -388,19 +388,21 @@ const fetchData = async () => {
       api.get('/api/books/publishers')
     ]);
 
-    const booksPayload = (resBooks && resBooks.data !== undefined) ? resBooks.data : resBooks;
-    books.value = Array.isArray(booksPayload) ? booksPayload : (booksPayload?.data || booksPayload?.rows || []);
-    const bm = booksPayload?.meta || booksPayload?.pagination || null;
-    if (bm && bm.total !== undefined) total.value = bm.total;
+    // resBooks bây giờ chính là Array, và nhờ bước 1, nó có thêm .meta
+    const booksData = resBooks || [];
+    
+    // 1. Gán data cho bảng
+    books.value = Array.isArray(booksData) ? booksData : (booksData.data || []);
 
-    const authorsPayload = (resAuthors && resAuthors.data !== undefined) ? resAuthors.data : resAuthors;
-    authors.value = Array.isArray(authorsPayload) ? authorsPayload : (authorsPayload?.data || authorsPayload?.rows || []);
+    // 2. Lấy total từ meta (hoặc fallback nếu backend trả kiểu khác)
+    // Ưu tiên booksData.meta.total -> sau đó đến booksData.count (kiểu cũ) -> cuối cùng mới là length
+    total.value = booksData.meta?.total || booksData.count || booksData.length || 0;
 
-    const genresPayload = (resGenres && resGenres.data !== undefined) ? resGenres.data : resGenres;
-    genres.value = Array.isArray(genresPayload) ? genresPayload : (genresPayload?.data || genresPayload?.rows || []);
+    // Mấy cái dropdown giữ nguyên
+    authors.value = Array.isArray(resAuthors) ? resAuthors : (resAuthors?.data || []);
+    genres.value = Array.isArray(resGenres) ? resGenres : (resGenres?.data || []);
+    publishers.value = Array.isArray(resPub) ? resPub : (resPub?.data || []);
 
-    const pubPayload = (resPub && resPub.data !== undefined) ? resPub.data : resPub;
-    publishers.value = Array.isArray(pubPayload) ? pubPayload : (pubPayload?.data || pubPayload?.rows || []);
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi kết nối Server!');
@@ -408,6 +410,19 @@ const fetchData = async () => {
     loading.value = false;
   }
 };
+
+// Đảm bảo el-pagination có prop background cho đẹp
+/* <el-pagination
+  background 
+  v-model:current-page="currentPage"
+  v-model:page-size="pageSize"
+  :page-sizes="[10, 20, 50]"
+  layout="total, sizes, prev, pager, next, jumper"
+  :total="total"
+  @size-change="handleSizeChange"
+  @current-change="handleCurrentChange"
+/>
+*/
 
 const handleSizeChange = (val) => {
   pageSize.value = val;

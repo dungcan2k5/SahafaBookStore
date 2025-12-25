@@ -6,7 +6,6 @@
         Quản lý Người dùng
       </h2>
 
-      <!-- Search + Add -->
       <div class="flex items-center gap-3">
         <el-input
           v-model="searchText"
@@ -26,13 +25,12 @@
       </div>
     </div>
 
-    <!-- Filter Role -->
     <div class="mb-4">
         <el-radio-group v-model="filterRole" @change="fetchData">
-            <el-radio-button label="">Tất cả</el-radio-button>
-            <el-radio-button v-if="isAdmin" label="admin">Admin</el-radio-button>
-            <el-radio-button v-if="isAdmin" label="employee">Nhân viên</el-radio-button>
-            <el-radio-button label="customer">Khách hàng</el-radio-button>
+            <el-radio-button value="">Tất cả</el-radio-button>
+            <el-radio-button v-if="isAdmin" value="admin">Admin</el-radio-button>
+            <el-radio-button v-if="isAdmin" value="employee">Nhân viên</el-radio-button>
+            <el-radio-button value="customer">Khách hàng</el-radio-button>
         </el-radio-group>
     </div>
 
@@ -72,7 +70,6 @@
             <div class="flex justify-center gap-2">
               <el-button type="primary" :icon="Edit" circle size="small" @click="openDialog(scope.row)" />
               
-              <!-- Không cho xóa chính mình và không xóa Admin khác nếu không phải Super Admin (logic FE hỗ trợ) -->
               <el-popconfirm 
                 v-if="scope.row.user_id !== currentUser?.user_id"
                 title="Xóa người dùng này?" 
@@ -88,7 +85,6 @@
         </el-table-column>
       </el-table>
 
-      <!-- Pagination -->
       <div class="flex justify-end mt-4">
         <el-pagination
           background
@@ -101,7 +97,6 @@
       </div>
     </el-card>
 
-    <!-- Dialog -->
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? 'Cập nhật User' : 'Thêm User Mới'"
@@ -192,13 +187,33 @@ const fetchData = async () => {
             role: filterRole.value || undefined
           }
         });
-        const payload = (res && res.data !== undefined) ? res.data : res;
-        const list = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
-        users.value = list;
-        const paginationObj = payload?.pagination || payload?.meta || payload?.meta?.pagination || null;
-        if (paginationObj && paginationObj.total !== undefined) pagination.total = paginationObj.total;
+
+        // Logic check data thần thánh fix "No Data"
+        let finalData = [];
+        let finalTotal = 0;
+        const raw = res?.data || res; 
+
+        if (Array.isArray(raw)) {
+            finalData = raw;
+            finalTotal = raw.meta?.total || raw.length || 0;
+        } 
+        else if (raw?.data && Array.isArray(raw.data)) {
+            finalData = raw.data;
+            finalTotal = raw.meta?.total || raw.pagination?.total || 0;
+        }
+        else if (raw?.rows && Array.isArray(raw.rows)) {
+            finalData = raw.rows;
+            finalTotal = raw.count || 0;
+        }
+
+        users.value = finalData;
+        pagination.total = finalTotal;
+
     } catch (error) {
+        console.error(error);
         ElMessage.error('Lỗi tải danh sách users');
+        users.value = [];
+        pagination.total = 0;
     } finally {
         loading.value = false;
     }
@@ -284,22 +299,19 @@ const handleDelete = async (id) => {
     }
 };
 
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+
+// FIX 2: Gom 2 cái onMounted thừa thãi làm 1, sửa fetchUsers -> fetchData
 onMounted(() => {
-    // Mặc định Employee chỉ xem Customer
     if (!isAdmin.value) {
         filterRole.value = 'customer';
     }
-    fetchData();
+    fetchData(); // <-- Gọi đúng hàm này
+    window.addEventListener('resize', handleResize);
 });
 
-  const tableRef = ref(null);
-  const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
-    onMounted(() => {
-      fetchUsers();
-      window.addEventListener('resize', handleResize);
-    });
-
-    onUnmounted(() => {
-      window.removeEventListener('resize', handleResize);
-    });
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+});
 </script>

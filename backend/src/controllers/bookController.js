@@ -21,37 +21,42 @@ const { uploadRoot } = require('../middleware/uploadMiddleware');
 // [GET] /api/books
 const getAllBooks = async (req, res) => {
     try {
-        // 1. Lấy tham số search từ query
-        const { sort, order, limit, category, search } = req.query; 
+        // 1. Lấy page và limit để tính offset
+        const { sort, order, limit, page, category, search } = req.query; 
+        
+        // Default values
+        const pageInt = parseInt(page) || 1;
+        const limitInt = parseInt(limit) || 10;
+        const offset = (pageInt - 1) * limitInt; // Cần cái này để phân trang!
 
         let whereClause = {};
 
-        // 2. Thêm logic lọc theo từ khóa tìm kiếm (Tên sách hoặc Tên tác giả)
         if (search) {
-            // Temporarily only search by book title to avoid SQL generation issues
             whereClause[Op.or] = [
                 { book_title: { [Op.like]: `%${search}%` } }
             ];
         }
 
         if (category) {
-            // Filter by genre name (this uses the joined Genre table)
             whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` };
         }
 
-        const books = await Book.findAll({
+        // 2. Đổi findAll -> findAndCountAll để lấy cả tổng số lượng (count)
+        const { count, rows } = await Book.findAndCountAll({
             where: whereClause,
-            order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
-            limit: limit ? parseInt(limit) : undefined,
+            order: sort ? [[sort, order || 'DESC']] : [['book_id', 'DESC']], // Mặc định ID giảm dần để thấy sách mới
+            limit: limitInt,
+            offset: offset, // Đừng quên dòng này
             include: [
                 { model: Author, attributes: ['author_name'] },
                 { model: Genre, attributes: ['genre_name', 'genre_slug'] },
                 { model: BookImage, attributes: ['book_image_url'] }
-            ]
+            ],
+            distinct: true // Quan trọng để đếm đúng khi có include
         });
 
-        // 3. Map dữ liệu để khớp với Frontend: giữ cấu trúc giống Sequelize include
-        const formattedData = books.map(b => ({
+        // 3. Map dữ liệu
+        const formattedData = rows.map(b => ({
             book_id: b.book_id,
             book_slug: b.book_slug,
             book_title: b.book_title,
@@ -65,13 +70,19 @@ const getAllBooks = async (req, res) => {
             Genre: b.Genre || null
         }));
 
-        res.status(200).json({ success: true, data: formattedData });
-    } catch (error) {
-        console.error("Lỗi getAllBooks:", {
-            message: error.message,
-            stack: error.stack,
-            query: req.query
+        // 4. Trả về cấu trúc chuẩn có meta
+        res.status(200).json({ 
+            success: true, 
+            data: formattedData,
+            meta: {
+                total: count,
+                page: pageInt,
+                limit: limitInt,
+                totalPages: Math.ceil(count / limitInt)
+            }
         });
+    } catch (error) {
+        console.error("Lỗi getAllBooks:", error);
         res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };

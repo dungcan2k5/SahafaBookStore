@@ -52,17 +52,17 @@
           >
             <div class="col-span-12 md:col-span-6 flex items-center gap-4">
                <img 
-                 :src="item.image" 
+                 :src="fullImage(item)" 
                  class="w-20 h-24 object-cover border rounded bg-white" 
                  alt="Product Image" 
                  @error="$event.target.src='https://placehold.co/400x600?text=Error'"
                />
                <div>
                   <router-link 
-                    :to="`/book/${item.book_id}`" 
+                    :to="`/books/${item.book_id || item.Book?.book_id}`" 
                     class="font-medium text-gray-800 line-clamp-2 mb-1 text-sm md:text-base hover:text-blue-600 cursor-pointer"
                   >
-                    {{ item.title }}
+                    {{ item.title || item.Book?.book_title }}
                   </router-link>
                   
                   <button 
@@ -77,22 +77,22 @@
 
             <div class="col-span-6 md:col-span-2 text-left md:text-center font-medium text-gray-800">
                <span class="md:hidden text-gray-500 text-xs">Giá: </span>
-               {{ formatPrice(item.price) }}đ
+               {{ formatPrice(resolvePrice(item)) }}đ
             </div>
 
             <div class="col-span-6 md:col-span-2 flex justify-end md:justify-center">
                <div class="flex items-center border border-gray-300 rounded h-8 bg-white">
                   <button 
-                    @click="cartStore.updateQuantity(item.id, item.quantity - 1)" 
-                    :disabled="item.quantity <= 1"
-                    :class="{'opacity-50 cursor-not-allowed': item.quantity <= 1}"
+                    @click="cartStore.updateQuantity(item.id || item.cart_item_id, Math.max(1, resolveQuantity(item) - 1))" 
+                    :disabled="resolveQuantity(item) <= 1"
+                    :class="{'opacity-50 cursor-not-allowed': resolveQuantity(item) <= 1}"
                     class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold"
                   >-</button>
                   
-                  <input type="text" :value="item.quantity" class="w-10 text-center outline-none h-full font-bold text-gray-700 text-sm" readonly />
+                  <input type="text" :value="resolveQuantity(item)" class="w-10 text-center outline-none h-full font-bold text-gray-700 text-sm" readonly />
                   
                   <button 
-                    @click="cartStore.updateQuantity(item.id, item.quantity + 1)" 
+                    @click="cartStore.updateQuantity(item.id || item.cart_item_id, resolveQuantity(item) + 1)" 
                     class="w-8 h-full hover:bg-gray-100 text-gray-600 font-bold"
                   >+</button>
                </div>
@@ -101,7 +101,7 @@
             <div class="col-span-12 md:col-span-2 text-right md:text-center font-bold text-[#C92127]">
                <div class="flex justify-between md:block">
                  <span class="md:hidden text-gray-500 font-normal">Tổng: </span>
-                 {{ formatPrice(item.price * item.quantity) }}đ
+                 {{ formatPrice(resolvePrice(item) * resolveQuantity(item)) }}đ
                </div>
             </div>
           </div>
@@ -149,12 +149,27 @@
 import { onMounted } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { useRouter } from 'vue-router';
+import api from '@/services/api';
 
 const cartStore = useCartStore();
 const router = useRouter();
 
 const formatPrice = (value) => {
   return new Intl.NumberFormat('vi-VN').format(value);
+};
+
+const fullImage = (item) => {
+  const img = item.image || item.Book?.BookImages?.[0]?.book_image_url || '';
+  if (!img) return 'https://placehold.co/400x600?text=No+Image';
+  return img.startsWith('http') ? img : `${api.defaults.baseURL}${img}`;
+};
+
+const resolvePrice = (item) => {
+  return Number(item.price ?? item.Book?.price ?? 0);
+};
+
+const resolveQuantity = (item) => {
+  return Number(item.quantity ?? item.quantity ?? 1);
 };
 
 // Luôn làm mới giỏ hàng khi vào trang

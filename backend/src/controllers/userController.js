@@ -166,7 +166,8 @@ const getAllUsers = async (req, res) => {
         res.json({
             success: true,
             data: rows,
-            pagination: {
+            // 👇 SỬA Ở ĐÂY: Đổi 'pagination' thành 'meta' cho chuẩn bài
+            meta: {
                 total: count,
                 page: parseInt(page),
                 limit: parseInt(limit),
