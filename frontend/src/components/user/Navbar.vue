@@ -182,7 +182,7 @@ const getGenreInfo = (genre) => {
 
 const fetchGenres = async () => {
   try {
-    const data = await api.get('/books/genres');
+    const data = await api.get('/api/books/genres');
     // Vì Interceptor đã lo phần kiểm tra success và bóc tách data.data
     if (data) {
       genres.value = data;
@@ -210,7 +210,7 @@ const handleLiveSearch = () => {
   debounceTimer = setTimeout(async () => {
     try {
       // Gọi API với tham số search chuẩn
-      const response = await api.get('/books', { params: { search: searchQuery.value, limit: 5 } });
+      const response = await api.get('/api/books', { params: { search: searchQuery.value, limit: 5 } });
       
       // Nếu Interceptor hoạt động đúng, response chính là mảng sách
       if (response && Array.isArray(response)) {

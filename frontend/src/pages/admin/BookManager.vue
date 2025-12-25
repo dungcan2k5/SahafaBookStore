@@ -359,7 +359,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
-      api.get('/api/books', {
+      api.get('/api/api/books', {
         params: {
           search: searchText.value?.trim() || undefined,
           page: currentPage.value,
@@ -403,7 +403,7 @@ const fetchServerImages = async () => {
   if (serverImages.value.length > 0) return;
   loadingImages.value = true;
   try {
-    const res = await api.get('/api/uploads/images');
+    const res = await api.get('/api/api/uploads/images');
     serverImages.value = res.data?.data || [];
   } catch (error) {
     console.error("Lỗi tải ảnh server:", error);

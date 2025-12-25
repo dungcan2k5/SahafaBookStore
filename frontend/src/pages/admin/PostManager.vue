@@ -198,7 +198,7 @@ const generateSlug = () => {
 const fetchPosts = async () => {
     loading.value = true;
     try {
-        const res = await api.get('/api/posts');
+        const res = await api.get('/api/api/posts');
         posts.value = res.data.data || [];
     } catch (error) {
         ElMessage.error('Lỗi tải danh sách bài viết');

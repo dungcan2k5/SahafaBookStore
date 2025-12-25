@@ -205,7 +205,7 @@ const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 // --- FETCH DATA ---
 const fetchMyAddresses = async () => {
     try {
-        const res = await api.get('addresses'); // Bỏ api/
+        const res = await api.get('/apiaddresses'); // Bỏ api/
         myAddresses.value = res || []; // Bỏ .data.data
         
         const defaultAddr = myAddresses.value.find(a => a.is_default);

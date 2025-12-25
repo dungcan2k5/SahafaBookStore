@@ -111,7 +111,7 @@ const startTimer = () => {
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const data = await api.get('/books/flash-sale'); 
+        const data = await api.get('/api/books/flash-sale'); 
         if (data) {
             flashSaleBooks.value = data;
         }

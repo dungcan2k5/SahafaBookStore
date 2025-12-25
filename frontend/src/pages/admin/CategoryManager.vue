@@ -106,7 +106,7 @@ const filteredGenres = computed(() => {
 const fetchGenres = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/books/genres');
+    const res = await api.get('/api/api/books/genres');
     genres.value = res.data.data || [];
   } catch (error) {
     console.error(error);

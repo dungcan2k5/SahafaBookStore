@@ -90,7 +90,7 @@ const loadData = async () => {
     loading.value = true;
     // Gọi trực tiếp route gợi ý sách (ví dụ /books hoặc route riêng của bạn)
     // Nếu chưa có route riêng, có thể dùng tạm danh sách sách mới
-    const data = await api.get('/books', { params: { limit: 10, sort: 'book_id' } });
+    const data = await api.get('/api/books', { params: { limit: 10, sort: 'book_id' } });
     books.value = data || [];
   } catch (e) {
     console.error("Lỗi tải gợi ý:", e);

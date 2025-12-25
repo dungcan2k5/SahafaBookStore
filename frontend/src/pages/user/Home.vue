@@ -153,9 +153,9 @@ const fetchAllHomeData = async () => {
   try {
     // Gọi trực tiếp qua api.get và truyền params
     const [best, trend, news] = await Promise.all([
-      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
-      api.get('/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
-      api.get('/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
+      api.get('/api/books', { params: { sort: 'total_sold', order: 'DESC', limit: 4 } }),
+      api.get('/api/books', { params: { sort: 'total_sold', order: 'DESC', limit: 10 } }),
+      api.get('/api/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
     // Gán dữ liệu trực tiếp vì api.js đã bóc tách data

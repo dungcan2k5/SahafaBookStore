@@ -184,7 +184,7 @@ const form = reactive({
 const fetchData = async () => {
     loading.value = true;
     try {
-        const res = await api.get('/api/users', {
+        const res = await api.get('/api/api/users', {
             params: {
                 page: pagination.page,
                 limit: pagination.limit,

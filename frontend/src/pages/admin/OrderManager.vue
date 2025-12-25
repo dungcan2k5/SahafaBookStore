@@ -393,7 +393,7 @@ const printInvoice = () => {
 const fetchOrders = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/orders/admin', {
+    const res = await api.get('/api/api/orders/admin', {
         params: {
             page: currentPage.value,
             limit: pageSize.value,

@@ -106,7 +106,7 @@ const filteredAuthors = computed(() => {
 const fetchAuthors = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/books/authors');
+    const res = await api.get('/api/api/books/authors');
     authors.value = res.data.data || [];
   } catch (error) {
     console.error(error);

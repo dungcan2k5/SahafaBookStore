@@ -145,7 +145,7 @@ const getImageUrl = (book) =>
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/books');
+    const res = await api.get('/api/api/books');
     books.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
   } catch (error) {
     console.error(error);

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // Sử dụng biến môi trường đã khai báo ở bước 1
-    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`,
+    baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`,
     headers: {
         'Content-Type': 'application/json',
     },

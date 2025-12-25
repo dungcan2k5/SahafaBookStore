@@ -192,7 +192,7 @@ const filteredVouchers = computed(() => {
 const fetchVouchers = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/vouchers/admin');
+    const res = await api.get('/api/api/vouchers/admin');
     vouchers.value = res.data.data || [];
   } catch (error) { 
       console.error(error);
