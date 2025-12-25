@@ -119,31 +119,23 @@ const categories = [
 ];
 
 // Mock Data Generator
-const generateBooks = () => {
+const fetchNewBooks = async () => {
   loading.value = true;
-  setTimeout(() => {
-    const list = [];
-    for (let i = 1; i <= 15; i++) {
-      list.push({
-        id: i,
-        title: `Sách Mới Tuyển Chọn - Tập ${i} (Bản Đặc Biệt)`,
-        price: 80000 + Math.floor(Math.random() * 200000),
-        oldPrice: 300000,
-        discount: 20 + Math.floor(Math.random() * 30),
-        image: 'https://cdn0.fahasa.com/media/catalog/product/i/m/image_195509_1_36793.jpg', 
-      });
-    }
-    books.value = list;
+  try {
+    // Gọi API lấy sách mới nhất
+    books.value = await bookService.getNewArrivals();
+  } finally {
     loading.value = false;
-  }, 500);
+  }
 };
-
 watch(activeCat, () => {
-  generateBooks();
+  // Logic lọc sách theo danh mục nếu cần
+  // Hiện tại giả sử fetch lại tất cả sách mới
+  fetchNewBooks();
 });
 
 onMounted(() => {
-  generateBooks();
+  fetchNewBooks();
 });
 </script>
 

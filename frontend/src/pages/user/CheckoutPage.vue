@@ -205,10 +205,9 @@ const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 // --- FETCH DATA ---
 const fetchMyAddresses = async () => {
     try {
-        const res = await api.get('/api/addresses');
-        myAddresses.value = res.data.data || [];
+        const res = await api.get('addresses'); // Bỏ api/
+        myAddresses.value = res || []; // Bỏ .data.data
         
-        // Nếu có địa chỉ mặc định, tự chọn luôn
         const defaultAddr = myAddresses.value.find(a => a.is_default);
         if (defaultAddr) {
             selectedAddressId.value = defaultAddr.address_id;
@@ -264,61 +263,79 @@ const onDistrictChange = async () => {
 
 // --- SUBMIT ---
 const submitOrder = async () => {
-  // Validate sơ bộ
-  if(!selectedAddressId.value) {
-      // Nếu nhập mới thì phải check đủ trường
-      if(!form.name || !form.phone || !form.city || !form.address) return alert("Vui lòng điền đủ thông tin!");
+  // 1. Validate thông tin đầu vào
+  if (!selectedAddressId.value) {
+    if (!form.name || !form.phone || !form.city || !form.address) {
+      return alert("Vui lòng điền đầy đủ thông tin địa chỉ mới!");
+    }
   } else {
-      // Nếu chọn sẵn thì chỉ cần check name/phone
-      if(!form.name || !form.phone) return alert("Thông tin địa chỉ bị thiếu!");
+    if (!form.name || !form.phone) {
+      return alert("Thông tin người nhận bị thiếu!");
+    }
   }
 
-  // Ghép địa chỉ full (nếu nhập mới)
+  // 2. Xử lý chuỗi địa chỉ đầy đủ (Nếu là nhập mới)
   let finalAddress = form.address;
   if (!selectedAddressId.value) {
-      const c = locations.cities.find(x => x.code == form.city)?.name;
-      const d = locations.districts.find(x => x.code == form.district)?.name;
-      const w = locations.wards.find(x => x.code == form.ward)?.name;
-      finalAddress = `${form.address}, ${w}, ${d}, ${c}`;
-  }
-
-  // Tự động lưu địa chỉ nếu user tick
-  if (saveToAddressBook.value && !selectedAddressId.value) {
-      try {
-          await api.post('/api/addresses', {
-              recipient_name: form.name,
-              phone: form.phone,
-              address_detail: finalAddress,
-              is_default: myAddresses.value.length === 0 // Nếu chưa có cái nào thì set default luôn
-          });
-      } catch (e) { console.error("Lỗi lưu địa chỉ phụ", e); }
+    const c = locations.cities.find(x => x.code == form.city)?.name || '';
+    const d = locations.districts.find(x => x.code == form.district)?.name || '';
+    const w = locations.wards.find(x => x.code == form.ward)?.name || '';
+    finalAddress = `${form.address}, ${w}, ${d}, ${c}`;
   }
 
   isLoading.value = true;
+
   try {
-    const res = await api.post('/api/orders', {
-      address_id: selectedAddressId.value || null, // Nếu null backend sẽ tạo mới tạm thời
+    // 3. Tự động lưu vào sổ địa chỉ nếu người dùng yêu cầu
+    if (saveToAddressBook.value && !selectedAddressId.value) {
+      try {
+        await api.post('/addresses', {
+          recipient_name: form.name,
+          phone: form.phone,
+          address_detail: finalAddress,
+          is_default: myAddresses.value.length === 0
+        });
+      } catch (e) {
+        console.error("Lỗi lưu địa chỉ vào sổ:", e);
+      }
+    }
+
+    // 4. Gửi yêu cầu đặt hàng lên Backend
+    // Lưu ý: Bỏ '/api' ở đầu nếu baseURL đã có '/api' để tránh lỗi 404
+    const res = await api.post('/orders', {
+      address_id: selectedAddressId.value || null,
       recipient_name: form.name,
       phone: form.phone,
       address_detail: finalAddress,
       payment_method: form.payment
     });
 
-    if (res.data.success) {
-       if (['sepay', 'bank_transfer'].includes(form.payment)) {
-           paymentInfo.value = res.data.payment_info || { amount: res.data.final_amount, content: `SAHAFA${res.data.order_id}` };
-           showQRModal.value = true;
-       } else {
-           alert('Đặt hàng thành công!');
-           cartStore.clearCart();
-           router.push('/');
-       }
+    // 5. Xử lý phản hồi (Dựa trên việc Interceptor đã bóc tách dữ liệu)
+    // Nếu 'res' tồn tại, nghĩa là Backend đã trả về success: true
+    if (res) {
+      // Kiểm tra phương thức thanh toán để hiển thị QR hoặc thông báo thành công
+      if (['sepay', 'bank_transfer'].includes(form.payment)) {
+        // Lấy thông tin thanh toán từ res (đã bóc tách)
+        paymentInfo.value = res.payment_info || { 
+          amount: res.final_amount, 
+          content: `SAHAFA${res.order_id}` 
+        };
+        showQRModal.value = true;
+      } else {
+        alert('Đặt hàng thành công! Cảm ơn bạn đã mua sắm.');
+        cartStore.clearCart();
+        router.push('/');
+      }
     }
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi đặt hàng');
-  } finally { isLoading.value = false; }
+    console.error("Lỗi Submit Order:", error);
+    // Hiển thị lỗi từ backend hoặc lỗi mặc định
+    const errorMsg = error.response?.data?.message || 'Lỗi hệ thống khi đặt hàng. Vui lòng thử lại!';
+    alert(errorMsg);
+  } finally {
+    isLoading.value = false;
+  }
 };
-
 const finishPayment = () => {
   showQRModal.value = false;
   cartStore.clearCart();

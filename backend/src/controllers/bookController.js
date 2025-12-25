@@ -18,73 +18,50 @@ const path = require('path');
 const { uploadRoot } = require('../middleware/uploadMiddleware');
 
 // [GET] /api/books - Lấy danh sách sách (Fix lỗi Search Author)
+// [GET] /api/books
 const getAllBooks = async (req, res) => {
     try {
-        const { search, category, page = 1, limit = 10 } = req.query; 
-        
-        const offset = (page - 1) * limit;
-        const limitInt = parseInt(limit);
+        // 1. Lấy tham số search từ query
+        const { sort, order, limit, category, search } = req.query; 
 
         let whereClause = {};
-        
-        // 1. Logic tìm kiếm (Search)
+
+        // 2. Thêm logic lọc theo từ khóa tìm kiếm (Tên sách hoặc Tên tác giả)
         if (search) {
-             whereClause = {
-                [Op.or]: [
-                    { book_title: { [Op.like]: `%${search}%` } },
-                    // Cú pháp $ModelAlias.column$ để search bảng liên kết
-                    { '$Author.author_name$': { [Op.like]: `%${search}%` } }
-                ]
-            };
+            whereClause[Op.or] = [
+                { book_title: { [Op.like]: `%${search}%` } },
+                { '$Author.author_name$': { [Op.like]: `%${search}%` } }
+            ];
         }
 
-        // 2. Logic lọc theo Danh mục
         if (category) {
-            whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` }; // Sửa lại cho linh hoạt hơn hoặc dùng genre_slug nếu DB có
+            whereClause['$Genre.genre_name$'] = { [Op.like]: `%${category}%` };
         }
 
-        const { count, rows } = await Book.findAndCountAll({
+        const books = await Book.findAll({
             where: whereClause,
-            order: [['book_id', 'ASC']], 
+            order: sort ? [[sort, order || 'DESC']] : [['book_id', 'ASC']], 
+            limit: limit ? parseInt(limit) : undefined,
             include: [
-                { 
-                    model: Author, 
-                    attributes: ['author_name'],
-                    as: 'Author' // Đảm bảo Alias khớp với query '$Author...'
-                },
-                { 
-                    model: Genre, 
-                    attributes: ['genre_name'],
-                    as: 'Genre'
-                },
-                { 
-                    model: BookImage, 
-                    attributes: ['book_image_url'],
-                    as: 'BookImages' // Kiểm tra xem trong models define alias là gì (thường là BookImages hoặc book_images)
-                }
-            ],
-            limit: limitInt,
-            offset: offset,
-            distinct: true, // Để đếm đúng sách (không đếm trùng do nhiều ảnh)
-            
-            // 🔥 QUAN TRỌNG: Dòng này sửa lỗi SQLITE_ERROR: no such column: Author.author_name
-            // Nó buộc Sequelize không tạo subquery cắt trang trước khi join bảng
-            subQuery: false 
+                { model: Author, attributes: ['author_name'], as: 'Author' },
+                { model: BookImage, attributes: ['book_image_url'] }
+            ]
         });
 
-        res.status(200).json({ 
-            success: true, 
-            data: rows,
-            meta: {
-                total: count,
-                page: parseInt(page),
-                limit: limitInt,
-                totalPages: Math.ceil(count / limitInt)
-            }
-        });
+        // 3. Map dữ liệu để khớp với Frontend
+        const formattedData = books.map(b => ({
+            id: b.book_id,
+            slug: b.book_slug,
+            title: b.book_title,
+            price: Number(b.price),
+            image: b.BookImages?.[0]?.book_image_url || null,
+            sold: b.total_sold || 0
+        }));
+
+        res.status(200).json({ success: true, data: formattedData });
     } catch (error) {
-        console.error("Get All Books Error:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server: ' + error.message });
+        console.error("Lỗi getAllBooks:", error);
+        res.status(500).json({ success: false });
     }
 };
 
@@ -320,6 +297,7 @@ const importStock = async (req, res) => {
 };
 
 // [GET] /api/books/flash-sale
+// [GET] /api/books/flash-sale
 const getFlashSaleBooks = async (req, res) => {
     try {
         const books = await Book.findAll({
@@ -329,12 +307,11 @@ const getFlashSaleBooks = async (req, res) => {
         });
 
         const flashSaleData = books.map(book => {
-            const originalPrice = parseFloat(book.price);
-            const discountPercent = Math.floor(Math.random() * 41) + 10; 
-            const salePrice = originalPrice * (1 - discountPercent / 100);
+            const dbPrice = Number(book.price);
+            // Đẩy giá cũ lên cao (giá DB + 25%) để hạ về giá DB
+            const fakeOldPrice = Math.round((dbPrice * 1.25) / 1000) * 1000;
             
             let imageUrl = 'https://placehold.co/400x600?text=No+Image';
-            // Kiểm tra alias BookImages hoặc book_images
             const images = book.BookImages || book.book_images;
             if (images && images.length > 0) {
                  imageUrl = images[0].book_image_url;
@@ -342,24 +319,21 @@ const getFlashSaleBooks = async (req, res) => {
 
             return {
                 id: book.book_id,
-                
-                // 👇 THÊM DÒNG NÀY ĐỂ FRONTEND CÓ SLUG MÀ DÙNG
                 slug: book.book_slug, 
-                
                 title: book.book_title,
-                price: Math.round(salePrice / 1000) * 1000, 
-                oldPrice: originalPrice,
-                discount: discountPercent,
+                price: dbPrice,        // Giá bán là GIÁ THẬT trong DB
+                oldPrice: fakeOldPrice, // Giá ảo đã được đẩy lên
+                discount: 25,          // Hiển thị nhãn giảm 25%
                 image: imageUrl,
-                sold: Math.floor(Math.random() * 50),
+                sold: Math.floor(Math.random() * 20) + 5, // Số lượng đã bán ảo
                 totalStock: book.stock_quantity || 50
             };
         });
 
         res.status(200).json({ success: true, data: flashSaleData });
     } catch (error) {
-        console.error("Flash Sale Error:", error);
-        res.status(500).json({ success: false, message: "Lỗi Server" });
+        console.error("Lỗi Flash Sale:", error);
+        res.status(500).json({ success: false });
     }
 };
 

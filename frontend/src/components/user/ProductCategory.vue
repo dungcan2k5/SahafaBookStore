@@ -61,7 +61,7 @@ const genreMap = {
 const fetchCategories = async () => {
   isLoading.value = true;
   try {
-    const res = await api.get('/api/books/genres');
+    const res = await api.get('/books/genres');
     if (res.data.success) {
       // Map dữ liệu từ DB sang format hiển thị
       categories.value = res.data.data.map(g => {

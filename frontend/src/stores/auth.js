@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import api from '@/services/api'; // Import cái file vừa tạo ở bước 1
+import api from '@/services/api'; 
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(JSON.parse(localStorage.getItem('user')) || null);
@@ -8,44 +8,50 @@ export const useAuthStore = defineStore('auth', () => {
     const isLoading = ref(false);
     const error = ref(null);
 
-    // HÀM ĐĂNG NHẬP THẬT (GỌI API)
+    // HÀM ĐĂNG NHẬP
     const login = async (email, password) => {
+    isLoading.value = true;
+    error.value = null;
+    try {
+        const res = await api.post('/auth/login', { email, password });
+        
+        // Log để kiểm tra cấu trúc thật (Nếu vẫn undefined thì phải sửa api.js)
+        console.log("Dữ liệu sau Interceptor:", res); 
+
+        // SỬA TẠI ĐÂY: Kiểm tra linh hoạt các tầng dữ liệu
+        let finalData = res;
+        
+        // Nếu res bị undefined hoặc không có token, thử lấy từ res.data (phòng hờ Interceptor lỗi)
+        if (!finalData || !finalData.token) {
+            finalData = res?.data;
+        }
+
+        if (finalData && finalData.token) {
+            token.value = finalData.token;
+            user.value = finalData.user;
+            localStorage.setItem('token', finalData.token);
+            localStorage.setItem('user', JSON.stringify(finalData.user));
+            return true;
+        } else {
+            error.value = "Thông tin phản hồi từ Server không hợp lệ (Thiếu Token)";
+            return false;
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        error.value = err.response?.data?.message || 'Đăng nhập thất bại';
+        return false;
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+    // HÀM ĐĂNG KÝ
+    const register = async (userData) => {
         isLoading.value = true;
         error.value = null;
         try {
-            // Gọi API theo đúng tài liệu Swagger: POST /api/auth/login
-            const response = await api.post('/api/auth/login', {
-                email: email,
-                password: password
-            });
-
-            // Backend trả về: { token: "...", user: { role: "admin", ... } }
-            // (Cấu trúc này tôi đoán dựa trên Swagger, nếu sai mình log ra xem lại)
-            const data = response.data; 
-
-            // Lưu vào Store
-            token.value = data.token;
-            user.value = data.user;
-
-            // Lưu vào ổ cứng (để F5 không mất)
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            return true; // Đăng nhập thành công
-        } catch (err) {
-            console.error(err);
-            error.value = err.response?.data?.message || 'Đăng nhập thất bại';
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
-    };
-
-    // HÀM ĐĂNG KÝ (Tiện tay làm luôn)
-    const register = async (userData) => {
-        isLoading.value = true;
-        try {
-            await api.post('/api/auth/register', userData);
+            // SỬA: Bỏ '/api' ở đầu đường dẫn
+            await api.post('/auth/register', userData);
             return true;
         } catch (err) {
             error.value = err.response?.data?.message || 'Đăng ký thất bại';
@@ -55,20 +61,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // HÀM ĐĂNG XUẤT
     const logout = () => {
         user.value = null;
         token.value = null;
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        window.location.href = '/'; // Về trang chủ
+        window.location.href = '/'; 
     };
-    const setUser = (userData) => {
-        user.value = userData; // Cập nhật state
-        localStorage.setItem('user', JSON.stringify(userData)); // Cập nhật LocalStorage
-    };
-    // ---------------------------------------
 
-    // 3. Return (Nhớ phải return setUser ra ngoài mới dùng được)
-    return { user, token, isLoading, error, login, register, logout,setUser };
+    const setUser = (userData) => {
+        user.value = userData;
+        localStorage.setItem('user', JSON.stringify(userData));
+    };
+
+    return { user, token, isLoading, error, login, register, logout, setUser };
 });

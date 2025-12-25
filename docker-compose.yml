@@ -13,6 +13,7 @@ services:
             - DB_STORAGE=/app/data/sahafa.sqlite
             - PORT=3000
             - UPLOAD_DIR=/app/uploads
+            - VITE_APP_URL=https://sahafa.dungcan.id.vn
 
     frontend:
         image: dungcan2k5/sahafa-frontend:latest

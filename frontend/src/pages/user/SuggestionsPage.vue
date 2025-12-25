@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { bookService } from '@/services/bookService'; // Đảm bảo bạn đã có file service này
+import api from '@/services/api';
 
 // Dữ liệu sách gợi ý
 const books = ref([]);
@@ -88,10 +88,12 @@ const formatPrice = (v) => new Intl.NumberFormat('vi-VN').format(v);
 const loadData = async () => {
   try {
     loading.value = true;
-    // Gọi Service lấy dữ liệu gợi ý
-    books.value = await bookService.getSuggestions();
+    // Gọi trực tiếp route gợi ý sách (ví dụ /books hoặc route riêng của bạn)
+    // Nếu chưa có route riêng, có thể dùng tạm danh sách sách mới
+    const data = await api.get('/books', { params: { limit: 10, sort: 'book_id' } });
+    books.value = data || [];
   } catch (e) {
-    console.error(e);
+    console.error("Lỗi tải gợi ý:", e);
   } finally {
     loading.value = false;
   }

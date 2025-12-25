@@ -40,7 +40,7 @@
         >
         <div class="relative pt-[140%] mb-3 rounded-lg overflow-hidden group">
             <img 
-              :src="book.image || 'https://placehold.co/400x600?text=No+Image'" 
+              :src="book.image && book.image.startsWith('http') ? book.image : `http://localhost:3000${book.image}`" 
               class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
               alt="Book cover"
             />
@@ -80,39 +80,40 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'; // Cần thêm import này
+import api from '../../services/api'; 
 
-const router = useRouter();
+const router = useRouter(); // Khai báo router
+const flashSaleBooks = ref([]);
+const isLoading = ref(false);
 
-// --- Logic Đồng hồ ---
+// --- LOGIC ĐỒNG HỒ ---
 const hours = ref('02');
-const minutes = ref('45');
-const seconds = ref('00');
+const minutes = ref('59');
+const seconds = ref('59');
 let timerInterval = null;
 
 const startTimer = () => {
-  let timeInSecs = 3 * 60 * 60; 
+  let timeInSecs = 3 * 60 * 60; // 3 tiếng
   timerInterval = setInterval(() => {
     timeInSecs--;
-    if (timeInSecs < 0) { clearInterval(timerInterval); return; }
-    
+    if (timeInSecs < 0) {
+      clearInterval(timerInterval);
+      return;
+    }
     hours.value = Math.floor(timeInSecs / 3600).toString().padStart(2, '0');
     minutes.value = Math.floor((timeInSecs % 3600) / 60).toString().padStart(2, '0');
     seconds.value = Math.floor(timeInSecs % 60).toString().padStart(2, '0');
   }, 1000);
 };
 
-// --- Logic API ---
-const flashSaleBooks = ref([]); 
-const isLoading = ref(false);
-
+// --- LOGIC API ---
 const fetchFlashSaleBooks = async () => {
     isLoading.value = true;
     try {
-        const response = await axios.get('http://localhost:3000/api/books/flash-sale');
-        if (response.data.success) {
-            flashSaleBooks.value = response.data.data;
+        const data = await api.get('/books/flash-sale'); 
+        if (data) {
+            flashSaleBooks.value = data;
         }
     } catch (error) {
         console.error("Lỗi Flash Sale:", error);
@@ -123,14 +124,13 @@ const fetchFlashSaleBooks = async () => {
 
 const formatPrice = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-// ✅ HÀM ĐÃ SỬA: Nhận slug hoặc id
 const goToBookDetail = (slugOrId) => {
   if (!slugOrId) return;
   router.push(`/books/${slugOrId}`);
 };
 
 onMounted(() => {
-  startTimer();
+  startTimer(); // Bây giờ hàm này đã tồn tại nên sẽ không lỗi
   fetchFlashSaleBooks();
 });
 
