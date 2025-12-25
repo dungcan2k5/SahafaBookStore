@@ -176,15 +176,15 @@ const fetchData = async () => {
             params: { period: filterPeriod.value }
         });
 
-        if (res.data && res.data.success) {
-            const data = res.data.data;
-            
-            // Update Stats
+        const payload = (res && res.data !== undefined) ? res.data : res;
+        const data = payload && payload.data !== undefined ? payload.data : payload;
+
+        if (data) {
             Object.assign(stats, data);
 
-            // Update Chart
-            const labels = data.chartData.map(item => item.label);
-            const values = data.chartData.map(item => item.value);
+            const chartArr = (data && data.chartData) || [];
+            const labels = chartArr.map(item => item.label);
+            const values = chartArr.map(item => item.value);
 
             chartData.value = {
                 labels: labels,

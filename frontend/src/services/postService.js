@@ -6,7 +6,7 @@ const postService = {
   },
 
   getPostBySlug(slug) {
-    return api.get(`api/posts/slug/${slug}`);
+    return api.get(`/api/posts/slug/${slug}`);
   },
 
   getPostCategories() {

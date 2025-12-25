@@ -25,7 +25,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="filteredAuthors" style="width: 100%" v-loading="loading" stripe border>
+      <el-table ref="tableRef" :data="filteredAuthors" style="width: 100%" v-loading="loading" stripe border>
         <el-table-column label="#" width="60" align="center">
           <template #default="scope">{{ scope.$index + 1 }}</template>
         </el-table-column>
@@ -106,8 +106,10 @@ const filteredAuthors = computed(() => {
 const fetchAuthors = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/api/api/books/authors');
-    authors.value = res.data.data || [];
+    const res = await api.get('/api/books/authors');
+    const payload = (res && res.data !== undefined) ? res.data : res;
+    if (Array.isArray(payload)) authors.value = payload;
+    else authors.value = payload?.data || payload?.rows || [];
   } catch (error) {
     console.error(error);
     ElMessage.error('Lỗi tải dữ liệu');
@@ -157,4 +159,11 @@ const handleDelete = async (id) => {
 };
 
 onMounted(() => fetchAuthors());
+
+// Table resize handler
+import { onUnmounted } from 'vue';
+const tableRef = ref(null);
+const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 </script>

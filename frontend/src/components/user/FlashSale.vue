@@ -62,13 +62,13 @@
             <div class="relative w-full h-5 bg-pink-100 rounded-full overflow-hidden">
               <div 
                 class="absolute top-0 left-0 h-full bg-[#C92127]" 
-                :style="{ width: (book.sold / book.totalStock) * 100 + '%' }"
+                :style="{ width: ((book.total_sold || book.sold) / book.totalStock) * 100 + '%' }"
               ></div>
               <div class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold uppercase z-10 drop-shadow-sm">
-                <span v-if="book.sold > 0">Đã bán {{ book.sold }}</span>
+                <span v-if="(book.total_sold || book.sold) > 0">Đã bán {{ book.total_sold || book.sold }}</span>
                 <span v-else>Vừa mở bán</span>
               </div>
-              <div class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px]" v-if="book.sold > 10">🔥</div>
+              <div class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px]" v-if="(book.total_sold || book.sold) > 10">🔥</div>
             </div>
           </div>
         </div>

@@ -28,41 +28,40 @@
         <div 
           v-for="book in books" 
           :key="book.book_id" 
-          class="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group cursor-pointer hover:-translate-y-1"
+          class="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group cursor-pointer hover:-translate-y-1 flex flex-col"
           @click="goToDetail(book.book_slug)" 
         >
-        <div class="relative pt-[140%] bg-gray-100 overflow-hidden">
-            <img 
-              :src="book.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600?text=No+Image'" 
-              class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+          <div class="relative w-full h-56 md:h-64 bg-gray-100 overflow-hidden">
+            <img
+              :src="book.BookImages?.[0]?.book_image_url || 'https://placehold.co/400x600?text=No+Image'"
+              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               alt="Book cover"
+              @error="(e) => e.target.src = 'https://placehold.co/400x600?text=No+Image'"
             />
-            <div 
-              v-if="book.discount && book.discount > 0" 
-              class="absolute top-0 right-0 bg-[#C92127] text-white text-xs font-bold px-2 py-1 rounded-bl-lg shadow-sm"
-            >
+            <div v-if="book.discount && book.discount > 0" class="absolute top-2 right-2 bg-[#C92127] text-white text-xs font-bold px-2 py-1 rounded-lg shadow-sm">
               -{{ book.discount }}%
             </div>
           </div>
 
-          <div class="p-3 flex flex-col h-[130px]">
-             <h3 class="text-sm md:text-base font-medium text-gray-800 line-clamp-2 mb-1 group-hover:text-[#C92127] transition-colors leading-tight">
-               {{ book.book_title }}
-             </h3>
-             
-             <p class="text-xs text-gray-500 mb-2 truncate">
-                <span class="font-semibold">TG:</span> {{ book.Author?.author_name || 'Đang cập nhật' }}
-             </p>
+          <div class="p-4 flex-1 flex flex-col">
+            <h3 class="text-base md:text-lg font-semibold text-gray-800 line-clamp-2 mb-2 group-hover:text-[#C92127] transition-colors">
+              {{ book.book_title }}
+            </h3>
 
-             <div class="mt-auto pt-2 border-t border-gray-50">
-                <div class="text-[#C92127] font-bold text-lg leading-none">
-                    {{ formatPrice(book.price) }}đ
-                </div>
-                <div class="flex justify-between items-center mt-1">
-                    <span class="text-[10px] text-gray-400">Đã bán {{ book.total_sold || 0 }}</span>
-                    <span class="text-[10px] text-blue-600 font-bold uppercase group-hover:underline">Chi tiết ></span>
-                </div>
-             </div>
+            <div class="text-sm text-gray-600 mb-2">
+              <div><span class="font-medium">TG: </span>{{ book.Author?.author_name || 'Đang cập nhật' }}</div>
+              <div><span class="font-medium">Thể loại: </span>{{ book.Genre?.genre_name || 'Đang cập nhật' }}</div>
+            </div>
+
+            <div class="mt-auto pt-3 border-t border-gray-100 flex items-end justify-between">
+              <div class="text-[#C92127] font-extrabold text-lg">
+                {{ formatPrice(book.price) }}
+              </div>
+              <div class="text-right">
+                <div v-if="book.oldPrice > book.price" class="text-sm text-gray-400 line-through">{{ formatPrice(book.oldPrice) }}</div>
+                <div class="text-xs text-gray-500">Đã bán {{ book.total_sold || book.sold || 0 }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -73,7 +72,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -103,15 +102,15 @@ const fetchSearchResults = async () => {
   isLoading.value = true;
   books.value = [];
 
-  try {
-    const response = await axios.get('http://localhost:3000/api/books', {
-      params: { search: query }
-    });
-
-    if (response.data.success) {
-      books.value = response.data.data;
-    }
-  } catch (error) {
+    try {
+      const response = await api.get('/api/books', { params: { search: query } });
+      // api interceptor unwraps success->data and returns the array
+      if (Array.isArray(response)) {
+        books.value = response;
+      } else if (response && response.data) {
+        books.value = response.data;
+      }
+    } catch (error) {
     console.error("Lỗi search:", error);
   } finally {
     isLoading.value = false;

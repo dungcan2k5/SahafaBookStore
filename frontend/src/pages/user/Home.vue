@@ -65,7 +65,7 @@
   <div 
     v-for="(book, index) in bestSellers" 
     :key="index" 
-    @click="$router.push(`/books/${book.id}`)" 
+    @click="$router.push(`/books/${book.slug || book.id}`)" 
     class="..."
   >
     <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
@@ -87,7 +87,7 @@
             </div>
         </div>
         <div class="mt-2 text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-md text-center font-medium">
-            Đã bán {{ book.sold }}
+          Đã bán {{ book.total_sold || book.sold || 0 }}
         </div>
     </div>
   </div>
@@ -158,10 +158,21 @@ const fetchAllHomeData = async () => {
       api.get('/api/books', { params: { sort: 'book_id', order: 'DESC', limit: 10 } })
     ]);
 
-    // Gán dữ liệu trực tiếp vì api.js đã bóc tách data
-    bestSellers.value = best || [];
-    trendingBooks.value = trend || [];
-    newBooks.value = news || [];
+    // Normalize backend response (which returns Sequelize-like objects)
+    const normalize = (arr) => (Array.isArray(arr) ? arr.map(b => ({
+      id: b.book_id || b.id,
+      slug: b.book_slug || b.slug,
+      title: b.book_title || b.title,
+      price: Number(b.price) || Number(b.price || 0),
+      oldPrice: b.oldPrice || b.oldPrice || 0,
+      image: (b.BookImages && b.BookImages[0] && b.BookImages[0].book_image_url) || b.image || 'https://placehold.co/400x600?text=No+Image',
+      total_sold: b.total_sold || b.sold || 0,
+      sold: b.total_sold || b.sold || 0
+    })) : []);
+
+    bestSellers.value = normalize(best);
+    trendingBooks.value = normalize(trend);
+    newBooks.value = normalize(news);
   } catch (error) {
     console.error("Lỗi khi gọi API trực tiếp:", error);
   }

@@ -62,20 +62,29 @@ const fetchCategories = async () => {
   isLoading.value = true;
   try {
     const res = await api.get('/api/books/genres');
-    if (res.data.success) {
-      // Map dữ liệu từ DB sang format hiển thị
-      categories.value = res.data.data.map(g => {
-         const info = genreMap[g.genre_slug];
-         return {
-            slug: g.genre_slug,
-            // Nếu có tên Việt thì dùng, không thì dùng tên gốc DB
-            name: info ? info.vi : g.genre_name, 
-            // Icon & Màu nền
-            icon: info ? info.icon : 'https://cdn-icons-png.flaticon.com/512/29/29302.png',
-            bgClass: info ? info.bg : 'bg-gray-50 group-hover:bg-gray-100'
-         };
-      });
+    // Normalize response shape. The API wrapper may return either:
+    // - the unwrapped data array (when interceptor returns response.data.data), or
+    // - the whole response body (e.g. { success, data })
+    const body = (res && res.data !== undefined) ? res.data : res;
+    let list = [];
+    if (body && body.success && Array.isArray(body.data)) {
+      list = body.data;
+    } else if (Array.isArray(body)) {
+      list = body;
+    } else {
+      console.warn('Unexpected genres response shape', body);
     }
+
+    // Map dữ liệu từ DB sang format hiển thị
+    categories.value = list.map(g => {
+       const info = genreMap[g.genre_slug];
+       return {
+          slug: g.genre_slug,
+          name: info ? info.vi : g.genre_name,
+          icon: info ? info.icon : 'https://cdn-icons-png.flaticon.com/512/29/29302.png',
+          bgClass: info ? info.bg : 'bg-gray-50 group-hover:bg-gray-100'
+       };
+    });
   } catch (e) {
     console.error("Lỗi tải danh mục:", e);
   } finally {

@@ -37,7 +37,7 @@
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
-      <el-table :data="users" style="width: 100%" v-loading="loading" stripe>
+    <el-table ref="tableRef" :data="users" style="width: 100%" v-loading="loading" stripe>
         <el-table-column label="#" width="60" align="center">
           <template #default="scope">
             {{ (pagination.page - 1) * pagination.limit + scope.$index + 1 }}
@@ -147,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { User, Plus, Edit, Delete, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from '@/services/api';
@@ -184,16 +184,19 @@ const form = reactive({
 const fetchData = async () => {
     loading.value = true;
     try {
-        const res = await api.get('/api/api/users', {
-            params: {
-                page: pagination.page,
-                limit: pagination.limit,
-                search: searchText.value || undefined,
-                role: filterRole.value || undefined
-            }
+        const res = await api.get('/api/users', {
+          params: {
+            page: pagination.page,
+            limit: pagination.limit,
+            search: searchText.value || undefined,
+            role: filterRole.value || undefined
+          }
         });
-        users.value = res.data.data;
-        pagination.total = res.data.pagination.total;
+        const payload = (res && res.data !== undefined) ? res.data : res;
+        const list = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
+        users.value = list;
+        const paginationObj = payload?.pagination || payload?.meta || payload?.meta?.pagination || null;
+        if (paginationObj && paginationObj.total !== undefined) pagination.total = paginationObj.total;
     } catch (error) {
         ElMessage.error('Lỗi tải danh sách users');
     } finally {
@@ -288,4 +291,15 @@ onMounted(() => {
     }
     fetchData();
 });
+
+  const tableRef = ref(null);
+  const handleResize = () => { if (tableRef.value && typeof tableRef.value.doLayout === 'function') { try { tableRef.value.doLayout(); } catch(e){} } };
+    onMounted(() => {
+      fetchUsers();
+      window.addEventListener('resize', handleResize);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize);
+    });
 </script>
