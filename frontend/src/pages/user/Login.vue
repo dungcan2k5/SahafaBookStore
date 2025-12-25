@@ -126,13 +126,11 @@ const handleLogin = async () => {
         localStorage.setItem('user', JSON.stringify(body.user));
       }
 
-    if (res.success) {
-      // Token & User đã được lưu trong authService.login
       // 3. Chuyển hướng về trang chủ
       alert('Đăng nhập thành công!');
       router.push('/');
     } else {
-      alert(res.message || 'Đăng nhập thất bại');
+      alert(body.message || 'Đăng nhập thất bại');
     }
   } catch (error) {
     console.error(error);
