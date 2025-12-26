@@ -376,7 +376,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
-      api.get('/api/books', {
+      api.get('/api/api/books', {
         params: {
           search: searchText.value?.trim() || undefined,
           page: currentPage.value,
