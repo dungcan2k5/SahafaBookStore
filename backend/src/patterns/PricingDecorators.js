@@ -1,7 +1,7 @@
-// Interface (Concept)
+// Interface (Khái niệm)
 class PriceComponent {
     async calculate() {
-        throw new Error("Method 'calculate()' must be implemented.");
+        throw new Error("Phương thức 'calculate()' phải được triển khai.");
     }
 }
 
@@ -68,7 +68,7 @@ class ShippingFeeDecorator extends PriceDecorator {
 
     async calculate() {
         const currentTotal = await super.calculate();
-        // Ví dụ: Đơn > 500k free ship, ngược lại 30k
+        // Ví dụ: Đơn > 500k miễn phí ship, ngược lại 30k
         if (currentTotal > 500000) {
             return currentTotal; 
         }

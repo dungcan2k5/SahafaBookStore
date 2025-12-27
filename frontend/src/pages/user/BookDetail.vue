@@ -57,7 +57,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-y-2 text-sm text-gray-600 mb-4 max-w-md mt-2">
-                <div>Mã hàng</div><div class="font-medium text-black">SP{{ book.book_id }}</div>
+                <div>Mã sản phẩm</div><div class="font-medium text-black">SP{{ book.book_id }}</div>
                 <div>Tác giả</div><div class="font-medium text-blue-600">{{ book.Author?.author_name || 'Đang cập nhật' }}</div>
                 <div>Nhà xuất bản</div><div class="font-medium text-black">{{ book.Publisher?.publisher_name || 'Đang cập nhật' }}</div>
             </div>
@@ -142,12 +142,11 @@ const fetchBookDetail = async (idOrSlug) => {
   selectedImage.value = null;
 
   try {
-    // Gọi trực tiếp qua api
-    // Route chuẩn: /api/books/:id
+    // Gọi API chuẩn: /api/books/:id
     const data = await api.get(`/api/books/${idOrSlug}`);
     
     if (data) {
-      // Convert image paths to full URLs before assigning to the ref
+      // Chuyển đổi đường dẫn ảnh thành URL đầy đủ trước khi gán
       if (data.BookImages && data.BookImages.length > 0) {
         data.BookImages.forEach(img => {
           img.book_image_url = getImageUrl(img.book_image_url);
@@ -159,7 +158,7 @@ const fetchBookDetail = async (idOrSlug) => {
 
       book.value = data;
       
-      // Set initial selected image from the now-full URLs
+      // Đặt ảnh được chọn ban đầu
       if (book.value.BookImages && book.value.BookImages.length > 0) {
         selectedImage.value = book.value.BookImages[0].book_image_url;
       } else if (book.value.image) {
@@ -167,13 +166,13 @@ const fetchBookDetail = async (idOrSlug) => {
       }
     }
   } catch (error) {
-    console.error("Lỗi tải sách:", error);
+    console.error("Lỗi tải thông tin sách:", error);
   } finally {
     isLoading.value = false;
   }
 };
 
-// Helper: trả về URL ảnh đầy đủ (nếu backend trả relative path)
+// Hàm hỗ trợ: trả về URL ảnh đầy đủ (nếu backend trả về đường dẫn tương đối)
 const getImageUrl = (url) => {
   if (!url) return 'https://placehold.co/400x600?text=No+Image';
   if (url.startsWith('http')) return url;
@@ -221,4 +220,3 @@ const handleBuyNow = async () => {
   }
 };
 </script>
-

@@ -3,29 +3,28 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { verifyToken, authorize } = require('../middleware/authMiddleware');
 
-// Tất cả các route này đều cần đăng nhập
 router.use(verifyToken);
 
 /**
  * @swagger
  * tags:
  *   name: Users
- *   description: Quản lý người dùng và địa chỉ
+ *   description: Quản lý Người dùng và Địa chỉ
  */
 
 /**
  * @swagger
  * /api/users/profile:
  *   get:
- *     summary: Lấy thông tin cá nhân
+ *     summary: Lấy hồ sơ đầy đủ của người dùng hiện tại
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Thông tin user
+ *         description: Dữ liệu hồ sơ người dùng
  *   put:
- *     summary: Cập nhật thông tin cá nhân
+ *     summary: Cập nhật hồ sơ người dùng hiện tại
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -43,7 +42,7 @@ router.use(verifyToken);
  *                 type: string
  *     responses:
  *       200:
- *         description: Cập nhật thành công
+ *         description: Cập nhật hồ sơ thành công
  */
 router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
@@ -52,15 +51,15 @@ router.put('/profile', userController.updateProfile);
  * @swagger
  * /api/users/addresses:
  *   get:
- *     summary: Lấy danh sách địa chỉ nhận hàng
+ *     summary: Lấy tất cả địa chỉ giao hàng của người dùng hiện tại
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List địa chỉ
+ *         description: Danh sách địa chỉ
  *   post:
- *     summary: Thêm địa chỉ mới
+ *     summary: Thêm địa chỉ giao hàng mới
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -85,7 +84,7 @@ router.put('/profile', userController.updateProfile);
  *                 type: boolean
  *     responses:
  *       201:
- *         description: Tạo thành công
+ *         description: Tạo địa chỉ thành công
  */
 router.get('/addresses', userController.getAddresses);
 router.post('/addresses', userController.addAddress);
@@ -94,7 +93,7 @@ router.post('/addresses', userController.addAddress);
  * @swagger
  * /api/users/addresses/{id}:
  *   put:
- *     summary: Cập nhật địa chỉ
+ *     summary: Cập nhật địa chỉ giao hàng
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -120,9 +119,9 @@ router.post('/addresses', userController.addAddress);
  *                 type: boolean
  *     responses:
  *       200:
- *         description: Cập nhật thành công
+ *         description: Cập nhật địa chỉ thành công
  *   delete:
- *     summary: Xóa địa chỉ
+ *     summary: Xóa địa chỉ giao hàng
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -134,18 +133,18 @@ router.post('/addresses', userController.addAddress);
  *           type: integer
  *     responses:
  *       200:
- *         description: Xóa thành công
+ *         description: Xóa địa chỉ thành công
  */
 router.put('/addresses/:id', userController.updateAddress);
 router.delete('/addresses/:id', userController.deleteAddress);
 
-// --- ADMIN / MANAGER ROUTES ---
+// --- CÁC ROUTE QUẢN TRỊ / NHÂN VIÊN ---
 
 /**
  * @swagger
  * /api/users:
  *   get:
- *     summary: Lấy danh sách users (Admin/Employee)
+ *     summary: Lấy tất cả người dùng (Chỉ Quản trị viên/Nhân viên)
  *     tags: [Users Management]
  *     security:
  *       - bearerAuth: []
@@ -154,6 +153,7 @@ router.delete('/addresses/:id', userController.deleteAddress);
  *         name: role
  *         schema:
  *           type: string
+ *           enum: [admin, employee, customer]
  *       - in: query
  *         name: search
  *         schema:
@@ -162,9 +162,13 @@ router.delete('/addresses/:id', userController.deleteAddress);
  *         name: page
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: Danh sách users
+ *         description: Danh sách người dùng với metadata phân trang
  */
 router.get('/', authorize(['admin', 'employee']), userController.getAllUsers);
 
@@ -172,7 +176,7 @@ router.get('/', authorize(['admin', 'employee']), userController.getAllUsers);
  * @swagger
  * /api/users:
  *   post:
- *     summary: Tạo user mới (Admin only)
+ *     summary: Tạo người dùng mới (Chỉ Quản trị viên)
  *     tags: [Users Management]
  *     security:
  *       - bearerAuth: []
@@ -197,7 +201,7 @@ router.get('/', authorize(['admin', 'employee']), userController.getAllUsers);
  *                 enum: [admin, employee, customer]
  *     responses:
  *       201:
- *         description: Tạo thành công
+ *         description: Tạo người dùng thành công
  */
 router.post('/', authorize(['admin']), userController.createUser);
 
@@ -205,7 +209,7 @@ router.post('/', authorize(['admin']), userController.createUser);
  * @swagger
  * /api/users/{id}:
  *   put:
- *     summary: Cập nhật user (Admin only)
+ *     summary: Cập nhật chi tiết người dùng (Chỉ Quản trị viên)
  *     tags: [Users Management]
  *     security:
  *       - bearerAuth: []
@@ -227,9 +231,9 @@ router.post('/', authorize(['admin']), userController.createUser);
  *                 type: string
  *     responses:
  *       200:
- *         description: Cập nhật thành công
+ *         description: Cập nhật người dùng thành công
  *   delete:
- *     summary: Xóa user (Admin only)
+ *     summary: Xóa người dùng (Chỉ Quản trị viên)
  *     tags: [Users Management]
  *     security:
  *       - bearerAuth: []
@@ -239,7 +243,7 @@ router.post('/', authorize(['admin']), userController.createUser);
  *         required: true
  *     responses:
  *       200:
- *         description: Xóa thành công
+ *         description: Xóa người dùng thành công
  */
 router.put('/:id', authorize(['admin']), userController.updateUserAdmin);
 router.delete('/:id', authorize(['admin']), userController.deleteUserAdmin);

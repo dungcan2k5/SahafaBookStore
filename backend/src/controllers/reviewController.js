@@ -1,7 +1,7 @@
 const { models } = require('../config/database');
 const { Review, User, Book } = models;
 
-// [GET] /api/reviews/book/:bookId - Lấy danh sách review của 1 cuốn sách
+// Lấy đánh giá cho một cuốn sách cụ thể
 const getReviewsByBook = async (req, res) => {
     try {
         const { bookId } = req.params;
@@ -14,21 +14,20 @@ const getReviewsByBook = async (req, res) => {
         });
         res.json({ success: true, data: reviews });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [POST] /api/reviews - Thêm review (yêu cầu login)
+// Thêm đánh giá (yêu cầu đăng nhập)
 const addReview = async (req, res) => {
     try {
         const { book_id, rating, comment } = req.body;
         
-        // Validate rating
+        // Xác thực đánh giá
         if (rating < 1 || rating > 5) {
-            return res.status(400).json({ success: false, message: 'Rating phải từ 1 đến 5' });
+            return res.status(400).json({ success: false, message: 'Đánh giá phải từ 1 đến 5' });
         }
 
-        // Tạo review
         const newReview = await Review.create({
             user_id: req.user_id,
             book_id,
@@ -36,13 +35,11 @@ const addReview = async (req, res) => {
             comment
         });
 
-        // Cập nhật average_rating cho Book
-        // 1. Lấy tất cả review của book đó
+        // Cập nhật đánh giá trung bình cho sách
         const reviews = await Review.findAll({ where: { book_id } });
         const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
         const avg = totalRating / reviews.length;
 
-        // 2. Update Book
         await Book.update(
             { average_rating: avg },
             { where: { book_id } }
@@ -51,7 +48,7 @@ const addReview = async (req, res) => {
         res.status(201).json({ success: true, data: newReview });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 

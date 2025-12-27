@@ -9,12 +9,14 @@
     <Footer>
       
     </Footer>
+    <ChatBot />
   </div>
 </template>
 
 <script setup>
 import Navbar from '@/components/user/Navbar.vue';
 import Footer from '@/components/user/Footer.vue';
+import ChatBot from '@/components/user/ChatBot.vue';
 </script>
 
 <style>

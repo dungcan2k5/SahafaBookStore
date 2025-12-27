@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'sahafa_secret_key');
         req.user_id = decoded.user_id; // Lưu user_id vào request để dùng ở controller sau
         req.user_role = decoded.role;
-        next(); // Cho đi tiếp
+        next(); // Cho phép đi tiếp
     } catch (error) {
         console.log(error);
         return res.status(403).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn' });
@@ -24,7 +24,7 @@ const verifyToken = (req, res, next) => {
 
 // Middleware phân quyền
 const authorize = (roles = []) => {
-    // roles param có thể là string (1 role) hoặc array (nhiều role)
+    // tham số roles có thể là chuỗi (1 vai trò) hoặc mảng (nhiều vai trò)
     if (typeof roles === 'string') {
         roles = [roles];
     }

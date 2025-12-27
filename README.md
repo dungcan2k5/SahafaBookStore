@@ -1,98 +1,169 @@
-# 📚 Sahafa BookStore - E-Commerce Platform
-
-**Website thương mại điện tử bán sách** xây dựng bằng Vue 3, Express.js, MySQL, with Admin Dashboard & AI Chatbot.
-
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Node](https://img.shields.io/badge/Node-18%2B-green)
 ![Vue](https://img.shields.io/badge/Vue-3-green)
 
----
+# Sahafa BookStore - E-Commerce Platform
 
-## 🎯 Chức Năng Chính
-
-### 👤 **User Storefront**
-- ✅ Duyệt sách theo danh mục (category), tìm kiếm
-- ✅ Xem chi tiết sách (ratings, reviews, tác giả, giá)
-- ✅ Quản lý giỏ hàng (add, update, remove)
-- ✅ Thanh toán qua QR code (Sepay/Casso)
-- ✅ Đăng ký/Đăng nhập, quản lý tài khoản
-- ✅ Lịch sử đơn hàng, theo dõi trạng thái
-- ✅ Viết review, đánh giá sách
-- ✅ 🤖 **AI Chatbot** - Gợi ý sách, hỗ trợ khách hàng
-
-### 👨‍💼 **Admin Dashboard**
-- ✅ Quản lý sách (CRUD, upload ảnh bìa)
-- ✅ Quản lý danh mục & nhà cung cấp
-- ✅ Quản lý đơn hàng (xem, sửa trạng thái)
-- ✅ Quản lý người dùng (roles, ban/unban)
-- ✅ Quản lý nhân viên (permissions)
-- ✅ Thống kê & phân tích (doanh thu, top books, customer insights)
-- ✅ Xuất báo cáo (CSV, PDF, In)
-- ✅ Audit logs (lịch sử thay đổi)
+E-commerce website for selling books built with Vue 3, Express.js, MySQL, featuring an Admin Dashboard and AI Chatbot.
 
 ---
 
-## 🛠️ Tech Stack
+## Project Motivation
+
+### Practical
+- **Digital Transformation**: Solves the inefficiencies of manual book management, optimizing operations, reducing errors, and saving time.
+- **Business Growth**: Provides a new digital channel for small and medium-sized bookstores to reach a wider audience.
+
+### Educational
+- **Design Patterns**: Practical application of software design patterns (Factory, Decorator, etc.) in a real-world context.
+- **Modern Tech Stack**: Hands-on experience with modern web technologies (Vue 3, Node.js) and DevOps tools (Docker, CI/CD).
+- **Professional Development**: Exposure to the full software development lifecycle, from architecture to deployment.
+
+---
+
+## Team & Task Assignment
+
+| Member Name | Student Code | Assigned Task |
+|-------------|--------------|---------------|
+| [**Phùng Mạnh Dũng**](https://github.com/dungcan2k5) | A47781 | Backend, Payment Factory Pattern, Deploy (CI/CD), Composite Pattern |
+| [Phạm Văn Khải](https://github.com/Khaipamh) | A47170 | User (Frontend), Voucher, Payment, Cart (Backend), Payment Factory Pattern, Composite Pattern |
+| [Nguyễn Tiến Dũng](https://github.com/nguyendung1922005) | A47114 | Book (Frontend), Pricing Decorator Patter, CoCoMo, Document |
+| [Nghiêm Đức Anh](https://github.com/demsus31) | A48415 | Admin (Frontend), Pricing Decorator Pattern, CoCoMo |
+
+
+## Class Diagram
+
+![img](./images/ClassDiagram.png)
+
+## Entity Relationship Diagram
+
+![img](./images/ERD.png)
+
+---
+
+## Data Flow
+
+![img](./images/DataFlow.jpg)
+
+---
+
+
+## Core Features & Demo
+
+### User Storefront
+
+![Home Page Screenshot](./images/homepage.png)
+*Home Page Overview*
+
+![Payment Page Screenshot](./images/payment.png)
+*Payment Integration via QR Code*
+
+- Browse books by category, search functionality.
+- View book details (ratings, reviews, authors, price).
+- Cart management (add, update, remove items).
+- Payment via QR code (Sepay).
+- User registration/login, account management.
+- Order history and status tracking.
+- Write reviews and rate books.
+
+### AI Chatbot
+
+![AI Chatbot Demo](./images/chatbot.gif)
+*AI Chatbot Interaction Demo*
+
+- AI Chatbot for book recommendations and customer support.
+
+### Admin Dashboard
+
+<!-- TODO: [Must Have] Insert screenshot of the Admin Dashboard here -->
+![Admin Dashboard Screenshot](./assets/screenshots/admin_dashboard_placeholder.png)
+*Admin Dashboard Overview*
+
+- Book management (CRUD, cover image upload).
+- Category and supplier management.
+- Order management (view details, update status).
+- User management (CRUD, roles).
+- Staff management (permissions).
+- Statistics and analysis (revenue, top books, customer insights).
+- Export reports (PDF, Print).
+- Audit logs (change history).
+
+---
+
+## Technical Highlights
+
+### Payment Integration
+- **Gateway**: **SePay** (VietQR).
+- **Mechanism**: **Webhook**.
+    - The system uses a **Factory Pattern** (`PaymentFactory`) to handle payment processing strategies.
+    - Payments are confirmed automatically in real-time via the `/api/payment/sepay-webhook` endpoint.
+    - Eliminates the need for manual confirmation or polling, ensuring a seamless user experience.
+
+### AI Chatbot
+- **Model**: **Google Gemini 2.5 Flash**.
+- **Implementation**:
+    - Integrated directly into the Node.js backend using `@google/genai`.
+    - **Persona**: Configured via System Instructions to act as a friendly "Gen Z" staff member.
+    - **Capabilities**: Provides personalized book recommendations, answers shipping queries (e.g., free shipping threshold), and assists with general support.
+
+### Security
+- **Authentication**: **JWT (JSON Web Tokens)** for secure, stateless user sessions.
+- **Password Protection**: **BCrypt** hashing with salt to ensure user passwords are never stored in plain text.
+- **Access Control**: Middleware-based role management ensuring strict separation between User and Admin privileges.
+
+---
+
+## Tech Stack
 
 ### Frontend
-- **Vue 3** - Progressive JavaScript framework
-- **Vite** - Next generation frontend tooling
-- **Pinia** - State management
-- **Vue Router** - Client-side routing
-- **Axios** - HTTP client
-- **Tailwind CSS** - User storefront styling
-- **Element Plus** - Admin dashboard UI components
-- **Chart.js** - Data visualization (thống kê)
+- Vue 3 - Progressive JavaScript framework.
+- Vite - Next generation frontend tooling.
+- Pinia - State management.
+- Vue Router - Client-side routing.
+- Axios - HTTP client.
+- Tailwind CSS - User storefront styling.
+- Element Plus - Admin dashboard UI components.
+- Chart.js - Data visualization.
 
 ### Backend
-- **Node.js + Express** - Server framework
-- **Sequelize** - ORM (MySQL)
-- **JWT** - Authentication (jsonwebtoken)
-- **bcryptjs** - Password hashing
-- **Joi** - Input validation
-- **Multer** - File upload (book covers)
-- **Helmet** - Security headers
-- **CORS** - Cross-origin resource sharing
+- Node.js + Express - Server framework.
+- Sequelize - ORM (MySQL).
+- JWT - Authentication (jsonwebtoken).
+- bcryptjs - Password hashing.
+- Joi - Input validation.
+- Multer - File upload (book covers).
+- Helmet - Security headers.
+- CORS - Cross-origin resource sharing.
 
 ### Database
-- **SQLite3**
-- Relational schema with proper indexing
-- Migrations managed by Sequelize
+- SQLite3 (Development) / MySQL (Production).
+- Relational schema with proper indexing.
+- Migrations managed by Sequelize.
 
 ### DevOps & Deployment
-- **Docker & Docker Compose** - Containerization
-- **GitHub Actions** - CI/CD pipeline
-- **Nginx** - Reverse proxy & web server
-- **Let's Encrypt** - SSL/TLS certificates
-- **Cloudflare** - DNS & DDoS protection
-- **GCP e2-micro** - VPS (0.25 vCPU, 1GB RAM, 30GB HDD)
-
-### Third-party Integration
-- **Sepay/Casso** - Payment gateway (QR code, bank transfer)
-- **OpenAI API / Google Gemini** - AI Chatbot
+- Docker & Docker Compose - Containerization.
+- GitHub Actions - CI/CD pipeline.
+- Nginx - Reverse proxy & web server.
+- Cloudflare - DNS & DDoS protection.
 
 ---
 
-## 📋 Project Structure
-
+## Project Structure
 ```
 SahafaBookStore/
 ├── backend/                 # Express.js API server
 │   ├── src/
-│   │   ├── config/         # Database, constants
+│   │   ├── config/         # Database, constants, swagger
 │   │   ├── controllers/    # Business logic
 │   │   ├── models/         # Sequelize ORM models
 │   │   ├── routes/         # API endpoints
-│   │   ├── middlewares/    # Auth, validation, error handling
-│   │   ├── utils/          # Helpers, JWT, file upload
-│   │   └── app.js          # Express app setup
+│   │   ├── middleware/     # Auth, validation, error handling
+│   │   ├── app.js          # Express app setup
+│   │   └── seed.js         # Database seeder
 │   ├── uploads/            # Book cover images
-│   ├── migrations/         # Database migrations
-│   ├── seeders/            # Initial data (categories, books)
-│   ├── package.json
-│   ├── .env.example
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── package.json
 │
 ├── frontend/               # Vue 3 + Vite
 │   ├── src/
@@ -101,37 +172,67 @@ SahafaBookStore/
 │   │   ├── stores/         # Pinia state management
 │   │   ├── router/         # Vue Router config
 │   │   ├── services/       # API services (Axios)
-│   │   ├── utils/          # Utility functions
+│   │   ├── layouts/        # Page layouts
 │   │   ├── App.vue
 │   │   └── main.js
 │   ├── public/             # Static assets
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
-│   ├── .env.example
 │   └── Dockerfile
 │
 ├── docker-compose.yml      # Multi-container setup
 ├── .github/
-│   └── workflows/
-│       └── deploy.yml      # GitHub Actions CI/CD
+│   └── workflows/          # CI/CD workflows
 ├── INSTRUCTIONS.md         # Detailed development guide
 └── README.md              # This file
 ```
+---
+
+## Quick Start
+
+### Prerequisites
+- **For Docker:** Docker & Docker Compose.
+- **For Local:** Node.js 18+, MySQL/SQLite.
+- Git.
+
+### Option 1: Running with Docker (Recommended)
+Fastest way to get the project up and running without installing dependencies manually.
+
+1. **Clone the Repository**
+```bash
+git clone https://github.com/dungcan2k5/SahafaBookStore.git
+cd SahafaBookStore
+```
+
+2. **Setup Environment Variables**
+```bash
+# Backend
+cd backend
+cp .env.example .env
+# Edit .env if necessary (DB configs are pre-set for Docker)
+
+# Frontend
+cd ../frontend
+cp .env.example .env
+```
+
+3. **Start the Application**
+```bash
+cd ..  # Back to root
+docker-compose up --build
+```
+The app will be available at:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **Nginx**: http://localhost:80
 
 ---
 
-## 🚀 Quick Start
+### Option 2: Running Locally (Manual Setup)
+Suitable for development or if you don't use Docker.
 
-### Prerequisites
-- Node.js 18+
-- Docker & Docker Compose
-- SQLite
-- Git
-
-### Local Development
-
-#### 1️⃣ Clone & Setup
+1. **Clone & Install Dependencies**
 ```bash
 git clone https://github.com/dungcan2k5/SahafaBookStore.git
 cd SahafaBookStore
@@ -147,292 +248,46 @@ cp .env.example .env
 npm install
 ```
 
-#### 2️⃣ Database Setup
+2. **Database Setup**
+Ensure your MySQL server is running and updated in `backend/.env`.
 ```bash
 cd backend
-# Tạo database
-mysql -u root -p < setup.sql
-
-# Chạy migrations
+# Run migrations
 npm run migrate
-
-# Seed dữ liệu test
+# Seed initial data
 npm run seed
 ```
 
-#### 3️⃣ Run Local (Docker Compose)
+3. **Run Services**
+Open two terminal tabs:
+
+**Terminal 1 (Backend):**
 ```bash
-cd ..  # Back to root
-docker-compose up --build
+cd backend
+npm run dev
 ```
 
-Services sẽ chạy trên:
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:3000
-- **Nginx:** http://localhost:80
-- **MySQL:** localhost:3306
-
-#### 4️⃣ Login Credentials (Demo)
-```
-Admin Account:
-Email: admin@sahafa.com
-Password: Admin@123
-
-User Account:
-Email: user@sahafa.com
-Password: User@123
+**Terminal 2 (Frontend):**
+```bash
+cd frontend
+npm run dev
 ```
 
 ---
 
-## 📚 API Documentation
+## API Documentation
 
-### Base URL
-- **Local:** `http://localhost:3000/api`
-- **Production:** `https://sahafa.id.vn/api`
+Base URL
+- Local: http://localhost:3000/api/docs
+- Production: https://sahafa.dungcan.id.vn/api/docs
 
-### Authentication
-```
+Authentication
 Authorization: Bearer <JWT_TOKEN>
-```
 
-### Main Endpoints
-
-#### Auth
-```
-POST   /auth/register          # User registration
-POST   /auth/login             # Login
-POST   /auth/logout            # Logout
-POST   /auth/refresh-token     # Refresh JWT
-GET    /auth/me                # Current user info
-```
-
-#### Books
-```
-GET    /books                  # List all books (with filters, pagination)
-GET    /books/:id              # Book detail
-POST   /books                  # Create (admin only)
-PATCH  /books/:id              # Update (admin only)
-DELETE /books/:id              # Delete (admin only)
-```
-
-#### Orders
-```
-POST   /orders                 # Create order (checkout)
-GET    /orders                 # User's orders
-GET    /orders/:id             # Order detail
-PATCH  /orders/:id/status      # Update status (admin)
-```
-
-#### Cart
-```
-POST   /cart                   # Add to cart
-GET    /cart                   # Get cart items
-PATCH  /cart/:id               # Update quantity
-DELETE /cart/:id               # Remove item
-DELETE /cart                   # Clear cart
-```
-
-#### Admin Resources
-```
-GET    /admin/analytics        # Dashboard stats
-GET    /admin/reports          # Export reports
-PATCH  /admin/users/:id/role   # Change user role
-```
-
-**Full API documentation:** See `INSTRUCTIONS.md` or Postman collection (to be added)
+See the /api/docs endpoint on the running backend for full Swagger documentation.
 
 ---
 
-## 📊 Database Schema
+## License
 
-### Key Tables
-- **users** - Customer accounts with roles
-- **books** - Product catalog with cover images
-- **categories** - Book categories
-- **suppliers** - Book suppliers
-- **orders** - Order records
-- **order_items** - Items in each order
-- **cart** - Shopping cart items
-- **reviews** - User reviews & ratings
-- **transactions** - Payment history
-- **staff** - Admin & employee accounts
-- **analytics** - Daily revenue/stats
-
----
-
-## 🔐 Security Features
-
-✅ **Authentication & Authorization**
-- JWT token-based auth
-- Refresh token strategy
-- Role-based access control (RBAC)
-- Password hashing with bcrypt (cost: 10)
-
-✅ **API Security**
-- Helmet.js security headers
-- CORS configuration
-- Input validation with Joi
-- SQL injection prevention (ORM)
-- Rate limiting (to be added)
-
-✅ **Database**
-- Parameterized queries (Sequelize)
-- User password encryption
-- Sensitive data masking in logs
-
-✅ **Deployment**
-- SSL/TLS via Let's Encrypt
-- Cloudflare DDoS protection
-- Environment variables for secrets
-- Docker container isolation
-
----
-
-## 💰 Payment Integration
-
-### Sepay / Casso Bank Transfer
-1. User selects "Bank Transfer" at checkout
-2. System generates QR code for payment
-3. User scans & transfers money
-4. Bank notifies Sepay
-5. Sepay sends webhook to Backend
-6. Backend verifies & updates order status
-7. Frontend receives notification
-
----
-
-## 🤖 AI Features
-
-### AI Chatbot
-- Real-time chat with customers
-- Book recommendations based on preferences
-- FAQ answering
-- Backend calls OpenAI / Google Gemini API
-- Responses streamed to frontend
-
-### Recommendation Engine
-- Suggest books based on user's purchase history
-- Similar books based on category/author
-- Trending books
-
----
-
-## 📱 Performance & Optimization
-
-- **Frontend:** Code splitting, lazy loading, caching
-- **Backend:** Database indexing, API response caching, SWAP memory for server
-- **Images:** Compressed covers, CDN delivery (Cloudflare)
-- **Load Testing:** Apache Bench, K6 (to be added)
-
----
-
-## 🚨 Important Notes
-
-### ⚠️ Server Resource Warning
-- **VPS:** 1GB RAM + Docker + MySQL = High resource usage
-- **Solution:** Create 2-4GB SWAP memory immediately
-- **Alternative:** Use external database (Supabase, Aiven, Railway)
-
-### 🔧 Configuration Files
-- **Backend:** `backend/.env` (database, JWT secret, API keys)
-- **Frontend:** `frontend/.env` (API URL, app name)
-- **Docker:** `docker-compose.yml` (service configuration)
-- **Nginx:** `frontend/nginx.conf` (reverse proxy)
-
-### 📦 Dependencies Management
-- Lock versions in `package-lock.json` / `yarn.lock`
-- Regular security audits: `npm audit`
-- Update critical patches only
-
----
-
-## 📖 Development Workflow
-
-1. **Create feature branch:** `git checkout -b feature/feature-name`
-2. **Make changes** following INSTRUCTIONS.md
-3. **Test locally:** `docker-compose up`
-4. **Commit:** `git commit -m "feat: description"`
-5. **Push & Create PR:** `git push origin feature/feature-name`
-6. **Code review & merge** → Auto-deploy via GitHub Actions
-
----
-
-## 🐛 Troubleshooting
-
-### Docker issues
-```bash
-# Rebuild containers
-docker-compose down
-docker-compose up --build
-
-# View logs
-docker-compose logs -f backend
-docker-compose logs -f frontend
-```
-
-### Database connection failed
-```bash
-# Check MySQL container
-docker-compose logs mysql
-
-# Verify .env credentials
-cat backend/.env | grep DB_
-```
-
-### Port already in use
-```bash
-# Change ports in docker-compose.yml or kill process
-lsof -i :3000
-kill -9 <PID>
-```
-
----
-
-## 📝 Contributing
-
-1. Follow the roadmap in `INSTRUCTIONS.md`
-2. Create feature branches from `master`
-3. Write meaningful commit messages
-4. No hardcoded secrets or credentials
-5. Test before pushing
-6. Update README if adding new features
-
----
-
-## 📄 License
-
-MIT License - See LICENSE file
-
----
-
-## 👥 Team
-
-- **Backend Development:** Node.js + Express
-- **Frontend Development:** Vue 3 + Vite
-- **DevOps & Deployment:** Docker, GitHub Actions, Nginx
-- **Database:** MySQL + Sequelize ORM
-
----
-
-## 🔗 Useful Resources
-
-- [Sequelize Documentation](https://sequelize.org/)
-- [Vue 3 Guide](https://vuejs.org/)
-- [Express Best Practices](https://expressjs.com/en/advanced/best-practice-security.html)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Element Plus](https://element-plus.org/)
-- [Sepay API](https://sepay.vn/)
-- [Docker Docs](https://docs.docker.com/)
-
----
-
-## 📞 Support & Questions
-
-Refer to `INSTRUCTIONS.md` for detailed development guide and troubleshooting.
-
----
-
-**Last Updated:** December 5, 2025  
-**Version:** 1.0.0  
-**Status:** 🔄 In Development
+MIT License

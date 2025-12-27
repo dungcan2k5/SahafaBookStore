@@ -35,9 +35,9 @@
 
                <div v-if="!selectedAddressId" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div class="flex flex-col gap-1">
-                    <label class="text-sm text-gray-600">Tỉnh/Thành <span class="text-red-500">*</span></label>
+                    <label class="text-sm text-gray-600">Tỉnh/Thành phố <span class="text-red-500">*</span></label>
                     <select v-model="form.city" @change="onCityChange" class="input-field" :class="{'error': errors.city}">
-                      <option value="" disabled>Chọn Tỉnh/Thành</option>
+                      <option value="" disabled>Chọn Tỉnh/Thành phố</option>
                       <option v-for="c in locations.cities" :key="c.code" :value="c.code">{{ c.name }}</option>
                     </select>
                   </div>
@@ -58,13 +58,13 @@
                </div>
 
                <div class="flex flex-col gap-1">
-                  <label class="text-sm text-gray-600">Địa chỉ cụ thể <span class="text-red-500">*</span></label>
+                  <label class="text-sm text-gray-600">Địa chỉ chi tiết <span class="text-red-500">*</span></label>
                   <input v-model="form.address" type="text" class="input-field" :disabled="!!selectedAddressId" :class="{'error': errors.address}" />
                </div>
 
                <div v-if="!selectedAddressId" class="flex items-center gap-2 mt-2">
                    <input type="checkbox" v-model="saveToAddressBook" id="saveAddr" class="w-4 h-4 text-blue-600 rounded">
-                   <label for="saveAddr" class="text-sm text-gray-600 cursor-pointer select-none">Lưu thông tin này vào sổ địa chỉ cho lần sau</label>
+                   <label for="saveAddr" class="text-sm text-gray-600 cursor-pointer select-none">Lưu vào sổ địa chỉ cho lần sau</label>
                </div>
 
             </div>
@@ -75,7 +75,7 @@
             <div class="border rounded p-4 flex justify-between items-center bg-blue-50 border-blue-200">
               <div>
                 <p class="font-bold text-gray-800">Giao hàng tiêu chuẩn</p>
-                <p class="text-sm text-gray-500">Dự kiến giao: 3 - 5 ngày</p>
+                <p class="text-sm text-gray-500">Dự kiến giao hàng: 3 - 5 ngày</p>
               </div>
               <span class="font-bold text-blue-600">30.000đ</span>
             </div>
@@ -88,7 +88,7 @@
                 <input type="radio" value="sepay" v-model="form.payment" class="w-5 h-5 text-blue-600 accent-blue-600">
                 <div class="flex items-center gap-3">
                   <img src="https://cdn-icons-png.flaticon.com/512/714/714390.png" class="w-8 h-8 object-contain" alt="QR">
-                  <span class="text-gray-700 font-medium">Chuyển khoản ngân hàng (Quét QR Code)</span>
+                  <span class="text-gray-700 font-medium">Chuyển khoản ngân hàng (Mã QR)</span>
                 </div>
               </label>
               
@@ -96,7 +96,7 @@
                 <input type="radio" value="cod" v-model="form.payment" class="w-5 h-5 text-blue-600 accent-blue-600">
                 <div class="flex items-center gap-3">
                   <img src="https://cdn-icons-png.flaticon.com/512/2331/2331941.png" class="w-8 h-8 object-contain" alt="COD">
-                  <span class="text-gray-700 font-medium">Thanh toán tiền mặt khi nhận hàng (COD)</span>
+                  <span class="text-gray-700 font-medium">Thanh toán khi nhận hàng (COD)</span>
                 </div>
               </label>
             </div>
@@ -145,7 +145,7 @@
 
                     
 
-                    <!-- VOUCHER SECTION -->
+                    <!-- PHẦN MÃ GIẢM GIÁ -->
 
                     <div class="space-y-2 mb-4">
 
@@ -169,7 +169,7 @@
 
                     </div>
 
-                    <!-- END VOUCHER SECTION -->
+                    <!-- KẾT THÚC PHẦN MÃ GIẢM GIÁ -->
 
         
 
@@ -215,7 +215,7 @@
 
                       <span v-if="isLoading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
 
-                      {{ isLoading ? 'Đang xử lý...' : 'Đặt hàng ngay' }}
+                      {{ isLoading ? 'Đang xử lý...' : 'Đặt hàng' }}
 
                     </button>
 
@@ -255,7 +255,7 @@
 
                         </div>
 
-                        <button @click="finishPayment" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Tôi đã chuyển khoản xong</button>
+                        <button @click="finishPayment" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Tôi đã thanh toán xong</button>
 
                     </div>
 
@@ -337,7 +337,7 @@
 
         
 
-        // --- VOUCHER STATE ---
+        // --- TRẠNG THÁI MÃ GIẢM GIÁ ---
 
         const voucherCode = ref('');
 
@@ -387,13 +387,13 @@
 
           const total = cartStore.totalPrice + shippingFee - voucherDiscount.value;
 
-          return total > 0 ? total : 0; // Ensure total is not negative
+          return total > 0 ? total : 0; // Đảm bảo tổng không âm
 
         });
 
         
 
-        // --- FETCH DATA ---
+        // --- LẤY DỮ LIỆU ---
 
         const fetchMyAddresses = async () => {
 
@@ -413,7 +413,7 @@
 
                 }
 
-            } catch (e) { console.error("Lỗi lấy sổ địa chỉ", e); }
+            } catch (e) { console.error("Lỗi lấy địa chỉ", e); }
 
         };
 
@@ -443,7 +443,7 @@
 
         
 
-        // --- LOGIC VOUCHER ---
+        // --- LOGIC MÃ GIẢM GIÁ ---
 
         const applyVoucher = async () => {
 
@@ -465,17 +465,17 @@
 
             });
 
-            // Interceptor returns data directly
+            // Interceptor trả về data trực tiếp
 
             appliedVoucher.value = res;
 
-            voucherSuccess.value = `Áp dụng mã thành công! Bạn được giảm ${formatPrice(voucherDiscount.value)}đ.`;
+            voucherSuccess.value = `Áp dụng mã thành công! Bạn tiết kiệm được ${formatPrice(voucherDiscount.value)}đ.`;
 
           } catch (error) {
 
             appliedVoucher.value = null;
 
-            voucherError.value = error.response?.data?.message || 'Có lỗi xảy ra khi áp dụng mã.';
+            voucherError.value = error.response?.data?.message || 'Lỗi khi áp dụng mã.';
 
           } finally {
 
@@ -549,7 +549,7 @@
 
         
 
-        // --- SUBMIT ---
+        // --- GỬI ĐƠN HÀNG ---
 
         const submitOrder = async () => {
 
@@ -557,7 +557,7 @@
 
             if (!form.name || !form.phone || !form.city || !form.address) {
 
-              return alert("Vui lòng điền đầy đủ thông tin địa chỉ mới!");
+              return alert("Vui lòng điền đầy đủ thông tin địa chỉ!");
 
             }
 
@@ -611,7 +611,7 @@
 
                 });
 
-              } catch (e) { console.error("Lỗi lưu địa chỉ vào sổ:", e); }
+              } catch (e) { console.error("Lỗi lưu địa chỉ:", e); }
 
             }
 
@@ -629,7 +629,7 @@
 
               payment_method: form.payment,
 
-              voucher_code: appliedVoucher.value?.code || null // Pass voucher code
+              voucher_code: appliedVoucher.value?.code || null 
 
             });
 
@@ -663,9 +663,9 @@
 
           } catch (error) {
 
-            console.error("Lỗi Submit Order:", error);
+            console.error("Lỗi Đặt Hàng:", error);
 
-            const errorMsg = error.response?.data?.message || 'Lỗi hệ thống khi đặt hàng. Vui lòng thử lại!';
+            const errorMsg = error.response?.data?.message || 'Lỗi hệ thống. Vui lòng thử lại!';
 
             alert(errorMsg);
 
@@ -683,7 +683,7 @@
 
           cartStore.clearCart();
 
-          alert('Đơn hàng đang chờ xử lý. Cảm ơn quý khách!');
+          alert('Đơn hàng đang chờ xử lý. Cảm ơn bạn!');
 
           router.push('/');
 
@@ -704,5 +704,3 @@
         .input-field:disabled { background-color: #f3f4f6; cursor: not-allowed; }
 
         </style>
-
-        

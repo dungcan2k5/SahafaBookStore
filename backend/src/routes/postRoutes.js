@@ -7,20 +7,26 @@ const { verifyToken, authorize } = require('../middleware/authMiddleware');
  * @swagger
  * tags:
  *   name: Posts
- *   description: Quản lý bài viết, tin tức
+ *   description: Quản lý bài đăng blog và tin tức
  */
 
 /**
  * @swagger
  * /api/posts:
  *   get:
- *     summary: Lấy danh sách bài viết
+ *     summary: Lấy tất cả bài viết
  *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, published, all]
  *     responses:
  *       200:
- *         description: List bài viết
+ *         description: Danh sách bài viết
  *   post:
- *     summary: Tạo bài viết mới (Admin/Employee)
+ *     summary: Tạo bài viết mới (Quản trị viên/Nhân viên)
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -49,9 +55,9 @@ const { verifyToken, authorize } = require('../middleware/authMiddleware');
  *                 enum: [draft, published]
  *     responses:
  *       201:
- *         description: Tạo bài viết thành công
+ *         description: Bài viết được tạo thành công
  *       403:
- *         description: Không có quyền
+ *         description: Bị cấm
  */
 router.get('/', postController.getAllPosts);
 router.post('/', verifyToken, authorize(['admin', 'employee']), postController.createPost);
@@ -60,11 +66,11 @@ router.post('/', verifyToken, authorize(['admin', 'employee']), postController.c
  * @swagger
  * /api/posts/categories:
  *   get:
- *     summary: Lấy danh sách danh mục bài viết
+ *     summary: Lấy tất cả danh mục bài viết
  *     tags: [Posts]
  *     responses:
  *       200:
- *         description: List danh mục
+ *         description: Danh sách danh mục
  */
 router.get('/categories', postController.getPostCategories);
 
@@ -72,7 +78,7 @@ router.get('/categories', postController.getPostCategories);
  * @swagger
  * /api/posts/slug/{slug}:
  *   get:
- *     summary: Chi tiết bài viết theo slug
+ *     summary: Lấy chi tiết bài viết theo slug
  *     tags: [Posts]
  *     parameters:
  *       - in: path
@@ -82,7 +88,9 @@ router.get('/categories', postController.getPostCategories);
  *           type: string
  *     responses:
  *       200:
- *         description: Nội dung bài viết
+ *         description: Chi tiết bài viết
+ *       404:
+ *         description: Không tìm thấy bài viết
  */
 router.get('/slug/:slug', postController.getPostBySlug);
 
@@ -90,7 +98,7 @@ router.get('/slug/:slug', postController.getPostBySlug);
  * @swagger
  * /api/posts/{id}:
  *   get:
- *     summary: Chi tiết bài viết
+ *     summary: Lấy chi tiết bài viết theo ID
  *     tags: [Posts]
  *     parameters:
  *       - in: path
@@ -100,9 +108,9 @@ router.get('/slug/:slug', postController.getPostBySlug);
  *           type: integer
  *     responses:
  *       200:
- *         description: Nội dung bài viết
+ *         description: Chi tiết bài viết
  *   put:
- *     summary: Cập nhật bài viết (Admin/Employee)
+ *     summary: Cập nhật bài viết (Quản trị viên/Nhân viên)
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -128,7 +136,7 @@ router.get('/slug/:slug', postController.getPostBySlug);
  *       200:
  *         description: Cập nhật thành công
  *   delete:
- *     summary: Xóa bài viết (Admin/Employee)
+ *     summary: Xóa bài viết (Quản trị viên/Nhân viên)
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []

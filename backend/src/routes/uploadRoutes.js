@@ -4,6 +4,13 @@ const uploadController = require('../controllers/uploadController');
 
 /**
  * @swagger
+ * tags:
+ *   name: Uploads
+ *   description: Quản lý Tệp và Hình ảnh
+ */
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     ImageFile:
@@ -11,24 +18,24 @@ const uploadController = require('../controllers/uploadController');
  *       properties:
  *         name:
  *           type: string
- *           description: Tên file ảnh
+ *           description: Tên tệp
  *         url:
  *           type: string
- *           description: Đường dẫn truy cập ảnh
+ *           description: URL truy cập
  *         folder:
  *           type: string
- *           description: "Tên thư mục chứa ảnh (ví dụ 'Sách ID: 101' hoặc 'Ảnh chung')"
+ *           description: Tên thư mục
  */
 
 /**
  * @swagger
  * /api/uploads/images:
  *   get:
- *     summary: Lấy danh sách tất cả ảnh đã upload lên server
+ *     summary: Liệt kê tất cả hình ảnh đã tải lên
  *     tags: [Uploads]
  *     responses:
  *       200:
- *         description: Danh sách ảnh thành công
+ *         description: Danh sách hình ảnh
  *         content:
  *           application/json:
  *             schema:
@@ -41,7 +48,7 @@ const uploadController = require('../controllers/uploadController');
  *                   items:
  *                     $ref: '#/components/schemas/ImageFile'
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi máy chủ
  */
 router.get('/images', uploadController.listImages);
 

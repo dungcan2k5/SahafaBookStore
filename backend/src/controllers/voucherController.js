@@ -2,15 +2,15 @@ const { models } = require('../config/database');
 const { Voucher } = models;
 const { Op } = require('sequelize');
 
-// [GET] /api/vouchers - Lấy danh sách mã giảm giá còn hiệu lực
+// Get valid vouchers
 const getVouchers = async (req, res) => {
     try {
         const now = new Date();
         const vouchers = await Voucher.findAll({
             where: {
-                start_at: { [Op.lte]: now }, // Bắt đầu trước hoặc bằng hiện tại
-                end_at: { [Op.gte]: now },   // Kết thúc sau hoặc bằng hiện tại
-                usage_limit: { [Op.gt]: 0 }  // Còn lượt dùng
+                start_at: { [Op.lte]: now },
+                end_at: { [Op.gte]: now }, 
+                usage_limit: { [Op.gt]: 0 } 
             }
         });
         res.json({ success: true, data: vouchers });
@@ -19,7 +19,7 @@ const getVouchers = async (req, res) => {
     }
 };
 
-// [POST] /api/vouchers/check - Kiểm tra mã giảm giá
+// Check voucher validity
 const checkVoucher = async (req, res) => {
     try {
         const { code, orderValue } = req.body;
@@ -34,27 +34,27 @@ const checkVoucher = async (req, res) => {
         });
 
         if (!voucher) {
-            return res.status(404).json({ success: false, message: 'Mã giảm giá không tồn tại hoặc hết hạn' });
+            return res.status(404).json({ success: false, message: 'Voucher not found or expired' });
         }
 
         if (voucher.usage_limit <= 0) {
-            return res.status(400).json({ success: false, message: 'Mã giảm giá đã hết lượt sử dụng' });
+            return res.status(400).json({ success: false, message: 'Voucher usage limit exceeded' });
         }
 
         if (orderValue && voucher.min_order_value && orderValue < parseFloat(voucher.min_order_value)) {
             return res.status(400).json({ 
                 success: false, 
-                message: `Đơn hàng tối thiểu phải từ ${voucher.min_order_value}` 
+                message: `Minimum order value required: ${voucher.min_order_value}` 
             });
         }
 
-        res.json({ success: true, data: voucher, message: 'Mã hợp lệ' });
+        res.json({ success: true, data: voucher, message: 'Valid voucher' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// [POST] /api/vouchers - Tạo voucher mới (Admin/Employee)
+// Create voucher (Admin)
 const createVoucher = async (req, res) => {
     try {
         const { code, discount_type, value, min_order_value, usage_limit, start_at, end_at } = req.body;
@@ -72,20 +72,20 @@ const createVoucher = async (req, res) => {
         res.status(201).json({ success: true, data: newVoucher });
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
-            return res.status(400).json({ success: false, message: 'Mã voucher đã tồn tại' });
+            return res.status(400).json({ success: false, message: 'Voucher code already exists' });
         }
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// [PUT] /api/vouchers/:id - Cập nhật voucher (Admin/Employee)
+// Update voucher
 const updateVoucher = async (req, res) => {
     try {
         const { id } = req.params;
         const { usage_limit, start_at, end_at, min_order_value } = req.body;
 
         const voucher = await Voucher.findByPk(id);
-        if (!voucher) return res.status(404).json({ success: false, message: 'Voucher không tồn tại' });
+        if (!voucher) return res.status(404).json({ success: false, message: 'Voucher not found' });
 
         await voucher.update({
             usage_limit,
@@ -94,37 +94,35 @@ const updateVoucher = async (req, res) => {
             min_order_value
         });
 
-        res.json({ success: true, message: 'Cập nhật voucher thành công' });
+        res.json({ success: true, message: 'Updated successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// [DELETE] /api/vouchers/:id - Xóa voucher
+// Delete voucher
 const deleteVoucher = async (req, res) => {
     try {
         const { id } = req.params;
         const deleted = await Voucher.destroy({ where: { voucher_id: id } });
         
-        if (!deleted) return res.status(404).json({ success: false, message: 'Voucher không tìm thấy' });
+        if (!deleted) return res.status(404).json({ success: false, message: 'Voucher not found' });
 
-        res.json({ success: true, message: 'Xóa voucher thành công' });
+        res.json({ success: true, message: 'Deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
-// [GET] /api/vouchers/admin
+// Get all vouchers (Admin)
 const getAllVouchersAdmin = async (req, res) => {
     try {
         const vouchers = await Voucher.findAll({
-            // SỬA DÒNG NÀY:
-            // Thay vì 'createdAt', hãy dùng 'voucher_id' (cột chắc chắn có)
             order: [['voucher_id', 'DESC']] 
         });
         res.json({ success: true, data: vouchers });
     } catch (error) {
-        console.error("LỖI BACKEND:", error);
+        console.error("Backend Error:", error);
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };

@@ -3,10 +3,10 @@
     <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
         <el-icon class="text-blue-600"><Reading /></el-icon>
-        Quản lý Sách
+        Quản Lý Sách
       </h2>
 
-      <!-- Search + Add -->
+      <!-- Tìm kiếm + Thêm -->
       <div class="flex items-center gap-3">
         <el-input
           v-model="searchText"
@@ -34,7 +34,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="Hình ảnh" width="100" align="center">
+        <el-table-column label="Hình Ảnh" width="100" align="center">
           <template #default="scope">
             <el-image
               style="width: 50px; height: 70px; border-radius: 4px;"
@@ -46,25 +46,25 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="Thông tin sách" min-width="250">
+        <el-table-column label="Thông Tin Sách" min-width="250">
           <template #default="scope">
             <div class="font-bold text-gray-700 text-base">{{ scope.row.book_title }}</div>
             <div class="flex gap-2 mt-1">
-              <el-tag size="small" type="info">{{ scope.row.Author?.author_name || 'Tác giả?' }}</el-tag>
-              <el-tag size="small" type="warning">{{ scope.row.Genre?.genre_name || 'Thể loại?' }}</el-tag>
+              <el-tag size="small" type="info">{{ scope.row.Author?.author_name || 'Tác giả không rõ' }}</el-tag>
+              <el-tag size="small" type="warning">{{ scope.row.Genre?.genre_name || 'Thể loại không rõ' }}</el-tag>
             </div>
             <div class="text-sm text-gray-600 mt-2 truncate" style="max-width:420px">{{ scope.row.description || scope.row.book_description || '—' }}</div>
             <div class="text-xs text-gray-400 mt-1">ISBN: {{ scope.row.isbn || '---' }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column label="Giá bán" width="140" sortable prop="price">
+        <el-table-column label="Giá" width="140" sortable prop="price">
           <template #default="scope">
             <div class="text-red-600 font-bold">{{ formatCurrency(scope.row.price) }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="stock_quantity" label="Tồn kho" width="120" align="center">
+        <el-table-column prop="stock_quantity" label="Tồn Kho" width="120" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.stock_quantity > 0 ? 'success' : 'danger'" effect="light">
               {{ scope.row.stock_quantity }}
@@ -72,7 +72,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="Hành động" width="140" align="center" fixed="right">
+        <el-table-column label="Hành Động" width="140" align="center" fixed="right">
           <template #default="scope">
             <div class="flex justify-center gap-2">
               <el-button type="primary" :icon="Edit" circle size="small" @click="openDialog(scope.row)" />
@@ -86,7 +86,7 @@
         </el-table-column>
       </el-table>
 
-      <!-- Pagination -->
+      <!-- Phân trang -->
       <div class="mt-4 flex justify-end">
         <el-pagination
           v-model:current-page="currentPage"
@@ -100,40 +100,40 @@
       </div>
     </el-card>
 
-    <!-- Dialog -->
+    <!-- Hộp thoại -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? 'Cập nhật Sách' : 'Thêm Sách Mới'"
+      :title="isEdit ? 'Cập Nhật Sách' : 'Thêm Sách Mới'"
       width="700px"
       destroy-on-close
       top="5vh"
     >
       <el-form :model="form" label-width="120px" class="mt-2" label-position="top">
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Tên sách" required>
+          <el-form-item label="Tên Sách" required>
             <el-input v-model="form.book_title" placeholder="Nhập tên sách..." @input="generateSlug" />
           </el-form-item>
-          <el-form-item label="Mã ISBN" required>
-            <el-input v-model="form.isbn" placeholder="VD: 978-604-..." @input="onIsbnInput" />
+          <el-form-item label="ISBN" required>
+            <el-input v-model="form.isbn" placeholder="Ví dụ: 978-604-..." @input="onIsbnInput" />
           </el-form-item>
         </div>
 
         <el-form-item label="Slug URL (Tự động)">
-          <el-input v-model="form.book_slug" placeholder="tu-dong-tao-slug" disabled />
+          <el-input v-model="form.book_slug" placeholder="slug-tu-dong-tao" disabled />
         </el-form-item>
 
-        <el-form-item label="Mô tả sách">
+        <el-form-item label="Mô Tả">
           <el-input
             type="textarea"
             :rows="4"
             v-model="form.description"
-            placeholder="Nhập mô tả về sách..."
+            placeholder="Nhập mô tả sách..."
           />
         </el-form-item>
 
         <div class="grid grid-cols-3 gap-4">
-          <el-form-item label="Tác giả">
-            <el-select v-model="form.author_id" placeholder="Chọn tác giả" filterable>
+          <el-form-item label="Tác Giả">
+            <el-select v-model="form.author_id" placeholder="Chọn Tác Giả" filterable>
               <el-option
                 v-for="item in authors"
                 :key="item.author_id"
@@ -143,8 +143,8 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="Thể loại">
-            <el-select v-model="form.genre_id" placeholder="Chọn thể loại" filterable>
+          <el-form-item label="Thể Loại">
+            <el-select v-model="form.genre_id" placeholder="Chọn Thể Loại" filterable>
               <el-option
                 v-for="item in genres"
                 :key="item.genre_id"
@@ -154,7 +154,7 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="Nhà xuất bản">
+          <el-form-item label="Nhà Xuất Bản">
             <el-select v-model="form.publisher_id" placeholder="Chọn NXB" filterable>
               <el-option
                 v-for="item in publishers"
@@ -167,22 +167,22 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Giá bán (VNĐ)">
+          <el-form-item label="Giá (VNĐ)">
             <el-input-number v-model="form.price" :min="0" :step="1000" style="width: 100%" controls-position="right" />
           </el-form-item>
-          <el-form-item label="Số lượng tồn kho">
+          <el-form-item label="Số Lượng Tồn Kho">
             <el-input-number v-model="form.stock_quantity" :min="0" style="width: 100%" controls-position="right" />
           </el-form-item>
         </div>
 
-        <el-form-item label="Ảnh bìa sách">
+        <el-form-item label="Ảnh Bìa">
           <div class="w-full">
             <el-radio-group v-model="imageSourceType" class="mb-3">
               <el-radio-button label="url">
-                <el-icon class="mr-1"><Link /></el-icon> Link URL
+                <el-icon class="mr-1"><Link /></el-icon> Đường Dẫn URL
               </el-radio-button>
               <el-radio-button label="upload">
-                <el-icon class="mr-1"><Upload /></el-icon> Tải ảnh lên
+                <el-icon class="mr-1"><Upload /></el-icon> Tải Tệp Lên
               </el-radio-button>
               <el-radio-button label="server" @click="fetchServerImages">
                 <el-icon class="mr-1"><Picture /></el-icon> Chọn từ Server
@@ -195,14 +195,14 @@
                 <el-input v-model="form.images[index]" placeholder="https://..." clearable />
                 <el-button type="danger" :icon="Delete" circle @click="removeImage(index)" />
               </div>
-              <el-button size="small" @click="form.images.push('')">+ Thêm Link</el-button>
+              <el-button size="small" @click="form.images.push('')">+ Thêm Đường Dẫn</el-button>
               
               <div class="flex gap-2 mt-2 flex-wrap">
                  <img v-for="url in form.images" :key="url" :src="url" class="h-20 rounded border object-cover" onerror="this.style.display='none'" />
               </div>
             </div>
 
-            <!-- 2. Upload Ảnh -->
+            <!-- 2. Tải Ảnh Lên -->
             <div v-if="imageSourceType === 'upload'">
               <el-upload
                 class="upload-demo"
@@ -215,7 +215,7 @@
               >
                 <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                 <div class="el-upload__text">
-                  Kéo thả nhiều ảnh vào đây hoặc <em>nhấn để tải lên</em>
+                  Kéo thả tệp vào đây hoặc <em>nhấn để tải lên</em>
                 </div>
               </el-upload>
               <div v-if="previewImages.length > 0" class="mt-2 flex gap-2 flex-wrap">
@@ -229,7 +229,7 @@
             <div v-if="imageSourceType === 'server'">
               <div v-if="loadingImages" class="text-center py-4">Đang tải ảnh...</div>
               <div v-else>
-                <!-- Filter Folder -->
+                <!-- Bộ lọc Thư mục -->
                 <div class="mb-2 flex gap-2 overflow-x-auto pb-2">
                   <el-tag 
                     effect="dark" 
@@ -260,11 +260,11 @@
                     @click="toggleServerImage(img.url)"
                   >
                     <img :src="img.url" class="w-full h-24 object-cover" />
-                    <!-- Checkmark if selected -->
+                    <!-- Dấu tích nếu được chọn -->
                     <div v-if="form.images.includes(img.url)" class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-1">
                       ✓
                     </div>
-                    <!-- Tooltip name -->
+                    <!-- Tooltip tên -->
                     <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition">
                        {{ img.name }}
                     </div>
@@ -282,9 +282,9 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">Hủy bỏ</el-button>
+          <el-button @click="dialogVisible = false">Hủy</el-button>
           <el-button type="primary" @click="handleSave" :loading="submitting">
-            {{ isEdit ? 'Lưu thay đổi' : 'Tạo sách mới' }}
+            {{ isEdit ? 'Lưu Thay Đổi' : 'Tạo Sách' }}
           </el-button>
         </span>
       </template>
@@ -308,20 +308,20 @@ const dialogVisible = ref(false);
 const submitting = ref(false);
 const isEdit = ref(false);
 
-// Pagination
+// Phân trang
 const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 
-// Image handling
+// Xử lý hình ảnh
 const imageSourceType = ref('url'); // 'url', 'upload', 'server'
-const selectedFiles = ref([]); // Changed to array
+const selectedFiles = ref([]); 
 const serverImages = ref([]);
 const loadingImages = ref(false);
-const previewImages = ref([]); // Changed to array
-const currentServerFolder = ref(null); // Filter by folder
+const previewImages = ref([]); 
+const currentServerFolder = ref(null); 
 
-// ✅ Search
+// Tìm kiếm
 const searchText = ref('');
 let debounceTimer = null;
 
@@ -333,13 +333,13 @@ const form = reactive({
   description: '',
   price: 0,
   stock_quantity: 10,
-  images: [], // Changed from image_url to images array
+  images: [], 
   author_id: null,
   genre_id: null,
   publisher_id: null
 });
 
-// Computed properties for Server Images
+// Thuộc tính tính toán cho Ảnh Server
 const serverFolders = computed(() => {
   const folders = new Set(serverImages.value.map(img => img.folder));
   return Array.from(folders);
@@ -350,7 +350,7 @@ const filteredServerImages = computed(() => {
   return serverImages.value.filter(img => img.folder === currentServerFolder.value);
 });
 
-// --- HELPER: Tạo Slug ---
+// --- HÀM HỖ TRỢ: Tạo Slug ---
 const generateSlug = (val) => {
   if (!val) return;
   form.book_slug = val
@@ -365,18 +365,18 @@ const generateSlug = (val) => {
     .replace(/-+$/, '');
 };
 
-// Sanitize ISBN input: allow only digits and hyphens
+// Làm sạch đầu vào ISBN
 const onIsbnInput = (val) => {
   if (val === undefined || val === null) return (form.isbn = '');
   form.isbn = String(val).replace(/[^0-9-]/g, '');
 };
 
-// --- API: Tải dữ liệu ---
+// --- API: Lấy Dữ Liệu ---
 const fetchData = async () => {
   loading.value = true;
   try {
     const [resBooks, resAuthors, resGenres, resPub] = await Promise.all([
-      api.get('/api/api/books', {
+      api.get('/api/books', {
         params: {
           search: searchText.value?.trim() || undefined,
           page: currentPage.value,
@@ -388,45 +388,30 @@ const fetchData = async () => {
       api.get('/api/books/publishers')
     ]);
 
-    // resBooks bây giờ chính là Array, và nhờ bước 1, nó có thêm .meta
     const booksData = resBooks || [];
     
-    // 1. Gán data cho bảng
+    // 1. Gán dữ liệu cho bảng
     books.value = Array.isArray(booksData) ? booksData : (booksData.data || []);
 
-    // 2. Lấy total từ meta (hoặc fallback nếu backend trả kiểu khác)
-    // Ưu tiên booksData.meta.total -> sau đó đến booksData.count (kiểu cũ) -> cuối cùng mới là length
+    // 2. Lấy tổng số từ meta
     total.value = booksData.meta?.total || booksData.count || booksData.length || 0;
 
-    // Mấy cái dropdown giữ nguyên
+    // Các Dropdown
     authors.value = Array.isArray(resAuthors) ? resAuthors : (resAuthors?.data || []);
     genres.value = Array.isArray(resGenres) ? resGenres : (resGenres?.data || []);
     publishers.value = Array.isArray(resPub) ? resPub : (resPub?.data || []);
 
   } catch (error) {
     console.error(error);
-    ElMessage.error('Lỗi kết nối Server!');
+    ElMessage.error('Lỗi kết nối máy chủ!');
   } finally {
     loading.value = false;
   }
 };
 
-// Đảm bảo el-pagination có prop background cho đẹp
-/* <el-pagination
-  background 
-  v-model:current-page="currentPage"
-  v-model:page-size="pageSize"
-  :page-sizes="[10, 20, 50]"
-  layout="total, sizes, prev, pager, next, jumper"
-  :total="total"
-  @size-change="handleSizeChange"
-  @current-change="handleCurrentChange"
-/>
-*/
-
 const handleSizeChange = (val) => {
   pageSize.value = val;
-  currentPage.value = 1; // Reset to page 1
+  currentPage.value = 1; 
   fetchData();
 };
 
@@ -444,22 +429,22 @@ const fetchServerImages = async () => {
     serverImages.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
   } catch (error) {
     console.error("Lỗi tải ảnh server:", error);
-    ElMessage.error('Không tải được danh sách ảnh!');
+    ElMessage.error('Không tải được ảnh!');
   } finally {
     loadingImages.value = false;
   }
 };
 
-// ✅ Debounce search khi gõ
+// Debounce tìm kiếm
 watch(searchText, () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    currentPage.value = 1; // Reset page when searching
+    currentPage.value = 1; 
     fetchData();
   }, 400);
 });
 
-// --- ACTIONS ---
+// --- HÀNH ĐỘNG ---
 const formatCurrency = (val) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
@@ -469,7 +454,7 @@ const handleResize = () => {
   try {
     if (typeof tableRef.value.doLayout === 'function') tableRef.value.doLayout();
   } catch (e) {
-    // ignore
+    // bỏ qua
   }
 };
 onMounted(() => window.addEventListener('resize', handleResize));
@@ -484,20 +469,18 @@ const openDialog = async (book = null) => {
   isEdit.value = !!book;
   dialogVisible.value = true;
 
-  // Reset image state
+  // Đặt lại trạng thái ảnh
   imageSourceType.value = 'url';
   selectedFiles.value = [];
   previewImages.value = [];
   currentServerFolder.value = null;
 
   if (book) {
-    // If book from list may lack full fields (author_id, genre_id, publisher_id), fetch detail
     try {
       const res = await api.get(`/api/books/${book.book_id || book.book_slug}`);
       const payload = (res && res.data !== undefined) ? res.data : res;
       const data = payload.data || payload;
 
-      // Populate form explicitly to avoid overwriting id fields with nested objects
       form.book_id = data.book_id;
       form.book_title = data.book_title || '';
       form.book_slug = data.book_slug || '';
@@ -510,8 +493,7 @@ const openDialog = async (book = null) => {
       form.genre_id = data.genre_id || data.Genre?.genre_id || null;
       form.publisher_id = data.publisher_id || data.Publisher?.publisher_id || null;
     } catch (err) {
-      console.error('Lỗi load chi tiết sách:', err);
-      // Fallback: shallow assign and try to keep nested selection if possible
+      console.error('Lỗi tải chi tiết sách:', err);
       Object.assign(form, book);
       form.images = book.BookImages ? book.BookImages.map(img => img.book_image_url) : [];
       form.description = book.description || book.book_description || book.book_summary || '';
@@ -532,7 +514,6 @@ const openDialog = async (book = null) => {
 };
 
 const handleFileChange = (uploadFile, uploadFiles) => {
-  // Element Plus trả về list file
   selectedFiles.value = uploadFiles.map(f => f.raw);
   previewImages.value = uploadFiles.map(f => URL.createObjectURL(f.raw));
 };
@@ -551,39 +532,30 @@ const removeImage = (index) => {
 };
 
 const handleSave = async () => {
-  if (!form.book_title) return ElMessage.warning('Chưa nhập tên sách!');
-  if (!form.isbn) return ElMessage.warning('Chưa nhập ISBN!');
-  // Ensure ISBN contains only digits and hyphens
-  if (!/^[0-9-]+$/.test(form.isbn)) return ElMessage.warning('ISBN chỉ được chứa chữ số và dấu gạch ngang (-)');
+  if (!form.book_title) return ElMessage.warning('Yêu cầu nhập tên sách!');
+  if (!form.isbn) return ElMessage.warning('Yêu cầu nhập ISBN!');
+  if (!/^[0-9-]+$/.test(form.isbn)) return ElMessage.warning('ISBN chỉ được chứa chữ số và dấu gạch ngang!');
 
   submitting.value = true;
   try {
     let payload = { ...form };
     let isMultipart = false;
 
-    // Xử lý logic upload
     if (imageSourceType.value === 'upload' && selectedFiles.value.length > 0) {
       isMultipart = true;
       const formData = new FormData();
       
-      // Append các trường text
       Object.keys(form).forEach(key => {
-        if (key === 'images') return; // Skip images array for now
+        if (key === 'images') return; 
         if (form[key] !== null && form[key] !== undefined) {
           formData.append(key, form[key]);
         }
       });
       
-      // Append files
       selectedFiles.value.forEach(file => {
         formData.append('images', file);
       });
       
-      // Append existing images (if any) to keep them?
-      // Backend expects 'images' field for URLs as well?
-      // Note: multer handles 'images' files. Body parser handles 'images' text.
-      // If we mix, we need to be careful.
-      // My backend logic checks req.files AND req.body.images separately.
       if (form.images.length > 0) {
           form.images.forEach(url => formData.append('images', url));
       }
@@ -598,13 +570,13 @@ const handleSave = async () => {
       ElMessage.success('Cập nhật thành công!');
     } else {
       await api.post('/api/books', payload, config);
-      ElMessage.success('Thêm mới thành công!');
+      ElMessage.success('Tạo thành công!');
     }
     dialogVisible.value = false;
     fetchData();
   } catch (error) {
     console.error(error);
-    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra!');
+    ElMessage.error(error.response?.data?.message || 'Đã xảy ra lỗi!');
   } finally {
     submitting.value = false;
   }
@@ -613,11 +585,11 @@ const handleSave = async () => {
 const handleDelete = async (id) => {
   try {
     await api.delete(`/api/books/${id}`);
-    ElMessage.success('Đã xóa sách!');
+    ElMessage.success('Sách đã được xóa!');
     fetchData();
   } catch (error) {
     console.error(error);
-    ElMessage.error(error.response?.data?.message || 'Không xóa được!');
+    ElMessage.error(error.response?.data?.message || 'Xóa thất bại!');
   }
 };
 

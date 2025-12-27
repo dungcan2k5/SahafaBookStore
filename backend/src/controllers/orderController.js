@@ -2,10 +2,9 @@ const { models, sequelize } = require('../config/database');
 const { Order, OrderItem, Cart, CartItem, Book, Address, Voucher, User, Transaction } = models;
 const { BaseOrderPrice, VoucherDecorator, ShippingFeeDecorator } = require('../patterns/PricingDecorators');
 
-// helper: normalize payment method để khỏi lệch chuỗi
 const normalizePaymentMethod = (m) => String(m || '').trim().toLowerCase();
 
-// [POST] /api/orders - Tạo đơn hàng từ giỏ hàng
+// Tạo Đơn hàng từ Giỏ hàng
 const createOrder = async (req, res) => {
   const t = await sequelize.transaction();
 
@@ -22,11 +21,11 @@ const createOrder = async (req, res) => {
     const user_id = req.user_id;
     let finalAddressId = address_id;
 
-    // 1) Địa chỉ
+    // 1. Xử lý Địa chỉ
     if (!finalAddressId) {
       if (!recipient_name || !phone || !address_detail) {
         await t.rollback();
-        return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin địa chỉ giao hàng' });
+        return res.status(400).json({ success: false, message: 'Yêu cầu địa chỉ giao hàng' });
       }
 
       const newAddress = await Address.create({
@@ -40,7 +39,7 @@ const createOrder = async (req, res) => {
       finalAddressId = newAddress.address_id;
     }
 
-    // 2) Giỏ hàng
+    // 2. Lấy Giỏ hàng
     const cart = await Cart.findOne({
       where: { user_id },
       include: [{ model: CartItem, include: [Book] }]
@@ -48,21 +47,21 @@ const createOrder = async (req, res) => {
 
     if (!cart || !cart.CartItems || cart.CartItems.length === 0) {
       await t.rollback();
-      return res.status(400).json({ success: false, message: 'Giỏ hàng trống!' });
+      return res.status(400).json({ success: false, message: 'Giỏ hàng trống' });
     }
 
-    // 3) Check kho
+    // 3. Kiểm tra Tồn kho
     for (const item of cart.CartItems) {
       if (item.Book.stock_quantity < item.quantity) {
         await t.rollback();
         return res.status(400).json({
           success: false,
-          message: `Sách "${item.Book.book_title}" không đủ hàng (Còn: ${item.Book.stock_quantity})`
+          message: `Sách "${item.Book.book_title}" đã hết hàng (Còn lại: ${item.Book.stock_quantity})`
         });
       }
     }
 
-    // 4) Tính giá
+    // 4. Tính Giá
     let priceCalculator = new BaseOrderPrice(cart.CartItems);
 
     let voucher = null;
@@ -77,7 +76,7 @@ const createOrder = async (req, res) => {
     const baseCalc = new BaseOrderPrice(cart.CartItems);
     const totalAmount = await baseCalc.calculate();
 
-    // 5) Tạo Order
+    // 5. Tạo Đơn hàng
     const newOrder = await Order.create({
       user_id,
       shipping_address: finalAddressId,
@@ -88,31 +87,22 @@ const createOrder = async (req, res) => {
       order_status: 'pending'
     }, { transaction: t });
 
-    // ✅ 6) [ĐÃ SỬA] Tạo Transaction cho cả BANK và COD
+    // 6. Tạo Giao dịch (Đang chờ xử lý)
     const pm = normalizePaymentMethod(payment_method);
+    const isBankTransfer = ['bank_transfer', 'bank-transfer', 'transfer', 'sepay', 'bank', 'qr', 'vnpay_bank', 'online'].includes(pm);
+    const isCOD = ['cod', 'cash', 'tien_mat'].includes(pm);
 
-    // Các từ khóa nhận diện chuyển khoản
-    const isBankTransfer = [
-      'bank_transfer', 'bank-transfer', 'transfer', 'sepay', 
-      'bank', 'qr', 'vnpay_bank', 'online'
-    ].includes(pm);
-
-    // Các từ khóa nhận diện tiền mặt (COD)
-    const isCOD = ['cod', 'cash', 'tien_mat', 'thanh_toan_khi_nhan_hang'].includes(pm);
-
-    // Logic: Dù là Bank hay COD thì đều TẠO GIAO DỊCH (Trạng thái Pending) để Admin quản lý
     if (isBankTransfer || isCOD) {
       await Transaction.create({
         order_id: newOrder.order_id,
         user_id: user_id,
         amount: finalAmount,
-        // Lưu rõ phương thức là 'COD' hoặc 'bank_transfer'
         payment_method: isCOD ? 'COD' : 'bank_transfer', 
         status: 'pending' 
       }, { transaction: t });
     }
 
-    // 7) Tạo OrderItem & trừ kho
+    // 7. Tạo Chi tiết đơn hàng & Cập nhật Tồn kho
     for (const item of cart.CartItems) {
       await OrderItem.create({
         order_id: newOrder.order_id,
@@ -135,7 +125,7 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // 8) Xóa giỏ
+    // 8. Xóa Giỏ hàng
     await CartItem.destroy({
       where: { cart_id: cart.cart_id },
       transaction: t
@@ -143,7 +133,7 @@ const createOrder = async (req, res) => {
 
     await t.commit();
 
-    // 9) Payment factory info (nếu có)
+    // 9. Tạo Thông tin Thanh toán (nếu có)
     let paymentInfo = null;
     try {
       const { PaymentFactory } = require('../patterns/PaymentFactory');
@@ -153,12 +143,12 @@ const createOrder = async (req, res) => {
         paymentInfo = processor.generatePaymentInfo(newOrder);
       }
     } catch (err) {
-      console.error("Payment Factory Error:", err);
+      console.error("Lỗi Payment Factory:", err);
     }
 
     res.status(201).json({
       success: true,
-      message: 'Đặt hàng thành công!',
+      message: 'Đơn hàng đã được tạo thành công!',
       order_id: newOrder.order_id,
       final_amount: finalAmount,
       payment_info: paymentInfo
@@ -166,12 +156,12 @@ const createOrder = async (req, res) => {
 
   } catch (error) {
     await t.rollback();
-    console.error("Order Error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server khi tạo đơn hàng' });
+    console.error("Lỗi Đơn hàng:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ trong quá trình thanh toán' });
   }
 };
 
-// [GET] /api/orders/my-orders
+// Lấy đơn hàng của người dùng hiện tại
 const getMyOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -202,12 +192,12 @@ const getMyOrders = async (req, res) => {
         }
     });
   } catch (error) {
-    console.error("getMyOrders error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    console.error("Lỗi getMyOrders:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [GET] /api/orders/admin
+// Lấy tất cả đơn hàng (Admin)
 const getAllOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
@@ -219,13 +209,9 @@ const getAllOrders = async (req, res) => {
 
     if (search) {
         const searchNum = parseInt(search);
-        // Nếu search là số -> tìm theo order_id
         if (!isNaN(searchNum)) {
              whereClause.order_id = searchNum;
         } else {
-             // Tìm theo tên hoặc email/sđt user
-             // Vì User là bảng include, ta phải filter trong include hoặc dùng advanced queries.
-             // Đơn giản nhất: tìm theo User (nested where)
              const { Op } = require('sequelize');
              userWhereClause = {
                 [Op.or]: [
@@ -246,7 +232,7 @@ const getAllOrders = async (req, res) => {
             model: models.User, 
             attributes: ['full_name', 'email', 'phone'],
             where: Object.keys(userWhereClause).length > 0 ? userWhereClause : undefined,
-            required: Object.keys(userWhereClause).length > 0 // Nếu có search user thì bắt buộc phải có user
+            required: Object.keys(userWhereClause).length > 0
         },
         { model: Address, attributes: ['address_detail', 'recipient_name', 'phone'] },
         { model: Transaction, attributes: ['transaction_id', 'status', 'payment_method'] } 
@@ -268,18 +254,18 @@ const getAllOrders = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [PUT] /api/orders/admin/:id
+// Cập nhật trạng thái đơn hàng
 const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { order_status, payment_status } = req.body;
 
     const order = await Order.findByPk(id);
-    if (!order) return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
+    if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
 
     const updateData = {};
     if (order_status) updateData.order_status = order_status;
@@ -287,26 +273,26 @@ const updateOrderStatus = async (req, res) => {
 
     await order.update(updateData);
 
-    res.status(200).json({ success: true, message: 'Cập nhật trạng thái đơn hàng thành công' });
+    res.status(200).json({ success: true, message: 'Đã cập nhật trạng thái đơn hàng' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [POST] /api/orders/admin/fake
+// Tạo đơn hàng giả (Admin)
 const createFakeOrder = async (req, res) => {
   try {
     let user = await User.findByPk(1);
     if (!user) user = await User.findOne();
-    if (!user) return res.status(400).json({ success: false, message: 'Chưa có User nào trong DB để gán đơn hàng!' });
+    if (!user) return res.status(400).json({ success: false, message: 'Không tìm thấy người dùng trong DB' });
 
     let fakeAddress = await models.Address.findOne({ where: { user_id: user.user_id } });
     if (!fakeAddress) {
       fakeAddress = await models.Address.create({
         user_id: user.user_id,
-        recipient_name: 'Khách Test Admin',
+        recipient_name: 'Khách hàng thử nghiệm',
         phone: '0999999999',
-        address_detail: 'Số 1 Đường Test, Hà Nội',
+        address_detail: '1 Đường thử nghiệm',
         is_default: true
       });
     }
@@ -320,14 +306,14 @@ const createFakeOrder = async (req, res) => {
       order_status: 'pending'
     });
 
-    res.status(201).json({ success: true, message: 'Đã tạo đơn giả thành công!', data: newOrder });
+    res.status(201).json({ success: true, message: 'Đã tạo đơn hàng giả', data: newOrder });
   } catch (error) {
-    console.error("Lỗi tạo đơn giả:", error);
-    res.status(500).json({ success: false, message: 'Lỗi Server: ' + error.message });
+    console.error("Lỗi createFakeOrder:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ: ' + error.message });
   }
 };
 
-// [DELETE] /api/orders/admin/:id (xóa cứng)
+// Xóa cứng đơn hàng (Admin)
 const deleteOrderAdmin = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -336,7 +322,7 @@ const deleteOrderAdmin = async (req, res) => {
     const order = await Order.findByPk(id);
     if (!order) {
       await t.rollback();
-      return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
     await OrderItem.destroy({ where: { order_id: id }, transaction: t });
@@ -344,11 +330,11 @@ const deleteOrderAdmin = async (req, res) => {
     await Order.destroy({ where: { order_id: id }, transaction: t });
 
     await t.commit();
-    return res.status(200).json({ success: true, message: 'Đã xóa đơn hàng (xóa cứng)' });
+    return res.status(200).json({ success: true, message: 'Đã xóa đơn hàng' });
   } catch (error) {
     await t.rollback();
-    console.error('Delete order error:', error);
-    return res.status(500).json({ success: false, message: 'Lỗi server khi xóa đơn hàng' });
+    console.error('Lỗi deleteOrderAdmin:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 

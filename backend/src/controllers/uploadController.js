@@ -1,11 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-// [GET] /api/uploads/images - List all images in the uploads directory (Recursive scan)
+// [GET] /api/uploads/images - List all images in the uploads directory
 const listImages = async (req, res) => {
     try {
         const uploadRoot = process.env.UPLOAD_DIR || path.join(__dirname, '../../../uploads');
-        // Scan cả folder images (cũ) và folder books (mới)
         const roots = ['images', 'books'];
         
         let allImages = [];
@@ -23,12 +22,11 @@ const listImages = async (req, res) => {
                     if (stat.isDirectory()) {
                         scanDir(fullPath, `${prefix}/${file}`);
                     } else if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file)) {
-                        // Tên folder chứa (ví dụ: book ID)
                         const folderName = path.basename(dir);
                         allImages.push({
                             name: file,
                             url: `/uploads${prefix}/${file}`,
-                            folder: prefix.includes('books') ? `Sách ID: ${folderName}` : 'Ảnh chung'
+                            folder: prefix.includes('books') ? `Book ID: ${folderName}` : 'General'
                         });
                     }
                 }
@@ -39,8 +37,8 @@ const listImages = async (req, res) => {
 
         res.status(200).json({ success: true, data: allImages });
     } catch (error) {
-        console.error("Lỗi lấy danh sách ảnh:", error);
-        res.status(500).json({ success: false, message: "Lỗi server" });
+        console.error("listImages Error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };
 

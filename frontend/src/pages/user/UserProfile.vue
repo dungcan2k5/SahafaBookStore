@@ -2,7 +2,7 @@
   <div class="container mx-auto py-10 px-4 md:px-12">
     <div v-if="authStore.user" class="flex flex-col md:flex-row gap-8">
       
-      <!-- Sidebar -->
+      <!-- Thanh Bên -->
       <div class="w-full md:w-1/4">
         <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
           <div class="flex items-center gap-4 mb-6">
@@ -21,38 +21,38 @@
               @click="currentTab = 'profile'"
               :class="['cursor-pointer p-2 rounded transition', currentTab === 'profile' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
             >
-              Hồ sơ cá nhân
+              Hồ Sơ Của Tôi
             </li>
             <li 
               @click="currentTab = 'address'"
               :class="['cursor-pointer p-2 rounded transition', currentTab === 'address' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
             >
-              Sổ địa chỉ
+              Sổ Địa Chỉ
             </li>
             <li 
               @click="currentTab = 'orders'"
               :class="['cursor-pointer p-2 rounded transition', currentTab === 'orders' ? 'font-bold text-[#C92127] bg-red-50' : 'text-gray-600 hover:text-[#C92127]']"
             >
-              Đơn hàng của tôi
+              Đơn Hàng Của Tôi
             </li>
           </ul>
         </div>
       </div>
 
-      <!-- Main Content -->
+      <!-- Nội Dung Chính -->
       <div class="w-full md:w-3/4 bg-white rounded-lg shadow-sm p-8 border border-gray-100 min-h-[500px]">
           
-          <!-- TAB: PROFILE -->
+          <!-- TAB: HỒ SƠ -->
           <div v-if="currentTab === 'profile'">
             <h1 class="text-2xl font-light text-gray-800 mb-6 border-b pb-4">Hồ Sơ Của Tôi</h1>
             <div class="flex flex-col gap-6 mb-10">
               <div class="flex flex-col md:flex-row md:items-center gap-2">
-                <label class="w-32 text-gray-600 md:text-right font-medium">Họ tên</label>
+                <label class="w-32 text-gray-600 md:text-right font-medium">Họ Tên</label>
                 <input v-model="user.full_name" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500">
               </div>
 
               <div class="flex flex-col md:flex-row md:items-center gap-2">
-                <label class="w-32 text-gray-600 md:text-right font-medium">Số điện thoại</label>
+                <label class="w-32 text-gray-600 md:text-right font-medium">Số Điện Thoại</label>
                 <input v-model="user.phone" type="text" class="border border-gray-300 px-4 py-2 rounded flex-1 focus:outline-none focus:border-blue-500" placeholder="Nhập số điện thoại">
               </div>
               
@@ -71,7 +71,7 @@
                   @click="showPasswordModal = true" 
                   class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition shadow-md font-bold"
                 >
-                  Đổi mật khẩu
+                  Đổi Mật Khẩu
                 </button>
               </div>
               <p v-if="message" class="md:ml-32 text-sm font-bold" :class="isError ? 'text-red-600' : 'text-green-600'">
@@ -80,13 +80,13 @@
             </div>
           </div>
 
-          <!-- TAB: ADDRESS -->
+          <!-- TAB: ĐỊA CHỈ -->
           <div v-if="currentTab === 'address'">
              <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 class="text-xl font-light text-gray-800">Sổ Địa Chỉ</h2>
                 <button @click="openAddressModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center gap-1">
                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                   Thêm địa chỉ mới
+                   Thêm Địa Chỉ Mới
                 </button>
              </div>
 
@@ -115,7 +115,7 @@
              </div>
           </div>
 
-          <!-- TAB: ORDERS (NEW) -->
+          <!-- TAB: ĐƠN HÀNG (MỚI) -->
           <div v-if="currentTab === 'orders'">
              <h2 class="text-xl font-light text-gray-800 mb-6 border-b pb-4">Lịch Sử Đơn Hàng</h2>
 
@@ -126,7 +126,7 @@
 
              <div v-else class="space-y-6">
                 <div v-for="order in orders" :key="order.order_id" class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                    <!-- Order Header -->
+                    <!-- Tiêu đề Đơn hàng -->
                     <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-b">
                                     <div class="flex items-center gap-4">
                                           <span class="font-bold text-gray-700">#{{ order.order_id }}</span>
@@ -150,7 +150,7 @@
                         </div>
                     </div>
 
-                    <!-- Order Items -->
+                    <!-- Sản phẩm trong Đơn hàng -->
                     <div class="p-4">
                             <div v-for="item in order.OrderItems" :key="item.order_item_id || item.id" class="flex justify-between items-center py-2 border-b last:border-0">
                               <div class="flex-1">
@@ -161,11 +161,11 @@
                             </div>
                     </div>
 
-                    <!-- Order Footer -->
+                    <!-- Chân trang Đơn hàng -->
                     <div class="px-4 py-3 bg-gray-50 border-t flex justify-between items-center">
                         <div class="text-sm text-gray-500">
                            Thanh toán: <span class="font-bold uppercase">{{ order.payment_method || 'COD' }}</span>
-                           <span v-if="order.payment_status === 'paid'" class="text-green-600 ml-1 font-bold">(Đã TT)</span>
+                           <span v-if="order.payment_status === 'paid'" class="text-green-600 ml-1 font-bold">(Đã thanh toán)</span>
                         </div>
                         <div class="text-lg font-bold text-[#C92127]">
                             Tổng tiền: {{ formatCurrency(order.final_amount) }}
@@ -173,7 +173,7 @@
                     </div>
                 </div>
                 
-                <!-- Pagination -->
+                <!-- Phân trang -->
                 <div class="flex justify-center gap-2 mt-6">
                     <button 
                       @click="changePage(orderPage - 1)" 
@@ -199,7 +199,7 @@
 
     <div v-else class="text-center py-20">
         <p class="text-gray-500">Đang tải thông tin người dùng...</p>
-        <router-link to="/login" class="text-blue-600 underline">Đăng nhập lại nếu đợi quá lâu</router-link>
+        <router-link to="/login" class="text-blue-600 underline">Đăng nhập lại nếu mất quá nhiều thời gian</router-link>
     </div>
 
     <!-- MODAL ĐỊA CHỈ -->
@@ -209,10 +209,10 @@
           
           <div class="space-y-3">
              <div class="grid grid-cols-2 gap-3">
-                <input v-model="addrForm.recipient_name" type="text" placeholder="Họ và tên" class="input-field">
-                <input v-model="addrForm.phone" type="text" placeholder="Số điện thoại" class="input-field">
+                <input v-model="addrForm.recipient_name" type="text" placeholder="Họ Tên" class="input-field">
+                <input v-model="addrForm.phone" type="text" placeholder="Số Điện Thoại" class="input-field">
              </div>
-             <input v-model="addrForm.address_detail" type="text" placeholder="Địa chỉ chi tiết (Số nhà, đường, phường, quận, tỉnh)" class="input-field w-full">
+             <input v-model="addrForm.address_detail" type="text" placeholder="Địa chỉ chi tiết (Số nhà, Đường, Phường, Quận, Thành phố)" class="input-field w-full">
              
              <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" v-model="addrForm.is_default" class="w-4 h-4">
@@ -223,7 +223,7 @@
           <div class="flex justify-end gap-3 mt-6">
              <button @click="showModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Hủy</button>
              <button @click="saveAddress" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" :disabled="modalLoading">
-                {{ modalLoading ? 'Lưu...' : 'Hoàn Thành' }}
+                {{ modalLoading ? 'Đang lưu...' : 'Lưu' }}
              </button>
           </div>
        </div>
@@ -243,13 +243,13 @@
                   <input v-model="passForm.newPassword" type="password" required class="input-field" placeholder="Tối thiểu 8 ký tự">
               </div>
               <div>
-                  <label class="block text-sm text-gray-600 mb-1">Nhập lại mật khẩu mới</label>
+                  <label class="block text-sm text-gray-600 mb-1">Xác nhận mật khẩu mới</label>
                   <input v-model="passForm.confirmPassword" type="password" required class="input-field" placeholder="••••••">
               </div>
               <div class="flex justify-end gap-3 mt-4">
                  <button type="button" @click="showPasswordModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Hủy</button>
                  <button type="submit" class="px-4 py-2 bg-[#C92127] text-white rounded hover:bg-red-700 font-bold" :disabled="passLoading">
-                    {{ passLoading ? 'Đang xử lý...' : 'Xác nhận' }}
+                    {{ passLoading ? 'Đang xử lý...' : 'Xác Nhận' }}
                  </button>
               </div>
           </form>
@@ -275,14 +275,14 @@ const addresses = ref([]); // Danh sách địa chỉ
 // Tabs: 'profile', 'address', 'orders'
 const currentTab = ref('profile');
 
-// Orders State
+// Trạng thái Đơn hàng
 const orders = ref([]);
 const orderLoading = ref(false);
 const orderPage = ref(1);
 const orderLimit = ref(5);
 const orderTotal = ref(0);
 
-// Modal State
+// Trạng thái Modal
 const showModal = ref(false);
 const isEditMode = ref(false);
 const modalLoading = ref(false);
@@ -294,7 +294,7 @@ const addrForm = reactive({
    is_default: false
 });
 
-// Password Modal State
+// Trạng thái Modal Mật khẩu
 const showPasswordModal = ref(false);
 const passLoading = ref(false);
 const passForm = reactive({
@@ -313,14 +313,14 @@ onMounted(() => {
     }
 });
 
-// Fetch orders when tab changes to 'orders'
+// Tải đơn hàng khi tab thay đổi sang 'orders'
 watch(currentTab, (newTab) => {
     if (newTab === 'orders' && orders.value.length === 0) {
         fetchOrders();
     }
 });
 
-// --- ORDERS LOGIC ---
+// --- LOGIC ĐƠN HÀNG ---
 const fetchOrders = async () => {
     orderLoading.value = true;
     try {
@@ -330,8 +330,8 @@ const fetchOrders = async () => {
                 limit: orderLimit.value
             }
         });
-      // `api` interceptor may unwrap response to `data` directly.
-      // Normalize possible shapes: (1) array of rows, (2) { data: rows, meta }
+      // `api` interceptor có thể giải nén response thành `data` trực tiếp.
+      // Chuẩn hóa các dạng có thể có: (1) mảng rows, (2) { data: rows, meta }
       let payload = res;
       let rows = [];
       if (Array.isArray(res)) {
@@ -344,14 +344,14 @@ const fetchOrders = async () => {
          rows = res.data.data;
          payload = res.data;
       } else {
-         // Fallback: if res has .length treat as rows
+         // Dự phòng: nếu res có .length thì coi là rows
          rows = Array.isArray(res) ? res : [];
          payload = { data: rows };
       }
       console.debug('fetchOrders payload:', { res, rows, meta: payload.meta });
-      // Normalize each order for frontend usage and extract address info
+      // Chuẩn hóa từng đơn hàng cho frontend sử dụng và trích xuất thông tin địa chỉ
          const normalized = rows.map(o => {
-         // Transactions may be an array (Transactions)
+         // Transactions có thể là mảng (Transactions)
          const tx = (o.Transactions && o.Transactions[0]) || (o.Transaction && o.Transaction) || null;
          const addr = o.Address || o.address || null;
          return {
@@ -396,14 +396,14 @@ const formatStatus = (status) => {
 const formatCurrency = (val) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
-// --- CHANGE PASSWORD LOGIC ---
+// --- LOGIC ĐỔI MẬT KHẨU ---
 const handleChangePassword = async () => {
     if (passForm.newPassword !== passForm.confirmPassword) {
         alert("Mật khẩu mới không khớp!");
         return;
     }
     
-    // Validate complexity
+    // Validate độ phức tạp
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/;
     if (passForm.newPassword.length < 8) {
         alert("Mật khẩu mới phải có ít nhất 8 ký tự!");
@@ -436,7 +436,7 @@ const handleChangePassword = async () => {
     }
 };
 
-// --- USER INFO ---
+// --- THÔNG TIN NGƯỜI DÙNG ---
 const handleUpdate = async () => {
     message.value = ''; isError.value = false; isLoading.value = true;
     try {
@@ -454,11 +454,11 @@ const handleUpdate = async () => {
     } finally { isLoading.value = false; }
 };
 
-// --- ADDRESS BOOK LOGIC ---
+// --- LOGIC SỔ ĐỊA CHỈ ---
 const fetchAddresses = async () => {
    try {
       const res = await api.get('/api/addresses');
-      // api interceptor may return: (a) array of addresses, (b) { data: [...] }, (c) { data: { data: [...] } }
+      // api interceptor có thể trả về: (a) mảng địa chỉ, (b) { data: [...] }, (c) { data: { data: [...] } }
       let rows = [];
       if (Array.isArray(res)) {
          rows = res;
@@ -469,7 +469,7 @@ const fetchAddresses = async () => {
       } else {
          rows = [];
       }
-      console.debug('fetchAddresses result:', { res, rows });
+      console.debug('kết quả fetchAddresses:', { res, rows });
       addresses.value = rows;
    } catch (e) { console.error("Lỗi tải địa chỉ:", e); }
 };
@@ -507,11 +507,11 @@ const saveAddress = async () => {
 };
 
 const deleteAddress = async (id) => {
-   if (!confirm("Bạn chắc chắn muốn xóa địa chỉ này?")) return;
+   if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
    try {
       await api.delete(`/api/addresses/${id}`);
       fetchAddresses();
-   } catch (e) { alert("Lỗi khi xóa"); }
+   } catch (e) { alert("Lỗi khi xóa địa chỉ"); }
 };
 </script>
 
