@@ -1,10 +1,9 @@
 const { models } = require('../config/database');
 const { Cart, CartItem, Book, BookImage } = models;
 
-// [GET] /api/cart - Lấy giỏ hàng của user đang login
+// Lấy giỏ hàng của người dùng hiện tại
 const getCart = async (req, res) => {
     try {
-        // Tìm Cart của user
         const cart = await Cart.findOne({
             where: { user_id: req.user_id },
             include: [
@@ -22,7 +21,6 @@ const getCart = async (req, res) => {
         });
 
         if (!cart) {
-            // Case hiếm: User chưa có cart thì tạo mới trả về rỗng
             const newCart = await Cart.create({ user_id: req.user_id });
             return res.status(200).json({ success: true, data: { ...newCart.toJSON(), CartItems: [] } });
         }
@@ -30,33 +28,29 @@ const getCart = async (req, res) => {
         res.status(200).json({ success: true, data: cart });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [POST] /api/cart/add - Thêm sách vào giỏ
+// Thêm sách vào giỏ hàng
 const addToCart = async (req, res) => {
     try {
         const { book_id, quantity } = req.body;
         const qty = parseInt(quantity) || 1;
 
-        // 1. Lấy Cart ID
         let cart = await Cart.findOne({ where: { user_id: req.user_id } });
         if (!cart) {
             cart = await Cart.create({ user_id: req.user_id });
         }
 
-        // 2. Check xem sách đã có trong cart chưa
         const existingItem = await CartItem.findOne({
             where: { cart_id: cart.cart_id, book_id }
         });
 
         if (existingItem) {
-            // Nếu có rồi -> Tăng số lượng
             existingItem.quantity += qty;
             await existingItem.save();
         } else {
-            // Chưa có -> Tạo mới item
             await CartItem.create({
                 cart_id: cart.cart_id,
                 book_id,
@@ -70,17 +64,18 @@ const addToCart = async (req, res) => {
     }
 };
 
-// [DELETE] /api/cart/item/:id - Xóa item khỏi giỏ
+// Xóa sản phẩm khỏi giỏ hàng
 const removeCartItem = async (req, res) => {
     try {
-        const { id } = req.params; // Đây là cart_item_id
+        const { id } = req.params; // cart_item_id
         await CartItem.destroy({ where: { cart_item_id: id } });
         res.status(200).json({ success: true, message: 'Đã xóa sản phẩm' });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
-// [PUT] /api/cart/item/:id - Cập nhật số lượng
+
+// Cập nhật số lượng sản phẩm
 const updateCartItem = async (req, res) => {
     try {
         const { id } = req.params; // cart_item_id
@@ -90,39 +85,36 @@ const updateCartItem = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Số lượng không hợp lệ' });
         }
 
-        // Tìm item trong giỏ
         const item = await CartItem.findOne({ where: { cart_item_id: id } });
         
         if (!item) {
-            return res.status(404).json({ success: false, message: 'Sản phẩm không tồn tại' });
+            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
         }
 
-        // Cập nhật số lượng mới
         item.quantity = quantity;
         await item.save();
 
         res.status(200).json({ success: true, message: 'Cập nhật thành công', data: item });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Lỗi server khi update' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [DELETE] /api/cart/clear - Xóa tất cả giỏ hàng
+// Xóa tất cả sản phẩm trong giỏ
 const clearCart = async (req, res) => {
     try {
-        // 1. Tìm Cart của user hiện tại
         const cart = await Cart.findOne({ where: { user_id: req.user_id } });
         
         if (cart) {
-            // 2. Xóa tất cả CartItem thuộc về cart_id này
             await CartItem.destroy({ where: { cart_id: cart.cart_id } });
         }
 
-        res.status(200).json({ success: true, message: 'Đã làm sạch giỏ hàng' });
+        res.status(200).json({ success: true, message: 'Đã xóa giỏ hàng' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Lỗi server khi clear cart' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
+
 module.exports = { getCart, addToCart, removeCartItem, updateCartItem, clearCart };

@@ -66,12 +66,12 @@
     v-for="(book, index) in bestSellers" 
     :key="index" 
     @click="$router.push(`/books/${book.slug || book.id}`)" 
-    class="..."
+    class="bg-white rounded-xl border border-gray-100 p-3 hover:shadow-lg transition-all duration-300 flex flex-col group cursor-pointer"
   >
     <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 mb-3">
       <img 
         :src="book.image" 
-        class="..." 
+        class="w-full h-full object-cover transition duration-500 group-hover:scale-110" 
         alt="Book Cover"
       />
     </div>

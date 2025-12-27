@@ -1,15 +1,14 @@
-ypeError: Cannot read properties of undefined (reading 'data')
-    at fetchOrders (OrderManager.vue:403:29)<template>
+<template>
   <div>
     <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-        <el-icon class="text-indigo-600"><List /></el-icon> Quản lý Đơn hàng
+        <el-icon class="text-indigo-600"><List /></el-icon> Quản Lý Đơn Hàng
       </h2>
 
       <div class="flex items-center gap-3">
         <el-input
           v-model="searchText"
-          placeholder="Tìm theo mã đơn, tên khách, SĐT..."
+          placeholder="Tìm theo Mã Đơn, Tên, SĐT..."
           clearable
           style="width: 360px"
         >
@@ -19,24 +18,24 @@ ypeError: Cannot read properties of undefined (reading 'data')
         </el-input>
 
         <el-button type="warning" plain @click="createFakeOrder" :loading="creating">
-          <el-icon class="mr-1"><MagicStick /></el-icon> Tạo Đơn Test
+          <el-icon class="mr-1"><MagicStick /></el-icon> Tạo Đơn Thử Nghiệm
         </el-button>
       </div>
     </div>
 
     <el-card shadow="never" class="rounded-lg border-none">
     <el-table ref="tableRef" :data="orders" style="width: 100%" v-loading="loading" stripe border>
-        <el-table-column prop="order_id" label="Mã Đơn" width="90" align="center">
+        <el-table-column prop="order_id" label="ID" width="90" align="center">
           <template #default="scope">
             <span class="font-bold text-gray-600">#{{ scope.row.order_id }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="Khách hàng" min-width="200">
+        <el-table-column label="Khách Hàng" min-width="200">
           <template #default="scope">
             <div class="flex flex-col">
               <span class="font-bold text-gray-800">
-                {{ scope.row.User?.full_name || 'Khách vãng lai' }}
+                {{ scope.row.User?.full_name || 'Khách Vãng Lai' }}
               </span>
               <span class="text-xs text-gray-400">
                 {{ scope.row.User?.email }} - {{ scope.row.User?.phone || '...' }}
@@ -49,16 +48,16 @@ ypeError: Cannot read properties of undefined (reading 'data')
           </template>
         </el-table-column>
 
-        <el-table-column label="Tổng tiền" width="130" align="right">
+        <el-table-column label="Tổng Cộng" width="130" align="right">
           <template #default="scope">
             <div class="text-red-600 font-bold text-base">
               {{ formatCurrency(scope.row.final_amount || scope.row.total_amount) }}
             </div>
-            <div v-if="scope.row.voucher_id" class="text-xs text-green-600">Đã dùng Voucher</div>
+            <div v-if="scope.row.voucher_id" class="text-xs text-green-600">Đã Dùng Voucher</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="order_status" label="Trạng thái" width="140" align="center">
+        <el-table-column prop="order_status" label="Trạng Thái" width="140" align="center">
           <template #default="scope">
             <el-tag :type="getStatusColor(scope.row.order_status)" effect="dark" class="uppercase font-bold">
               {{ formatStatus(scope.row.order_status) }}
@@ -66,7 +65,7 @@ ypeError: Cannot read properties of undefined (reading 'data')
           </template>
         </el-table-column>
 
-        <el-table-column prop="payment_status" label="Thanh toán" width="160" align="center">
+        <el-table-column prop="payment_status" label="Thanh Toán" width="160" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.payment_status === 'paid' ? 'success' : 'info'" effect="light" size="small">
               {{ scope.row.payment_status === 'paid' ? 'Đã TT' : 'Chưa TT' }}
@@ -78,8 +77,8 @@ ypeError: Cannot read properties of undefined (reading 'data')
 
             <div v-if="scope.row.Transactions && scope.row.Transactions.length > 0" class="border-t pt-1 mt-1">
                 <div v-for="tx in scope.row.Transactions" :key="tx.transaction_id" class="text-xs">
-                    <span class="text-gray-500">GD:</span> 
-                    <span class="font-mono font-bold text-blue-600 cursor-pointer" title="Copy mã này để tìm bên Giao dịch">
+                    <span class="text-gray-500">TX:</span> 
+                    <span class="font-mono font-bold text-blue-600 cursor-pointer" title="Sao chép ID này">
                         #{{ tx.transaction_id }}
                     </span>
                     <span v-if="tx.status === 'success'" class="text-green-500 ml-1">✔</span>
@@ -89,11 +88,11 @@ ypeError: Cannot read properties of undefined (reading 'data')
           </template>
         </el-table-column>
 
-        <el-table-column label="Xử lý" width="170" align="center" fixed="right">
+        <el-table-column label="Hành Động" width="170" align="center" fixed="right">
           <template #default="scope">
             <div class="flex flex-col gap-2">
               <el-button type="info" size="small" plain @click="viewOrderDetails(scope.row)">
-                 <el-icon class="mr-1"><View /></el-icon> Chi tiết
+                 <el-icon class="mr-1"><View /></el-icon> Chi Tiết
               </el-button>
 
               <el-button
@@ -102,7 +101,7 @@ ypeError: Cannot read properties of undefined (reading 'data')
                 size="small"
                 @click="updateStatus(scope.row.order_id, 'processing')"
               >
-                Duyệt đơn
+                Duyệt Đơn
               </el-button>
 
               <el-button
@@ -111,7 +110,7 @@ ypeError: Cannot read properties of undefined (reading 'data')
                 size="small"
                 @click="updateStatus(scope.row.order_id, 'shipped')"
               >
-                Gửi hàng
+                Gửi Hàng
               </el-button>
 
               <el-button
@@ -120,23 +119,23 @@ ypeError: Cannot read properties of undefined (reading 'data')
                 size="small"
                 @click="updateStatus(scope.row.order_id, 'delivered')"
               >
-                Đã giao
+                Đã Giao
               </el-button>
 
               <el-popconfirm
                 v-if="['pending', 'processing'].includes(scope.row.order_status)"
                 title="Hủy đơn hàng này?"
-                confirm-button-text="Hủy"
+                confirm-button-text="Có"
                 cancel-button-text="Không"
                 @confirm="updateStatus(scope.row.order_id, 'cancelled')"
               >
                 <template #reference>
-                  <el-button type="danger" size="small" plain>Hủy bỏ</el-button>
+                  <el-button type="danger" size="small" plain>Hủy Bỏ</el-button>
                 </template>
               </el-popconfirm>
 
               <el-popconfirm
-                title="Xóa đơn hàng này vĩnh viễn?"
+                title="Xóa vĩnh viễn đơn hàng này?"
                 confirm-button-text="Xóa"
                 cancel-button-text="Không"
                 @confirm="handleDelete(scope.row.order_id)"
@@ -150,7 +149,7 @@ ypeError: Cannot read properties of undefined (reading 'data')
         </el-table-column>
       </el-table>
 
-      <!-- Pagination -->
+      <!-- Phân trang -->
       <div class="mt-4 flex justify-end">
         <el-pagination
           v-model:current-page="currentPage"
@@ -164,14 +163,14 @@ ypeError: Cannot read properties of undefined (reading 'data')
       </div>
     </el-card>
 
-    <!-- Dialog Chi tiết đơn hàng -->
-    <el-dialog v-model="detailsVisible" title="Chi tiết đơn hàng" width="800px" top="5vh">
+    <!-- Hộp thoại Chi tiết Đơn hàng -->
+    <el-dialog v-model="detailsVisible" title="Chi Tiết Đơn Hàng" width="800px" top="5vh">
       <div v-if="selectedOrder" class="space-y-4">
-        <!-- Header Info -->
+        <!-- Thông tin Header -->
         <div class="flex justify-between border-b pb-2">
            <div>
-              <div class="font-bold text-lg">Đơn hàng #{{ selectedOrder.order_id }}</div>
-              <div class="text-sm text-gray-500">Ngày đặt: {{ new Date(selectedOrder.created_at).toLocaleString('vi-VN') }}</div>
+              <div class="font-bold text-lg">Đơn Hàng #{{ selectedOrder.order_id }}</div>
+              <div class="text-sm text-gray-500">Ngày: {{ new Date(selectedOrder.created_at).toLocaleString('vi-VN') }}</div>
            </div>
            <div class="text-right">
               <el-tag :type="getStatusColor(selectedOrder.order_status)" effect="dark" class="uppercase font-bold mb-1">
@@ -183,49 +182,49 @@ ypeError: Cannot read properties of undefined (reading 'data')
            </div>
         </div>
 
-        <!-- Customer & Shipping -->
+        <!-- Khách hàng & Giao hàng -->
         <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
             <div>
-               <div class="font-bold text-gray-700 mb-1">Người đặt hàng</div>
+               <div class="font-bold text-gray-700 mb-1">Khách Hàng</div>
                <div>{{ selectedOrder.User?.full_name }}</div>
                <div class="text-sm text-gray-500">{{ selectedOrder.User?.email }}</div>
                <div class="text-sm text-gray-500">{{ selectedOrder.User?.phone }}</div>
             </div>
             <div>
-               <div class="font-bold text-gray-700 mb-1">Địa chỉ giao hàng</div>
+               <div class="font-bold text-gray-700 mb-1">Địa Chỉ Giao Hàng</div>
                <div class="font-bold">{{ selectedOrder.Address?.recipient_name }}</div>
                <div class="text-sm">{{ selectedOrder.Address?.phone }}</div>
                <div class="text-sm text-gray-600">{{ selectedOrder.Address?.address_detail || selectedOrder.shipping_address }}</div>
             </div>
         </div>
 
-        <!-- Payment Info -->
+        <!-- Thông tin Thanh toán -->
         <div class="border p-2 rounded border-dashed border-gray-300">
-           <span class="font-bold text-gray-700">Thanh toán: </span>
+           <span class="font-bold text-gray-700">Thanh Toán: </span>
            <span class="uppercase font-bold text-blue-600 mr-2">{{ selectedOrder.payment_method || 'COD' }}</span>
            <span class="text-sm">
-             (Trạng thái: 
+             (Trạng Thái: 
              <span :class="selectedOrder.payment_status === 'paid' ? 'text-green-600 font-bold' : 'text-orange-500'">
-                {{ selectedOrder.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                {{ selectedOrder.payment_status === 'paid' ? 'Đã Thanh Toán' : 'Chưa Thanh Toán' }}
              </span>)
            </span>
            <div v-if="selectedOrder.Transactions?.length" class="mt-1 text-xs text-gray-500">
-               Mã GD: {{ selectedOrder.Transactions.map(t => '#' + t.transaction_id).join(', ') }}
+               ID Giao Dịch: {{ selectedOrder.Transactions.map(t => '#' + t.transaction_id).join(', ') }}
            </div>
         </div>
 
-        <!-- Order Items -->
+        <!-- Sản phẩm Đơn hàng -->
         <div>
-           <div class="font-bold mb-2">Sản phẩm</div>
+           <div class="font-bold mb-2">Sản Phẩm</div>
            <el-table :data="selectedOrder.OrderItems" border size="small">
               <el-table-column label="Sách" prop="Book.book_title" min-width="200" />
-              <el-table-column label="Đơn giá" width="120" align="right">
+              <el-table-column label="Đơn Giá" width="120" align="right">
                  <template #default="s">
                     {{ formatCurrency(s.row.unit_price) }}
                  </template>
               </el-table-column>
               <el-table-column label="SL" prop="quantity" width="60" align="center" />
-              <el-table-column label="Thành tiền" width="120" align="right">
+              <el-table-column label="Thành Tiền" width="120" align="right">
                  <template #default="s">
                     {{ formatCurrency(s.row.subtotal) }}
                  </template>
@@ -258,26 +257,26 @@ const creating = ref(false);
 const searchText = ref('');
 let debounceTimer = null;
 
-// Pagination
+// Phân trang
 const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 
-// Details Dialog
+// Hộp thoại Chi tiết
 const detailsVisible = ref(false);
 const selectedOrder = ref(null);
 
-// --- HELPERS ---
+// --- HÀM HỖ TRỢ ---
 const formatCurrency = (val) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
 const formatStatus = (status) => {
   const map = {
-    pending: 'Chờ xử lý',
-    processing: 'Đang chuẩn bị',
-    shipped: 'Đang giao',
-    delivered: 'Hoàn thành',
-    cancelled: 'Đã hủy',
+    pending: 'Chờ Xử Lý',
+    processing: 'Đang Xử Lý',
+    shipped: 'Đang Giao',
+    delivered: 'Đã Giao',
+    cancelled: 'Đã Hủy',
   };
   return map[status] || status;
 };
@@ -293,7 +292,7 @@ const getStatusColor = (status) => {
   return map[status] || 'info';
 };
 
-// --- ACTIONS ---
+// --- HÀNH ĐỘNG ---
 const viewOrderDetails = (order) => {
     selectedOrder.value = order;
     detailsVisible.value = true;
@@ -315,7 +314,7 @@ const printInvoice = () => {
     const invoiceHtml = `
         <html>
         <head>
-            <title>Hóa đơn #${order.order_id}</title>
+            <title>Hóa Đơn #${order.order_id}</title>
             <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
                 .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -333,19 +332,19 @@ const printInvoice = () => {
         </head>
         <body>
             <div class="header">
-                <h1>Sahafa Bookstore - Hóa Đơn</h1>
-                <p>Mã đơn hàng: #${order.order_id} - Ngày: ${new Date(order.created_at).toLocaleString('vi-VN')}</p>
+                <h1>Nhà Sách Sahafa - Hóa Đơn</h1>
+                <p>Mã Đơn Hàng: #${order.order_id} - Ngày: ${new Date(order.created_at).toLocaleString('vi-VN')}</p>
             </div>
             
             <div class="info-grid">
                 <div class="info-box">
-                    <div class="info-title">Người đặt</div>
+                    <div class="info-title">Người Đặt</div>
                     <div>${order.User?.full_name}</div>
                     <div>${order.User?.phone}</div>
                     <div>${order.User?.email}</div>
                 </div>
                 <div class="info-box">
-                    <div class="info-title">Người nhận & Giao tới</div>
+                    <div class="info-title">Giao Tới</div>
                     <div><strong>${order.Address?.recipient_name}</strong></div>
                     <div>${order.Address?.phone}</div>
                     <div>${order.Address?.address_detail || order.shipping_address}</div>
@@ -355,10 +354,10 @@ const printInvoice = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Sản phẩm</th>
+                        <th>Sản Phẩm</th>
                         <th style="text-align: center; width: 50px;">SL</th>
-                        <th style="text-align: right; width: 120px;">Đơn giá</th>
-                        <th style="text-align: right; width: 120px;">Thành tiền</th>
+                        <th style="text-align: right; width: 120px;">Đơn Giá</th>
+                        <th style="text-align: right; width: 120px;">Thành Tiền</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -367,14 +366,14 @@ const printInvoice = () => {
             </table>
 
             <div class="totals">
-                <div>Tổng tiền hàng: <strong>${formatCurrency(order.total_amount)}</strong></div>
-                <div>Phí vận chuyển: <strong>30.000 ₫</strong> (Đã bao gồm)</div>
-                <div class="final-price">Thanh toán: ${formatCurrency(order.final_amount)}</div>
-                <div><em>(${order.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng'})</em></div>
+                <div>Tổng Tiền Hàng: <strong>${formatCurrency(order.total_amount)}</strong></div>
+                <div>Phí Vận Chuyển: <strong>30.000 ₫</strong> (Đã bao gồm)</div>
+                <div class="final-price">Thanh Toán: ${formatCurrency(order.final_amount)}</div>
+                <div><em>(${order.payment_method === 'bank_transfer' ? 'Chuyển Khoản Ngân Hàng' : 'COD'})</em></div>
             </div>
 
             <div class="footer">
-                <p>Cảm ơn quý khách đã mua hàng tại Sahafa Bookstore!</p>
+                <p>Cảm ơn quý khách đã mua sắm tại Nhà Sách Sahafa!</p>
                 <p>Website: www.sahafa.com | Hotline: 1900 xxxx</p>
             </div>
             
@@ -402,15 +401,14 @@ const fetchOrders = async () => {
         }
     });
 
-    // res là Array đã kèm meta
+    // res là Mảng kèm meta
     const ordersData = res || [];
 
     if (Array.isArray(ordersData)) {
        orders.value = ordersData;
-       // Lấy total chuẩn chỉ
        total.value = ordersData.meta?.total || ordersData.length || 0;
     } 
-    // Phòng hờ backend trả về kiểu { rows, count } (Sequelize raw)
+    // Dự phòng nếu backend trả về { rows, count } (Sequelize raw)
     else if (ordersData.rows) {
        orders.value = ordersData.rows;
        total.value = ordersData.count || 0;
@@ -422,7 +420,7 @@ const fetchOrders = async () => {
 
   } catch (e) {
     console.error(e);
-    ElMessage.error('Lỗi tải danh sách đơn hàng!');
+    ElMessage.error('Lỗi tải đơn hàng!');
   } finally {
     loading.value = false;
   }
@@ -444,7 +442,7 @@ const handleCurrentChange = (val) => {
   fetchOrders();
 };
 
-// Search Watcher
+// Theo dõi Tìm kiếm
 watch(searchText, () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -456,22 +454,22 @@ watch(searchText, () => {
 const updateStatus = async (id, newStatus) => {
   try {
     await api.put(`/api/orders/admin/${id}`, { order_status: newStatus });
-    ElMessage.success('Cập nhật thành công!');
+    ElMessage.success('Trạng thái đã cập nhật!');
     fetchOrders();
   } catch (e) {
     console.error(e);
-    ElMessage.error('Lỗi cập nhật trạng thái!');
+    ElMessage.error('Cập nhật trạng thái thất bại!');
   }
 };
 
 const handleDelete = async (orderId) => {
   try {
     await api.delete(`/api/orders/admin/${orderId}`);
-    ElMessage.success('Đã xóa đơn hàng vĩnh viễn!');
+    ElMessage.success('Đơn hàng đã xóa vĩnh viễn!');
     fetchOrders();
   } catch (e) {
     console.error(e);
-    ElMessage.error(e.response?.data?.message || 'Lỗi khi xóa đơn!');
+    ElMessage.error(e.response?.data?.message || 'Lỗi khi xóa đơn hàng!');
   }
 };
 
@@ -479,11 +477,11 @@ const createFakeOrder = async () => {
   creating.value = true;
   try {
     await api.post('/api/orders/admin/fake');
-    ElMessage.success('Đã tạo đơn hàng giả!');
+    ElMessage.success('Đã tạo đơn hàng thử nghiệm!');
     fetchOrders();
   } catch (e) {
     console.error(e);
-    ElMessage.error('Lỗi tạo đơn giả!');
+    ElMessage.error('Lỗi khi tạo đơn hàng thử nghiệm!');
   } finally {
     creating.value = false;
   }

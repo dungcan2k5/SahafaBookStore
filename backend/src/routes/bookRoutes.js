@@ -1,29 +1,135 @@
-// src/routes/bookRoutes.js
 const express = require('express');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
 const { upload } = require('../middleware/uploadMiddleware');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Books
+ *   description: Quản lý sách
+ */
+
 // --- CÁC ROUTE LẤY DỮ LIỆU (GET) ---
 
+/**
+ * @swagger
+ * /api/books:
+ *   get:
+ *     summary: Lấy tất cả sách (với bộ lọc và phân trang)
+ *     tags: [Books]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Số mục mỗi trang
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Tìm kiếm theo tiêu đề
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Lọc theo tên danh mục
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         description: "Trường sắp xếp (ví dụ: price)"
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Thứ tự sắp xếp
+ *     responses:
+ *       200:
+ *         description: Danh sách sách với metadata
+ */
 router.get('/', bookController.getAllBooks);
+
+/**
+ * @swagger
+ * /api/books/genres:
+ *   get:
+ *     summary: Lấy tất cả thể loại
+ *     tags: [Books - Metadata]
+ *     responses:
+ *       200:
+ *         description: Danh sách thể loại
+ */
 router.get('/genres', bookController.getGenres);
+
+/**
+ * @swagger
+ * /api/books/publishers:
+ *   get:
+ *     summary: Lấy tất cả nhà xuất bản
+ *     tags: [Books - Metadata]
+ *     responses:
+ *       200:
+ *         description: Danh sách nhà xuất bản
+ */
 router.get('/publishers', bookController.getPublishers);
+
+/**
+ * @swagger
+ * /api/books/authors:
+ *   get:
+ *     summary: Lấy tất cả tác giả
+ *     tags: [Books - Metadata]
+ *     responses:
+ *       200:
+ *         description: Danh sách tác giả
+ */
 router.get('/authors', bookController.getAuthors);
 
-// Flash Sale (đặt trước /:id)
+/**
+ * @swagger
+ * /api/books/flash-sale:
+ *   get:
+ *     summary: Lấy sách Flash Sale
+ *     tags: [Books]
+ *     responses:
+ *       200:
+ *         description: Danh sách sách flash sale với thông tin giảm giá
+ */
 router.get('/flash-sale', bookController.getFlashSaleBooks);
 
-// Chi tiết sách
+/**
+ * @swagger
+ * /api/books/{id}:
+ *   get:
+ *     summary: Lấy chi tiết sách theo ID hoặc Slug
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID sách (số) hoặc Slug sách (chuỗi)
+ *     responses:
+ *       200:
+ *         description: Chi tiết sách
+ *       404:
+ *         description: Không tìm thấy sách
+ */
 router.get('/:id', bookController.getBookDetail);
 
-// --- CÁC ROUTE ADMIN (THÊM / SỬA / XÓA) ---
+// --- CÁC ROUTE QUẢN TRỊ (THÊM / SỬA / XÓA) ---
 
 /**
  * @swagger
  * /api/books:
  *   post:
- *     summary: Thêm sách mới (Hỗ trợ upload nhiều ảnh)
+ *     summary: Tạo sách mới (Hỗ trợ tải lên nhiều ảnh)
  *     tags: [Books]
  *     requestBody:
  *       required: true
@@ -53,9 +159,7 @@ router.get('/:id', bookController.getBookDetail);
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: Danh sách file ảnh upload (chọn nhiều file)
- *               # Ngoài ra có thể gửi kèm danh sách URL ảnh (nếu đã có sẵn)
- *               # images (text/array): ['url1', 'url2'] - Cái này Swagger khó mô tả chung field name, nhưng backend hỗ trợ
+ *                 description: Danh sách tệp ảnh
  *     responses:
  *       201:
  *         description: Tạo sách thành công
@@ -68,7 +172,7 @@ router.post('/', upload.array('images', 10), bookController.createBook);
  * @swagger
  * /api/books/{id}:
  *   put:
- *     summary: Cập nhật thông tin sách (Hỗ trợ upload thêm ảnh và đồng bộ danh sách ảnh)
+ *     summary: Cập nhật sách
  *     tags: [Books]
  *     parameters:
  *       - in: path
@@ -76,7 +180,6 @@ router.post('/', upload.array('images', 10), bookController.createBook);
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID của sách
  *     requestBody:
  *       content:
  *         multipart/form-data:
@@ -89,14 +192,14 @@ router.post('/', upload.array('images', 10), bookController.createBook);
  *                 type: number
  *               stock_quantity:
  *                 type: integer
- *               # Các field khác tương tự...
+ *               description:
+ *                 type: string
  *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: Danh sách file ảnh MỚI muốn upload thêm
- *               # Để xóa ảnh hoặc sắp xếp lại, gửi kèm field images (dạng text/json) chứa danh sách URL cuối cùng
+ *                 description: Tệp ảnh mới để tải lên
  *     responses:
  *       200:
  *         description: Cập nhật thành công
@@ -104,15 +207,30 @@ router.post('/', upload.array('images', 10), bookController.createBook);
  *         description: Không tìm thấy sách
  */
 router.put('/:id', upload.array('images', 10), bookController.updateBook);
+
+/**
+ * @swagger
+ * /api/books/{id}:
+ *   delete:
+ *     summary: Xóa sách
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Xóa thành công
+ */
 router.delete('/:id', bookController.deleteBook);
 
-// --- ROUTE TÁC GIẢ ---
+// --- CÁC ROUTE TÁC GIẢ ---
 
 /**
  * @swagger
  * /api/books/authors:
  *   post:
- *     summary: Thêm tác giả mới
+ *     summary: Tạo tác giả mới
  *     tags: [Books - Authors]
  *     requestBody:
  *       required: true
@@ -135,14 +253,12 @@ router.post('/authors', bookController.createAuthor);
  * @swagger
  * /api/books/authors/{id}:
  *   put:
- *     summary: Cập nhật thông tin tác giả
+ *     summary: Cập nhật tác giả
  *     tags: [Books - Authors]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
  *     requestBody:
  *       content:
  *         application/json:
@@ -155,30 +271,26 @@ router.post('/authors', bookController.createAuthor);
  *       200:
  *         description: Cập nhật thành công
  *   delete:
- *     summary: Xóa tác giả (Chỉ xóa được nếu chưa có sách)
+ *     summary: Xóa tác giả
  *     tags: [Books - Authors]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
  *     responses:
  *       200:
  *         description: Xóa thành công
- *       400:
- *         description: Không thể xóa vì đang có sách liên kết
  */
 router.put('/authors/:id', bookController.updateAuthor);
 router.delete('/authors/:id', bookController.deleteAuthor);
 
-// --- ROUTE THỂ LOẠI ---
+// --- CÁC ROUTE THỂ LOẠI ---
 
 /**
  * @swagger
  * /api/books/genres:
  *   post:
- *     summary: Thêm thể loại mới
+ *     summary: Tạo thể loại mới
  *     tags: [Books - Genres]
  *     requestBody:
  *       required: true
@@ -207,8 +319,6 @@ router.post('/genres', bookController.createGenre);
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
  *     requestBody:
  *       content:
  *         application/json:
@@ -221,14 +331,12 @@ router.post('/genres', bookController.createGenre);
  *       200:
  *         description: Cập nhật thành công
  *   delete:
- *     summary: Xóa thể loại (Chỉ xóa được nếu chưa có sách)
+ *     summary: Xóa thể loại
  *     tags: [Books - Genres]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
  *     responses:
  *       200:
  *         description: Xóa thành công
@@ -236,13 +344,13 @@ router.post('/genres', bookController.createGenre);
 router.put('/genres/:id', bookController.updateGenre);
 router.delete('/genres/:id', bookController.deleteGenre);
 
-// --- QUẢN LÝ NHẬP KHO ---
+// --- CÁC ROUTE KHO HÀNG ---
 
 /**
  * @swagger
  * /api/books/import:
  *   post:
- *     summary: Nhập kho (Cộng dồn số lượng tồn kho cho sách)
+ *     summary: Nhập kho (Cộng thêm vào kho hiện có)
  *     tags: [Books - Inventory]
  *     requestBody:
  *       required: true
@@ -258,12 +366,9 @@ router.delete('/genres/:id', bookController.deleteGenre);
  *                 type: integer
  *               quantity:
  *                 type: integer
- *                 description: Số lượng nhập thêm (phải > 0)
  *     responses:
  *       200:
  *         description: Nhập kho thành công
- *       400:
- *         description: Dữ liệu không hợp lệ
  */
 router.post('/import', bookController.importStock);
 

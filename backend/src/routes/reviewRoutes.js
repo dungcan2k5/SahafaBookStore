@@ -7,14 +7,14 @@ const { verifyToken } = require('../middleware/authMiddleware');
  * @swagger
  * tags:
  *   name: Reviews
- *   description: Quản lý đánh giá, bình luận sách
+ *   description: Quản lý đánh giá sách
  */
 
 /**
  * @swagger
  * /api/reviews/book/{bookId}:
  *   get:
- *     summary: Lấy danh sách review của sách
+ *     summary: Lấy đánh giá cho một cuốn sách cụ thể
  *     tags: [Reviews]
  *     parameters:
  *       - in: path
@@ -24,7 +24,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
  *           type: integer
  *     responses:
  *       200:
- *         description: List review
+ *         description: Danh sách đánh giá
  */
 router.get('/book/:bookId', reviewController.getReviewsByBook);
 
@@ -32,7 +32,7 @@ router.get('/book/:bookId', reviewController.getReviewsByBook);
  * @swagger
  * /api/reviews:
  *   post:
- *     summary: Viết đánh giá mới
+ *     summary: Thêm đánh giá
  *     tags: [Reviews]
  *     security:
  *       - bearerAuth: []
@@ -56,7 +56,7 @@ router.get('/book/:bookId', reviewController.getReviewsByBook);
  *                 type: string
  *     responses:
  *       201:
- *         description: Đánh giá thành công
+ *         description: Đánh giá đã được thêm thành công
  */
 router.post('/', verifyToken, reviewController.addReview);
 

@@ -10,22 +10,21 @@ const { verifyToken } = require('../middleware/authMiddleware');
  *   description: Quản lý giỏ hàng
  */
 
-// Tất cả route giỏ hàng đều cần đăng nhập
 router.use(verifyToken);
 
 /**
  * @swagger
  * /api/cart:
  *   get:
- *     summary: Lấy thông tin giỏ hàng của người dùng
+ *     summary: Lấy giỏ hàng của người dùng hiện tại
  *     tags: [Cart]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Thông tin giỏ hàng
+ *         description: Chi tiết giỏ hàng
  *       401:
- *         description: Chưa đăng nhập
+ *         description: Chưa xác thực
  */
 router.get('/', cartController.getCart);
 
@@ -43,46 +42,90 @@ router.get('/', cartController.getCart);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - book_id
  *             properties:
  *               book_id:
  *                 type: integer
  *               quantity:
  *                 type: integer
+ *                 default: 1
  *     responses:
  *       200:
- *         description: Thêm thành công
+ *         description: Đã thêm sản phẩm thành công
  *       400:
- *         description: Lỗi đầu vào
- *       401:
- *         description: Chưa đăng nhập
+ *         description: Đầu vào không hợp lệ
  */
 router.post('/add', cartController.addToCart);
 
 /**
  * @swagger
  * /api/cart/item/{id}:
- *   delete:
- *     summary: Xóa một sản phẩm khỏi giỏ hàng
+ *   put:
+ *     summary: Cập nhật số lượng sản phẩm trong giỏ
  *     tags: [Cart]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
+ *         description: ID mục giỏ hàng
  *         schema:
  *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - quantity
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
+ *       400:
+ *         description: Số lượng không hợp lệ
+ *       404:
+ *         description: Không tìm thấy sản phẩm
+ */
+router.put('/item/:id', cartController.updateCartItem);
+
+/**
+ * @swagger
+ * /api/cart/item/{id}:
+ *   delete:
+ *     summary: Xóa sản phẩm khỏi giỏ hàng
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
  *         required: true
- *         description: ID của sản phẩm trong giỏ hàng (cart_item_id)
+ *         description: ID mục giỏ hàng
  *     responses:
  *       200:
  *         description: Xóa thành công
- *       401:
- *         description: Chưa đăng nhập
- *       404:
- *         description: Không tìm thấy sản phẩm trong giỏ hàng
  */
 router.delete('/item/:id', cartController.removeCartItem);
 
-router.put('/item/:id', cartController.updateCartItem); // Route cập nhật số lượng
-router.delete('/clear', cartController.clearCart);      // Route xóa sạch giỏ
+/**
+ * @swagger
+ * /api/cart/clear:
+ *   delete:
+ *     summary: Xóa toàn bộ giỏ hàng
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Đã xóa giỏ hàng
+ */
+router.delete('/clear', cartController.clearCart);
+
 module.exports = router;

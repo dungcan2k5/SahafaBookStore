@@ -165,20 +165,13 @@ const fetchTransactions = async () => {
         search: searchText.value?.trim() || undefined
       }
     });
-    
-    const txData = res || [];
 
-    if (Array.isArray(txData)) {
-        transactions.value = txData;
-        total.value = txData.meta?.total || txData.length || 0;
-    } 
-    else if (txData.rows) {
-        transactions.value = txData.rows;
-        total.value = txData.count || 0;
-    }
-    else {
-        transactions.value = [];
-        total.value = 0;
+    if (Array.isArray(res)) {
+      transactions.value = res;
+      total.value = res.meta?.total || res.length;
+    } else {
+      transactions.value = [];
+      total.value = 0;
     }
 
   } catch (e) {

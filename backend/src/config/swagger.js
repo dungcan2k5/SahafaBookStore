@@ -6,14 +6,14 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Sahafa Bookstore API',
+      title: 'API Sahafa Bookstore',
       version: '1.0.0',
       description: 'Tài liệu API cho dự án Sahafa Bookstore',
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3000',
-        description: 'Server',
+        url: process.env.API_URL || 'http://localhost:5173',
+        description: 'Máy chủ',
       },
     ],
     components: {
@@ -28,7 +28,7 @@ const options = {
     security: [{ bearerAuth: [] }],
   },
 
-  // Dùng path tuyệt đối để chắc chắn quét đúng routes
+  // Dùng đường dẫn tuyệt đối để đảm bảo quét đúng các route
   apis: [path.join(__dirname, '../routes/*.js')],
 };
 

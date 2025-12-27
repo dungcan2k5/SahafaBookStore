@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
 });
 
 // 2. Import hàm initModels
-// Sử dụng path.join để chắc chắn đường dẫn đúng trên mọi hệ điều hành
+// Sử dụng path.join để đảm bảo đường dẫn đúng trên mọi hệ điều hành
 const modelsPath = path.join(__dirname, "../models/models"); 
 console.log("📂 Đang tìm file models tại:", modelsPath);
 
@@ -32,16 +32,16 @@ if (!models || Object.keys(models).length === 0) {
     console.error("❌ LỖI: Hàm initModels trả về rỗng! Kiểm tra file models.js xem có dòng 'return' chưa.");
     process.exit(1);
 } else {
-    console.log(`✅ Đã load thành công ${Object.keys(models).length} models:`, Object.keys(models).join(", "));
+    console.log(`✅ Đã tải thành công ${Object.keys(models).length} models:`, Object.keys(models).join(", "));
 }
 
 // 5. Hàm kết nối
 const connectDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log("✅ Kết nối Database thành công!");
+        console.log("✅ Kết nối Cơ sở dữ liệu thành công!");
         await sequelize.sync(); // Đồng bộ bảng
-        console.log("✅ Đã đồng bộ cấu trúc Database!");
+        console.log("✅ Đã đồng bộ cấu trúc Cơ sở dữ liệu!");
     } catch (error) {
         console.error("❌ Kết nối thất bại:", error);
         process.exit(1);

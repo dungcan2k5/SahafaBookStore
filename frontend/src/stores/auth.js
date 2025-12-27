@@ -8,20 +8,16 @@ export const useAuthStore = defineStore('auth', () => {
     const isLoading = ref(false);
     const error = ref(null);
 
-    // HÀM ĐĂNG NHẬP
+    // HÀNH ĐỘNG ĐĂNG NHẬP
     const login = async (email, password) => {
     isLoading.value = true;
     error.value = null;
     try {
         const res = await api.post('api/auth/login', { email, password });
         
-        // Log để kiểm tra cấu trúc thật (Nếu vẫn undefined thì phải sửa api.js)
-        console.log("Dữ liệu sau Interceptor:", res); 
-
-        // SỬA TẠI ĐÂY: Kiểm tra linh hoạt các tầng dữ liệu
         let finalData = res;
         
-        // Nếu res bị undefined hoặc không có token, thử lấy từ res.data (phòng hờ Interceptor lỗi)
+        // Dự phòng nếu interceptor không trả về dữ liệu đã giải nén
         if (!finalData || !finalData.token) {
             finalData = res?.data;
         }
@@ -33,11 +29,11 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('user', JSON.stringify(finalData.user));
             return true;
         } else {
-            error.value = "Thông tin phản hồi từ Server không hợp lệ (Thiếu Token)";
+            error.value = "Phản hồi từ máy chủ không hợp lệ (Thiếu Token)";
             return false;
         }
     } catch (err) {
-        console.error("Login Error:", err);
+        console.error("Lỗi Đăng Nhập:", err);
         error.value = err.response?.data?.message || 'Đăng nhập thất bại';
         return false;
     } finally {
@@ -45,12 +41,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
 };
 
-    // HÀM ĐĂNG KÝ
+    // HÀNH ĐỘNG ĐĂNG KÝ
     const register = async (userData) => {
         isLoading.value = true;
         error.value = null;
         try {
-            // SỬA: Bỏ '/api' ở đầu đường dẫn
             await api.post('/api/auth/register', userData);
             return true;
         } catch (err) {

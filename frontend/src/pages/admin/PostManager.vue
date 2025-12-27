@@ -198,7 +198,7 @@ const generateSlug = () => {
 const fetchPosts = async () => {
     loading.value = true;
     try {
-        const res = await api.get('/api/posts');
+        const res = await api.get('/api/posts?status=all');
         const payload = (res && res.data !== undefined) ? res.data : res;
         posts.value = Array.isArray(payload) ? payload : (payload?.data || payload?.rows || []);
     } catch (error) {

@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Đường dẫn tạm để lưu file vừa upload (chưa gắn vào sách)
+// Đường dẫn tạm để lưu file vừa tải lên (chưa gắn vào sách)
 const uploadRoot = process.env.UPLOAD_DIR || path.join(__dirname, '../../../uploads');
 const tempDir = path.join(uploadRoot, 'temp');
 
@@ -10,13 +10,13 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
 }
 
-// Cấu hình storage
+// Cấu hình lưu trữ
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, tempDir);
     },
     filename: (req, file, cb) => {
-        // Tên file: timestamp-originalName (giữ nguyên tên gốc để dễ tìm)
+        // Tên file: timestamp-tên_gốc (giữ nguyên tên gốc để dễ tìm)
         // Xóa dấu tiếng Việt và ký tự lạ trong tên file
         const sanitizedName = file.originalname
             .normalize('NFD')
@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
     }
 });
 
-// Filter file
+// Bộ lọc file
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -37,7 +37,7 @@ const fileFilter = (req, file, cb) => {
     if (extname && mimetype) {
         return cb(null, true);
     } else {
-        cb(new Error('Chỉ cho phép upload file ảnh (jpeg, jpg, png, gif, webp)!'));
+        cb(new Error('Chỉ cho phép tải lên file ảnh (jpeg, jpg, png, gif, webp)!'));
     }
 };
 

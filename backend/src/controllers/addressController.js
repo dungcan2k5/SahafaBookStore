@@ -1,47 +1,38 @@
 const { models, sequelize } = require('../config/database');
 const { Address } = models;
 
-// [GET] /api/addresses - Lấy danh sách địa chỉ của user hiện tại
+// Lấy danh sách địa chỉ của người dùng hiện tại
 const getMyAddresses = async (req, res) => {
   try {
-    // LƯU Ý: Kiểm tra lại middleware xác thực của bạn. 
-    // Thông thường biến này nằm ở req.user.user_id thay vì req.user_id
-    // Nếu code dưới không chạy, hãy thử đổi req.user_id thành req.user.user_id
     const userId = req.user_id || (req.user && req.user.user_id); 
 
     const addresses = await Address.findAll({
       where: { user_id: userId },
-      // SỬA LỖI TẠI ĐÂY:
-      // Thay vì sắp xếp theo 'created_at' (không tồn tại), ta sắp xếp theo 'address_id'.
-      // Vì id tự tăng nên id lớn hơn nghĩa là tạo sau (mới nhất).
       order: [
-        ['is_default', 'DESC'], // Mặc định lên đầu
-        ['address_id', 'DESC']  // Mới nhất lên đầu (dựa theo ID)
+        ['is_default', 'DESC'], 
+        ['address_id', 'DESC']
       ] 
     });
     res.json({ success: true, data: addresses });
   } catch (error) {
-    console.error("Get Address Error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    console.error("Lỗi lấy địa chỉ:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [POST] /api/addresses - Thêm địa chỉ mới
+// Thêm địa chỉ mới
 const addAddress = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { recipient_name, phone, address_detail, is_default } = req.body;
     const userId = req.user_id || (req.user && req.user.user_id);
 
-    // Kiểm tra xem user đã có địa chỉ nào chưa
     const count = await Address.count({ where: { user_id: userId } });
     
-    // Nếu chưa có cái nào -> Cái đầu tiên auto là mặc định
-    // Hoặc user chủ động chọn là mặc định
+    // Địa chỉ đầu tiên mặc định là địa chỉ mặc định
     const shouldBeDefault = count === 0 || is_default;
 
     if (shouldBeDefault) {
-      // Bỏ default của tất cả các địa chỉ cũ
       await Address.update({ is_default: false }, { 
         where: { user_id: userId },
         transaction: t 
@@ -57,15 +48,15 @@ const addAddress = async (req, res) => {
     }, { transaction: t });
 
     await t.commit();
-    res.status(201).json({ success: true, message: 'Thêm địa chỉ thành công', data: newAddr });
+    res.status(201).json({ success: true, message: 'Đã thêm địa chỉ', data: newAddr });
   } catch (error) {
     await t.rollback();
-    console.error("Add Address Error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    console.error("Lỗi thêm địa chỉ:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [PUT] /api/addresses/:id - Cập nhật địa chỉ
+// Cập nhật địa chỉ
 const updateAddress = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -79,9 +70,7 @@ const updateAddress = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Không tìm thấy địa chỉ' });
     }
 
-    // Nếu user muốn đặt cái này làm mặc định
     if (is_default) {
-      // Reset các cái khác về false
       await Address.update({ is_default: false }, { 
         where: { user_id: userId },
         transaction: t 
@@ -99,26 +88,25 @@ const updateAddress = async (req, res) => {
     res.json({ success: true, message: 'Cập nhật thành công' });
   } catch (error) {
     await t.rollback();
-    console.error("Update Address Error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    console.error("Lỗi cập nhật địa chỉ:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [DELETE] /api/addresses/:id - Xóa địa chỉ
+// Xóa địa chỉ
 const deleteAddress = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user_id || (req.user && req.user.user_id);
 
-    // Chỉ cho phép xóa địa chỉ của chính mình
     const deleted = await Address.destroy({ where: { address_id: id, user_id: userId } });
     
-    if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy địa chỉ hoặc không có quyền xóa' });
+    if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy địa chỉ' });
     
     res.json({ success: true, message: 'Đã xóa địa chỉ' });
   } catch (error) {
-    console.error("Delete Address Error:", error);
-    res.status(500).json({ success: false, message: 'Lỗi server' });
+    console.error("Lỗi xóa địa chỉ:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 

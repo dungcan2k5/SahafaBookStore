@@ -2,7 +2,7 @@ const { models, sequelize } = require('../config/database');
 const { Order, Transaction, User, Address } = models;
 const { SePayFactory } = require('../patterns/PaymentFactory');
 
-// [POST] /api/payment/sepay-webhook
+// Xử lý Webhook SePay
 const handleSepayWebhook = async (req, res) => {
   try {
     const paymentFactory = new SePayFactory(models, sequelize);
@@ -10,12 +10,12 @@ const handleSepayWebhook = async (req, res) => {
     const result = await webhookHandler.process(req.body);
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Webhook Error:", error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Lỗi Webhook:", error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [GET] /api/payment/transactions
+// Lấy tất cả giao dịch
 const getAllTransactions = async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
@@ -27,7 +27,6 @@ const getAllTransactions = async (req, res) => {
 
     if (search) {
         const searchNum = parseInt(search);
-        // Nếu search là số -> tìm theo order_id hoặc transaction_id
         if (!isNaN(searchNum)) {
              whereClause = {
                 [require('sequelize').Op.or]: [
@@ -36,7 +35,6 @@ const getAllTransactions = async (req, res) => {
                 ]
              };
         } else {
-             // Tìm theo tên hoặc email user
              const { Op } = require('sequelize');
              userWhereClause = {
                 [Op.or]: [
@@ -75,12 +73,12 @@ const getAllTransactions = async (req, res) => {
         }
     });
   } catch (error) {
-    console.error('getAllTransactions error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Lỗi getAllTransactions:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// [PUT] /api/payment/transactions/:id/approve
+// Phê duyệt giao dịch thủ công
 const approveTransaction = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -89,18 +87,18 @@ const approveTransaction = async (req, res) => {
     const transaction = await Transaction.findByPk(id);
     if (!transaction) {
       await t.rollback();
-      return res.status(404).json({ success: false, message: 'Giao dịch không tồn tại' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy giao dịch' });
     }
 
     if (transaction.status === 'success') {
       await t.rollback();
-      return res.status(400).json({ success: false, message: 'Giao dịch này đã thành công rồi' });
+      return res.status(400).json({ success: false, message: 'Giao dịch đã thành công rồi' });
     }
 
     const order = await Order.findByPk(transaction.order_id);
     if (!order) {
       await t.rollback();
-      return res.status(404).json({ success: false, message: 'Đơn hàng gốc không tồn tại' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng liên quan' });
     }
 
     await transaction.update({ status: 'success' }, { transaction: t });
@@ -111,16 +109,16 @@ const approveTransaction = async (req, res) => {
     }, { transaction: t });
 
     await t.commit();
-    res.json({ success: true, message: 'Đã duyệt thanh toán thành công!' });
+    res.json({ success: true, message: 'Giao dịch đã được phê duyệt thủ công' });
 
   } catch (error) {
     await t.rollback();
     console.error(error);
-    res.status(500).json({ success: false, message: 'Lỗi server khi duyệt đơn' });
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// ✅ [DELETE] /api/payment/transactions/:id - Xóa giao dịch
+// Xóa giao dịch
 const deleteTransaction = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -129,50 +127,46 @@ const deleteTransaction = async (req, res) => {
     const tx = await Transaction.findByPk(id);
     if (!tx) {
       await t.rollback();
-      return res.status(404).json({ success: false, message: 'Giao dịch không tồn tại' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy giao dịch' });
     }
 
-    // Chỉ cho xóa nếu chưa success (để tránh xóa lịch sử thanh toán thật)
     if (tx.status === 'success') {
       await t.rollback();
-      return res.status(400).json({ success: false, message: 'Không thể xóa giao dịch đã thành công' });
+      return res.status(400).json({ success: false, message: 'Không thể xóa giao dịch thành công' });
     }
 
     await Transaction.destroy({ where: { transaction_id: id }, transaction: t });
     await t.commit();
-    res.json({ success: true, message: 'Đã xóa giao dịch' });
+    res.json({ success: true, message: 'Giao dịch đã bị xóa' });
   } catch (error) {
     await t.rollback();
-    console.error('deleteTransaction error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Lỗi deleteTransaction:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 
-// ✅ [POST] /api/payment/transactions/fake
-// Tạo GD TEST đúng nghĩa: tạo 1 đơn ảo riêng (unpaid + pending) và 1 transaction pending gắn vào đơn đó
+// Tạo giao dịch giả
 const createFakeTransaction = async (req, res) => {
   try {
-    // lấy user admin/employee đang đăng nhập (nếu muốn), còn không thì lấy user id=1
     const adminId = req.user_id || 1;
     let user = await User.findByPk(adminId);
     if (!user) user = await User.findOne();
 
     if (!user) {
-      return res.status(400).json({ success: false, message: 'Chưa có User nào trong DB để tạo GD test' });
+      return res.status(400).json({ success: false, message: 'Không tìm thấy người dùng trong DB' });
     }
 
     let addr = await Address.findOne({ where: { user_id: user.user_id } });
     if (!addr) {
       addr = await Address.create({
         user_id: user.user_id,
-        recipient_name: 'Khách Test GD',
+        recipient_name: 'Khách hàng thử nghiệm',
         phone: '0900000000',
-        address_detail: 'Địa chỉ test giao dịch',
+        address_detail: 'Địa chỉ thử nghiệm',
         is_default: false
       });
     }
 
-    // tạo ORDER ẢO
     const order = await Order.create({
       user_id: user.user_id,
       shipping_address: addr.address_id,
@@ -182,7 +176,6 @@ const createFakeTransaction = async (req, res) => {
       order_status: 'pending'
     });
 
-    // tạo TRANSACTION ẢO
     const tx = await Transaction.create({
       order_id: order.order_id,
       user_id: user.user_id,
@@ -191,10 +184,10 @@ const createFakeTransaction = async (req, res) => {
       status: 'pending'
     });
 
-    res.status(201).json({ success: true, message: 'Tạo GD test thành công', data: tx });
+    res.status(201).json({ success: true, message: 'Đã tạo giao dịch giả', data: tx });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
   }
 };
 

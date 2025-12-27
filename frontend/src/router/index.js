@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth' 
 
-// --- USER PAGES ---
+// --- TRANG NGƯỜI DÙNG ---
 import Home from '@/pages/user/Home.vue' 
 import Event1212 from '@/pages/event/Event1212.vue'
 import Cart from '@/pages/user/Cart.vue' 
@@ -21,11 +21,11 @@ import Term from '@/pages/user/Term.vue'
 import CategoryDetail from '@/pages/user/CategoryDetail.vue'
 import BooksListing from '@/pages/user/BooksListing.vue';
 
-// --- ADMIN LAYOUT ---
+// --- LAYOUT QUẢN TRỊ ---
 import AdminLayout from '@/layouts/AdminLayout.vue' 
 
 const routes = [
-  // ================== USER ROUTES (PUBLIC) ==================
+  // ================== TUYẾN ĐƯỜNG NGƯỜI DÙNG (CÔNG KHAI) ==================
   { path: '/', name: 'Home', component: Home },
   { path: '/event-1212', name: 'Event1212', component: Event1212 },
   { path: '/cart', name: 'Cart', component: Cart },
@@ -35,7 +35,7 @@ const routes = [
    
   { path: '/books', name: 'BooksListing', component: BooksListing },
   
-  // 🔥 SỬA QUAN TRỌNG: Đổi :id thành :slug
+  // Tuyến đường động cho Chi tiết Sách
   { path: '/books/:slug', name: 'BookDetail', component: BookDetail },
   
   { path: '/gift-card', name: 'GiftCard', component: GiftCardPage },
@@ -54,7 +54,7 @@ const routes = [
   { path: '/store-system', name: 'StoreSystem', component: () => import('@/pages/user/StoreSystem.vue') },
   { path: '/user/profile', name: 'UserProfile', component: () => import('@/pages/user/UserProfile.vue')},
 
-  // --- BLOG & NEWS ROUTES ---
+  // --- TUYẾN ĐƯỜNG BLOG & TIN TỨC ---
   { path: '/blog', name: 'Blog', component: () => import('@/pages/user/BlogPage.vue') },
   { path: '/blog/:slug', name: 'PostDetail', component: () => import('@/pages/user/PostDetail.vue') },
   { 
@@ -63,7 +63,7 @@ const routes = [
     component: () => import('@/pages/user/PostDetail.vue') 
   },
 
-  // ================== ADMIN ROUTES (PRIVATE) ==================
+  // ================== TUYẾN ĐƯỜNG QUẢN TRỊ (RIÊNG TƯ) ==================
   {
     path: '/admin',
     component: AdminLayout,
@@ -82,7 +82,7 @@ const routes = [
     ]
   },
 
-  // ================== 404 NOT FOUND ==================
+  // ================== 404 KHÔNG TÌM THẤY ==================
   { 
     path: '/:pathMatch(.*)*', 
     name: 'NotFound', 
@@ -98,7 +98,7 @@ const router = createRouter({
   }
 })
 
-// ================== SECURITY GUARD ==================
+// ================== BẢO VỆ ĐƯỜNG DẪN ==================
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const user = authStore.user;

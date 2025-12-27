@@ -1,9 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // Sử dụng biến môi trường đã khai báo ở bước 1
-    // baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`,
-    baseURL: "https://sahafa.dungcan.id.vn", // Tạm thời cố định URL Backend
+    // Sử dụng biến môi trường cho URL API
+    baseURL: import.meta.env.VITE_API_URL || '', 
     headers: {
         'Content-Type': 'application/json',
     },
@@ -20,25 +19,24 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 👇 THÊM ĐOẠN NÀY: Tự động lấy mảng 'data' bên trong response
+// Interceptor phản hồi để đơn giản hóa việc xử lý dữ liệu
 api.interceptors.response.use(
     (response) => {
-        // Lấy cục data thô từ backend
         const res = response.data; 
 
         // Nếu cấu trúc chuẩn { success: true, data: [...], meta: {...} }
         if (res && res.success === true && res.data) {
             const output = res.data;
             
-            // TRICK: Nếu output là mảng, ta lén gắn thêm meta vào nó luôn
+            // Gắn meta vào mảng đầu ra nếu có
             if (Array.isArray(output) && res.meta) {
                 output.meta = res.meta;
             }
             
-            return output; // Trả về mảng (nhưng đã có kèm meta ẩn)
+            return output; 
         }
 
-        // Các trường hợp khác (lỗi, hoặc trả về raw)
+        // Trả về phản hồi thô cho các trường hợp khác
         return res; 
     },
     (error) => Promise.reject(error)

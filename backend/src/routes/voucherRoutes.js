@@ -14,13 +14,13 @@ const { verifyToken, authorize } = require('../middleware/authMiddleware');
  * @swagger
  * /api/vouchers:
  *   get:
- *     summary: Lấy danh sách voucher đang có hiệu lực
+ *     summary: Lấy các mã giảm giá hợp lệ
  *     tags: [Vouchers]
  *     responses:
  *       200:
- *         description: List voucher
+ *         description: Danh sách các mã giảm giá hợp lệ
  *   post:
- *     summary: Tạo voucher mới (Admin/Employee)
+ *     summary: Tạo mã giảm giá mới (Quản trị viên/Nhân viên)
  *     tags: [Vouchers]
  *     security:
  *       - bearerAuth: []
@@ -54,7 +54,7 @@ const { verifyToken, authorize } = require('../middleware/authMiddleware');
  *       201:
  *         description: Tạo thành công
  *       403:
- *         description: Không có quyền
+ *         description: Bị cấm
  */
 router.get('/', voucherController.getVouchers);
 router.post('/', verifyToken, authorize(['admin', 'employee']), voucherController.createVoucher);
@@ -63,7 +63,7 @@ router.post('/', verifyToken, authorize(['admin', 'employee']), voucherControlle
  * @swagger
  * /api/vouchers/check:
  *   post:
- *     summary: Kiểm tra tính hợp lệ của mã giảm giá
+ *     summary: Xác thực mã giảm giá
  *     tags: [Vouchers]
  *     requestBody:
  *       required: true
@@ -78,22 +78,35 @@ router.post('/', verifyToken, authorize(['admin', 'employee']), voucherControlle
  *                 type: string
  *               orderValue:
  *                 type: number
- *                 description: Giá trị đơn hàng để check điều kiện tối thiểu
  *     responses:
  *       200:
- *         description: Mã hợp lệ
+ *         description: Mã giảm giá hợp lệ
  *       400:
- *         description: Mã không hợp lệ hoặc chưa đủ điều kiện
+ *         description: Không hợp lệ hoặc không đủ điều kiện
  *       404:
- *         description: Mã không tìm thấy
+ *         description: Không tìm thấy
  */
 router.post('/check', voucherController.checkVoucher);
+
+/**
+ * @swagger
+ * /api/vouchers/admin:
+ *   get:
+ *     summary: Lấy tất cả mã giảm giá (Quản trị viên/Nhân viên)
+ *     tags: [Vouchers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách tất cả mã giảm giá
+ */
 router.get('/admin', verifyToken, authorize(['admin', 'employee']), voucherController.getAllVouchersAdmin);
+
 /**
  * @swagger
  * /api/vouchers/{id}:
  *   put:
- *     summary: Cập nhật voucher (Admin/Employee)
+ *     summary: Cập nhật mã giảm giá (Quản trị viên/Nhân viên)
  *     tags: [Vouchers]
  *     security:
  *       - bearerAuth: []
@@ -123,7 +136,7 @@ router.get('/admin', verifyToken, authorize(['admin', 'employee']), voucherContr
  *       200:
  *         description: Cập nhật thành công
  *   delete:
- *     summary: Xóa voucher (Admin/Employee)
+ *     summary: Xóa mã giảm giá (Quản trị viên/Nhân viên)
  *     tags: [Vouchers]
  *     security:
  *       - bearerAuth: []

@@ -4,7 +4,7 @@
       
       <div class="flex justify-between items-end mb-6">
         <h1 class="text-xl font-bold text-gray-800 uppercase flex items-center gap-2">
-          Giỏ hàng <span class="text-base font-normal text-gray-500 normal-case">({{ cartStore.totalItems }} sản phẩm)</span>
+          Giỏ Hàng <span class="text-base font-normal text-gray-500 normal-case">({{ cartStore.totalItems }} sản phẩm)</span>
         </h1>
         
         <button 
@@ -12,7 +12,7 @@
           @click="cartStore.clearCartAPI()"
           class="text-red-500 hover:text-red-700 font-medium text-sm underline cursor-pointer"
         >
-          Xóa tất cả
+          Xóa Tất Cả
         </button>
       </div>
 
@@ -24,9 +24,9 @@
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
           </svg>
         </div>
-        <p class="text-gray-600 mb-6">Chưa có sản phẩm trong giỏ hàng của bạn.</p>
+        <p class="text-gray-600 mb-6">Giỏ hàng của bạn đang trống.</p>
         <router-link to="/" class="bg-[#C92127] text-white font-bold py-3 px-10 rounded-lg hover:bg-red-700 transition shadow-md uppercase">
-          Mua sắm ngay
+          Mua Sắm Ngay
         </router-link>
       </div>
 
@@ -54,8 +54,8 @@
                <img 
                  :src="fullImage(item)" 
                  class="w-20 h-24 object-cover border rounded bg-white" 
-                 alt="Product Image" 
-                 @error="$event.target.src='https://placehold.co/400x600?text=Error'"
+                 alt="Ảnh sản phẩm" 
+                 @error="$event.target.src='https://placehold.co/400x600?text=Lỗi'"
                />
                <div>
                   <router-link 
@@ -109,7 +109,7 @@
 
         <div class="w-full lg:w-[350px] shrink-0">
            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-24 border border-gray-100">
-              <h3 class="font-bold text-gray-800 mb-4 pb-2 border-b">Thanh toán</h3>
+              <h3 class="font-bold text-gray-800 mb-4 pb-2 border-b">Tóm Tắt Đơn Hàng</h3>
               
               <div class="flex justify-between mb-3 text-gray-600 text-sm">
                  <span>Tạm tính:</span>
@@ -130,11 +130,11 @@
                 @click="handleCheckout"
                 class="block w-full bg-[#C92127] text-white text-center font-bold py-3 rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition uppercase transform active:scale-95"
               >
-                Tiến hành thanh toán
+                Tiến Hành Thanh Toán
               </button>
 
               <router-link to="/" class="block text-center text-blue-600 hover:underline mt-4 text-sm font-medium">
-                 ← Tiếp tục mua sắm
+                 ← Tiếp Tục Mua Sắm
               </router-link>
            </div>
         </div>
@@ -172,7 +172,7 @@ const resolveQuantity = (item) => {
   return Number(item.quantity ?? item.quantity ?? 1);
 };
 
-// Luôn làm mới giỏ hàng khi vào trang
+// Luôn làm mới giỏ hàng khi tải trang
 onMounted(() => {
     cartStore.fetchCart();
 });
@@ -185,7 +185,7 @@ const handleCheckout = () => {
         return;
     }
     if (cartStore.items.length === 0) {
-        alert("Giỏ hàng đang trống!");
+        alert("Giỏ hàng của bạn đang trống!");
         return;
     }
     router.push('/checkout');

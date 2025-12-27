@@ -19,6 +19,8 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
@@ -35,8 +37,8 @@ app.use(express.urlencoded({ extended: true }));
 // Kết nối DB
 connectDB();
 
-// Serve static files (uploads)
-// Đường dẫn này sẽ map http://host:port/uploads -> folder uploads ở root project hoặc UPLOAD_DIR
+// Phục vụ tệp tĩnh (uploads)
+// Đường dẫn này sẽ map http://host:port/uploads -> thư mục uploads ở root project hoặc UPLOAD_DIR
 const uploadRoot = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
 app.use('/uploads', express.static(uploadRoot));
 
@@ -54,14 +56,15 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/chat', chatRoutes)
 
-// API Docs
+// Tài liệu API
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Sahafa Backend is ready!' });
+  res.json({ message: 'Backend Sahafa đã sẵn sàng!' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Máy chủ đang chạy trên cổng ${PORT}`);
 });

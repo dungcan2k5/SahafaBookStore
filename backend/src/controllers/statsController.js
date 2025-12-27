@@ -3,34 +3,29 @@ const { Order, User, Book, Author, Publisher, Post } = models;
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 
-// [GET] /api/stats/dashboard
+// Lấy thống kê bảng điều khiển
 const getDashboardStats = async (req, res) => {
     try {
         const { period } = req.query; // 'week', 'month', 'year'
         
-        // 1. Xác định khoảng thời gian lọc
         const now = new Date();
         let startDate;
 
         if (period === 'week') {
             startDate = new Date();
-            startDate.setDate(now.getDate() - 6); // 7 ngày gần nhất
+            startDate.setDate(now.getDate() - 6);
         } else if (period === 'year') {
              startDate = new Date();
-             startDate.setMonth(now.getMonth() - 11); // 12 tháng gần nhất
+             startDate.setMonth(now.getMonth() - 11);
         } else {
-             // Default: Month (30 ngày)
+             // Mặc định: Tháng (30 ngày)
              startDate = new Date();
              startDate.setDate(now.getDate() - 29);
         }
 
-        // Set thời gian về 00:00:00 của ngày bắt đầu để chính xác hơn
         startDate.setHours(0, 0, 0, 0);
 
-        // 2. Thống kê theo kỳ (Doanh thu & Đơn hàng)
-        // Lưu ý: Chỉ tính đơn đã giao (delivered) & đã trả tiền (paid) vào Doanh thu
-        // Còn số lượng đơn hàng thì có thể tính tất cả hoặc chỉ đơn thành công. 
-        // Ở đây ta tính đơn thành công cho khớp doanh thu.
+        // Thống kê Doanh thu & Đơn hàng
         const revenueStats = await Order.findAll({
             where: {
                 created_at: { [Op.gte]: startDate },
@@ -47,16 +42,15 @@ const getDashboardStats = async (req, res) => {
         const periodRevenue = revenueStats[0].totalRevenue || 0;
         const periodOrders = revenueStats[0].totalOrders || 0;
 
-        // 3. Thống kê Tổng quan hệ thống (All Time)
+        // Tổng quan Hệ thống (Toàn thời gian)
         const totalUsers = await User.count({ where: { role: 'customer' } });
-        const totalBooks = await Book.sum('stock_quantity') || 0; // Tổng số cuốn
-        const totalTitles = await Book.count(); // Tổng đầu sách
+        const totalBooks = await Book.sum('stock_quantity') || 0; 
+        const totalTitles = await Book.count();
         const totalAuthors = await Author.count();
         const totalPublishers = await Publisher.count();
         const totalPosts = await Post.count();
 
-        // 4. Dữ liệu biểu đồ (Chi tiết theo thời gian)
-        // Query lại các đơn hàng để vẽ chart (vì query trên là SUM cục bộ)
+        // Dữ liệu Biểu đồ
         const ordersForChart = await Order.findAll({
             where: {
                 created_at: { [Op.gte]: startDate },
@@ -67,7 +61,6 @@ const getDashboardStats = async (req, res) => {
             order: [['created_at', 'ASC']]
         });
 
-        // Xử lý group data
         const grouped = {};
         
         if (period === 'year') {
@@ -110,26 +103,21 @@ const getDashboardStats = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                // Period Stats
                 periodRevenue,
                 periodOrders,
-                
-                // System Stats
                 totalUsers,
-                totalBooks,     // Số cuốn tồn kho
-                totalTitles,    // Số đầu sách
+                totalBooks,
+                totalTitles,
                 totalAuthors,
                 totalPublishers,
                 totalPosts,
-
-                // Chart
                 chartData
             }
         });
 
     } catch (error) {
-        console.error("Lỗi stats:", error);
-        res.status(500).json({ success: false, message: 'Lỗi server' });
+        console.error("Lỗi Thống kê:", error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 

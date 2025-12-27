@@ -1,11 +1,11 @@
 const { models } = require('../config/database');
-const { User, Address, Cart } = models; // Import thêm Cart để dùng khi tạo User
+const { User, Address, Cart } = models;
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 
-// --- USER PROFILE (Thường dùng cho các route /api/users/profile) ---
+// --- USER PROFILE ---
 
-// [GET] /api/users/profile
+// Get current user profile
 const getProfile = async (req, res) => {
     try {
         const user = await User.findByPk(req.user_id, {
@@ -18,17 +18,17 @@ const getProfile = async (req, res) => {
     }
 };
 
-// [PUT] /api/users/profile
+// Update current user profile
 const updateProfile = async (req, res) => {
     try {
         const { full_name, phone, avatar_url } = req.body;
         
-        // Kiểm tra trùng số điện thoại (nếu có thay đổi)
+        // Check for duplicate phone number
         if (phone) {
              const exists = await User.findOne({ 
                  where: { 
                      phone, 
-                     user_id: { [Op.ne]: req.user_id } // Không tính chính mình
+                     user_id: { [Op.ne]: req.user_id }
                  } 
              });
              if (exists) return res.status(400).json({ success: false, message: 'Số điện thoại này đã được sử dụng' });
@@ -47,12 +47,12 @@ const updateProfile = async (req, res) => {
 
 // --- ADDRESS MANAGEMENT ---
 
-// [GET] /api/users/addresses
+// Get all addresses
 const getAddresses = async (req, res) => {
     try {
         const addresses = await Address.findAll({
             where: { user_id: req.user_id },
-            order: [['is_default', 'DESC']] // Đưa địa chỉ mặc định lên đầu
+            order: [['is_default', 'DESC']]
         });
         res.json({ success: true, data: addresses });
     } catch (error) {
@@ -60,7 +60,7 @@ const getAddresses = async (req, res) => {
     }
 };
 
-// [POST] /api/users/addresses
+// Add new address
 const addAddress = async (req, res) => {
     try {
         const { address_detail, phone, recipient_name, is_default } = req.body;
@@ -69,12 +69,12 @@ const addAddress = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ thông tin' });
         }
 
-        // Nếu set default, bỏ default các cái cũ đi
+        // If setting default, unset previous default
         if (is_default) {
             await Address.update({ is_default: false }, { where: { user_id: req.user_id } });
         }
 
-        // Nếu đây là địa chỉ đầu tiên của user, tự động set mặc định
+        // Default if first address
         const count = await Address.count({ where: { user_id: req.user_id } });
         const shouldDefault = count === 0 ? true : is_default;
 
@@ -92,7 +92,7 @@ const addAddress = async (req, res) => {
     }
 };
 
-// [PUT] /api/users/addresses/:id
+// Update address
 const updateAddress = async (req, res) => {
     try {
         const { id } = req.params;
@@ -116,11 +116,10 @@ const updateAddress = async (req, res) => {
     }
 };
 
-// [DELETE] /api/users/addresses/:id
+// Delete address
 const deleteAddress = async (req, res) => {
     try {
         const { id } = req.params;
-        // SỬA LỖI: Dùng address_id thay vì address_detail
         const deleted = await Address.destroy({ where: { address_id: id, user_id: req.user_id } });
         
         if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy địa chỉ hoặc không có quyền xóa' });
@@ -134,7 +133,7 @@ const deleteAddress = async (req, res) => {
 
 // --- ADMIN MANAGEMENT ---
 
-// [GET] /api/users - Danh sách User (Admin/Employee)
+// Get all users (Admin/Employee)
 const getAllUsers = async (req, res) => {
     try {
         const { role, search, page = 1, limit = 10 } = req.query;
@@ -150,7 +149,6 @@ const getAllUsers = async (req, res) => {
             ];
         }
 
-        // Nếu là employee chỉ được xem customer
         if (req.user_role === 'employee' && (!role || role !== 'customer')) {
              whereClause.role = 'customer';
         }
@@ -166,7 +164,6 @@ const getAllUsers = async (req, res) => {
         res.json({
             success: true,
             data: rows,
-            // 👇 SỬA Ở ĐÂY: Đổi 'pagination' thành 'meta' cho chuẩn bài
             meta: {
                 total: count,
                 page: parseInt(page),
@@ -180,7 +177,7 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-// [POST] /api/users - Tạo User mới (Admin only)
+// Create User (Admin only)
 const createUser = async (req, res) => {
     try {
         const { full_name, email, password, role, phone } = req.body;
@@ -199,7 +196,7 @@ const createUser = async (req, res) => {
             phone
         });
 
-        // Tạo Cart mặc định cho user mới
+        // Create default Cart
         await Cart.create({ user_id: newUser.user_id });
 
         res.status(201).json({ success: true, data: newUser });
@@ -209,7 +206,7 @@ const createUser = async (req, res) => {
     }
 };
 
-// [PUT] /api/users/:id - Admin update User
+// Update User (Admin only)
 const updateUserAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -235,7 +232,7 @@ const updateUserAdmin = async (req, res) => {
     }
 };
 
-// [DELETE] /api/users/:id - Admin xóa User
+// Delete User (Admin only)
 const deleteUserAdmin = async (req, res) => {
     try {
         const { id } = req.params;

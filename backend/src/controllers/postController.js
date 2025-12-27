@@ -1,21 +1,32 @@
 const { models } = require('../config/database');
 const { Post, Category } = models;
 
-// [GET] /api/posts - Lấy danh sách bài viết
+// Lấy tất cả bài viết
 const getAllPosts = async (req, res) => {
     try {
+        const { status } = req.query;
+
+        let whereClause = { status: 'published' };
+
+        // Logic lọc cho Dashboard Admin
+        if (status === 'all') {
+            whereClause = {};
+        } else if (status) {
+            whereClause = { status };
+        }
+
         const posts = await Post.findAll({
-            where: { status: 'published' },
+            where: whereClause,
             include: [{ model: Category, attributes: ['category_name'] }],
             order: [['post_id', 'DESC']]
         });
         res.json({ success: true, data: posts });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [GET] /api/posts/:id - Lấy chi tiết bài viết
+// Lấy chi tiết bài viết theo ID
 const getPostDetail = async (req, res) => {
     try {
         const { id } = req.params;
@@ -23,15 +34,15 @@ const getPostDetail = async (req, res) => {
             include: [Category]
         });
 
-        if (!post) return res.status(404).json({ success: false, message: 'Bài viết không tồn tại' });
+        if (!post) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
 
         res.json({ success: true, data: post });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [GET] /api/posts/slug/:slug - Lấy chi tiết bài viết theo slug
+// Lấy chi tiết bài viết theo slug
 const getPostBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
@@ -40,30 +51,29 @@ const getPostBySlug = async (req, res) => {
             include: [Category]
         });
 
-        if (!post) return res.status(404).json({ success: false, message: 'Bài viết không tồn tại' });
+        if (!post) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
 
         res.json({ success: true, data: post });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [GET] /api/posts/categories - Lấy danh mục bài viết (VD: Tin tức, Review, Khuyến mãi)
+// Lấy danh mục bài viết
 const getPostCategories = async (req, res) => {
     try {
         const categories = await Category.findAll();
         res.json({ success: true, data: categories });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [POST] /api/posts - Tạo bài viết mới (Admin/Employee)
+// Tạo bài viết mới
 const createPost = async (req, res) => {
     try {
         const { title, post_slug, thumbnail_url, content, category_id, status } = req.body;
         
-        // Simple validation
         if (!title || !post_slug) {
             return res.status(400).json({ success: false, message: 'Tiêu đề và Slug là bắt buộc' });
         }
@@ -75,7 +85,7 @@ const createPost = async (req, res) => {
             content,
             category_id,
             status: status || 'draft',
-            user_id: req.user_id // Người tạo
+            user_id: req.user_id
         });
 
         res.status(201).json({ success: true, data: newPost });
@@ -84,18 +94,18 @@ const createPost = async (req, res) => {
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).json({ success: false, message: 'Slug bài viết đã tồn tại' });
         }
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [PUT] /api/posts/:id - Cập nhật bài viết (Admin/Employee)
+// Cập nhật bài viết
 const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, post_slug, thumbnail_url, content, category_id, status } = req.body;
 
         const post = await Post.findByPk(id);
-        if (!post) return res.status(404).json({ success: false, message: 'Bài viết không tìm thấy' });
+        if (!post) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
 
         await post.update({
             title,
@@ -108,21 +118,21 @@ const updatePost = async (req, res) => {
 
         res.json({ success: true, message: 'Cập nhật bài viết thành công' });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
-// [DELETE] /api/posts/:id - Xóa bài viết (Admin/Employee)
+// Xóa bài viết
 const deletePost = async (req, res) => {
     try {
         const { id } = req.params;
         const deleted = await Post.destroy({ where: { post_id: id } });
         
-        if (!deleted) return res.status(404).json({ success: false, message: 'Bài viết không tìm thấy' });
+        if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
 
         res.json({ success: true, message: 'Xóa bài viết thành công' });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 };
 
