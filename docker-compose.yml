@@ -2,8 +2,8 @@ services:
     backend:
         image: dungcan2k5/sahafa-backend:latest
         restart: always
-        ports:
-            - "3000:3000"
+        # ports:
+            # - "3000:3000"
         volumes:
             # Map thư mục data chứa DB
             - ./data:/app/data
@@ -18,13 +18,23 @@ services:
     frontend:
         image: dungcan2k5/sahafa-frontend:latest
         restart: always
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
+        # ports:
+            # - "80:80"
+            # - "443:443"
+        # volumes:
             # Cấu trúc: /đường/dẫn/trên/vps : /đường/dẫn/trong/container
             # Ví dụ bạn lưu cert ở /home/zun/certs/ trên VPS:
-            - /etc/ssl/cf-origin.crt:/etc/nginx/ssl/cf-origin.crt
-            - /etc/ssl/cf-origin.key:/etc/nginx/ssl/cf-origin.key
+            # - /etc/ssl/cf-origin.crt:/etc/nginx/ssl/cf-origin.crt
+            # - /etc/ssl/cf-origin.key:/etc/nginx/ssl/cf-origin.key
         depends_on:
+            - backend
+    
+    tunnel:
+        image: cloudflare/cloudflared:latest
+        restart: always
+        command: tunnel run
+        environment:
+          - TUNNEL_TOKEN=${TUNNEL_TOKEN} 
+        depends_on:
+            - frontend
             - backend
